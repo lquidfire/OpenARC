@@ -4415,6 +4415,8 @@ main(int argc, char **argv)
 			                  sizeof pidfile);
 		}
 
+		(void) config_get(cfg, "UMask", &filemask, sizeof filemask);
+
 		if (become == NULL)
 		{
 			(void) config_get(cfg, "Userid", &become,
