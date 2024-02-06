@@ -3659,8 +3659,8 @@ mlfi_eom(SMFICTX *ctx)
 				if (conf->conf_dolog)
 				{
 					syslog(LOG_WARNING,
-					       "%s: can't parse %s; ignoring",
-					       afc->mctx_jobid, AUTHRESULTSHDR);
+					       "%s: can't parse %s; %s ; ignoring",
+					       afc->mctx_jobid, AUTHRESULTSHDR, hdr->hdr_val);
 				}
 
 				continue;
