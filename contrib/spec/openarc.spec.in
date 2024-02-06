@@ -1,16 +1,21 @@
 %global systemd (0%{?fedora} >= 18) || (0%{?rhel} >= 7)
-%global tmpfiles (0%{?fedora} >= 15) || (0%{?rhel} >= 7)
+%global systemd_runtimedir (0%{?fedora} >= 21) || (0%{?rhel} >= 8)
+%global tmpfiles ((0%{?fedora} >= 15) || (0%{?rhel} >= 7)) && !%{systemd_runtimedir}
 
 Summary: An open source library and milter for providing ARC service
 Name: openarc
 Version: @VERSION@
 Release: 1%{?dist}
 License: BSD and Sendmail
-URL: https://github.com/mskucherawy/OpenARC
+URL: https://github.com/trusteddomainproject/OpenARC
+Source0: openarc-%{version}.tar.gz
 
+BuildRequires: gcc
 BuildRequires: libtool
-BuildRequires: pkgconfig(openssl)
+BuildRequires: make
+BuildRequires: pkgconfig(jansson)
 BuildRequires: pkgconfig(libbsd)
+BuildRequires: pkgconfig(openssl)
 
 # sendmail-devel renamed for F25+
 %if 0%{?fedora} > 25
@@ -30,11 +35,8 @@ BuildRequires: systemd
 # Required for SysV
 Requires(post): chkconfig
 Requires(preun): chkconfig, initscripts
-Requires(postun): initscripts
 %endif
 
-Source0: openarc-%{version}.tar.gz
-Prefix: %{_prefix}
 
 %description
 The Trusted Domain Project is a community effort to develop and maintain a
@@ -61,27 +63,31 @@ required for developing applications against libopenarc.
 
 %build
 %configure --disable-static
+%make_build
 
-make %{?_smp_mflags}
 %install
-make install DESTDIR=%{buildroot}
-mkdir -p %{buildroot}%{_sysconfdir}
-mkdir -p -m 0700 %{buildroot}%{_localstatedir}/run/%{name}
+%make_install
+mkdir -p -m 0700 %{buildroot}%{_sysconfdir}/%{name}
+mkdir -p -m 0750 %{buildroot}%{_rundir}/%{name}
 rm -r %{buildroot}%{_prefix}/share/doc/openarc
 rm %{buildroot}/%{_libdir}/*.la
 
 
 cat > %{buildroot}%{_sysconfdir}/openarc.conf <<EOF
-## See openarc.conf(5) or %{_docdir}/%{name}-%{version}/openarc.conf.sample for more
-PidFile %{_localstatedir}/run/openarc/openarc.pid
+## See openarc.conf(5) or %{_docdir}/%{name}%{?rhel:-%{version}}/openarc.conf.sample for more
+#PidFile %{_rundir}/%{name}/%{name}.pid
 Syslog  yes
-#Umask   002
 UserID  openarc:openarc
-Socket  inet:8894@localhost
+Socket  local:%{_rundir}/%{name}/%{name}.sock
+SignHeaders to,subject,message-id,date,from,mime-version,dkim-signature
+PeerList %{_sysconfdir}/%{name}/PeerList
+MilterDebug 6
+EnableCoredumps yes
 
 ## After setting Mode to "sv", running
 ## opendkim-genkey -D %{_sysconfdir}/openarc -s key -d `hostname --domain`
 ## and putting %{_sysconfdir}/openarc
+#Mode                    sv
 #Canonicalization        relaxed/simple
 #Domain                  example.com # change to domain
 #Selector                key
@@ -89,23 +95,37 @@ Socket  inet:8894@localhost
 #SignatureAlgorithm rsa-sha256
 EOF
 
+# Don't sign or validate connections from localhost
+cat > %{buildroot}%{_sysconfdir}/%{name}/PeerList <<EOF
+127.0.0.1/32
+[::1]/128
+EOF
+chmod 0640 %{buildroot}%{_sysconfdir}/%{name}/PeerList
 
 %if %systemd
 install -d -m 0755 %{buildroot}%{_unitdir}
-cat > %{buildroot}%{_unitdir}/%{name}.service << 'EOF'
+cat > %{buildroot}%{_unitdir}/%{name}.service <<EOF
 [Unit]
 Description=Authenticated Receive Chain (ARC) Milter
 Documentation=man:%{name}(8) man:%{name}.conf(5) http://www.trusteddomain.org/%{name}/
 After=network.target nss-lookup.target syslog.target
 
 [Service]
-Type=forking
-PIDFile=%{_localstatedir}/run/%{name}/%{name}.pid
+Type=simple
+%if %{systemd_runtimedir}
+RuntimeDirectory=%{name}
+RuntimeDirectoryMode=0750
+%endif
 EnvironmentFile=-%{_sysconfdir}/sysconfig/%{name}
-ExecStart=/usr/sbin/%{name} $OPTIONS
+ExecStart=/usr/sbin/%{name} -f $OPTIONS
+ExecStartPost=/sbin/restorecon -r -F %{_rundir}/%{name}
 ExecReload=/bin/kill -USR1 $MAINPID
+Restart=on-failure
 User=%{name}
 Group=%{name}
+UMask=0007
+ProtectSystem=strict
+ProtectHome=true
 
 [Install]
 WantedBy=multi-user.target
@@ -118,19 +138,20 @@ install -m 0755 contrib/init/redhat/%{name} %{buildroot}%{_initrddir}/%{name}
 %if %{tmpfiles}
 install -p -d %{buildroot}%{_tmpfilesdir}
 cat > %{buildroot}%{_tmpfilesdir}/%{name}.conf <<EOF
-D %{_localstatedir}/run/%{name} 0700 %{name} %{name} -
+D %{_rundir}/%{name} 0750 %{name} %{name} -
 EOF
 %endif
 
 %pre
-if ! getent passwd openarc >/dev/null 2>&1; then
-    %{_sbindir}/useradd -M -d %{_localstatedir}/lib -r -s /bin/false openarc
-    if ! getent group openarc >/dev/null; then
-        %{_sbindir}/groupadd openarc
-        %{_sbindir}/usermod -g openarc openarc
+if ! getent passwd %{name} >/dev/null 2>&1; then
+    %{_sbindir}/useradd -M -d %{_localstatedir}/lib/%{name} -r -s /sbin/nologin
+%{name}
+    if ! getent group %{name} >/dev/null; then
+        %{_sbindir}/groupadd %{name}
+        %{_sbindir}/usermod -g %{name} %{name}
     fi
     if getent group mail >/dev/null; then
-        %{_sbindir}/usermod -G mail openarc
+        %{_sbindir}/usermod -G mail %{name}
     fi
 fi
 exit 0
@@ -156,20 +177,25 @@ fi
 exit 0
 %endif
 
-%post -n libopenarc -p /sbin/ldconfig
+%postun
+%if %systemd
+%systemd_postun_with_restart %{name}.service
+%endif
 
-%postun -n libopenarc -p /sbin/ldconfig
-
+%ldconfig_scriptlets -n libopenarc
 
 %files
-%defattr(-,root,root)
-%doc LICENSE LICENSE.Sendmail README RELEASE_NOTES
-%config(noreplace) %{_sysconfdir}/openarc.conf
+%license LICENSE LICENSE.Sendmail
+%doc README RELEASE_NOTES %{name}/%{name}.conf.sample
+%dir %attr(0755,root,%{name}) %{_sysconfdir}/%{name}
+%config(noreplace) %attr(0644,root,%{name}) %{_sysconfdir}/%{name}.conf
+%config(noreplace) %attr(0440,%{name},%{name}) %{_sysconfdir}/%{name}/PeerList
 
 %if %{tmpfiles}
 %{_tmpfilesdir}/%{name}.conf
-%else
-%dir %attr(-,%{name},%{name}) %{_localstatedir}/run/%{name}
+%endif
+%if !%{tmpfiles} && !%{systemd_runtimedir}
+%dir %attr(0750,%{name},%{name}) %{_rundir}/%{name}
 %endif
 
 %if %{systemd}
@@ -180,19 +206,16 @@ exit 0
 %{_mandir}/*/*
 %{_sbindir}/*
 
-
 %files -n libopenarc
-%doc LICENSE LICENSE.Sendmail
+%license LICENSE LICENSE.Sendmail
 %defattr(-,root,root)
 %{_libdir}/*.so.*
 
 %files -n libopenarc-devel
-%defattr(-,root,root)
-%doc LICENSE LICENSE.Sendmail
 %{_includedir}/*
 %{_libdir}/*.so
 %{_libdir}/pkgconfig/*.pc
 
 %changelog
-* Sun Jul 23 2017  Matt Domsch <matt@domsch.com> 0.1.0-1
-- update to Fedora Packaging Guidelines
+* %(date "+%a %b %d %Y") (Automated RPM build) - %{version}-%{release}
+- See git log for actual changes.
