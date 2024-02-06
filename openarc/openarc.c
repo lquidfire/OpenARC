@@ -1326,7 +1326,6 @@ static void
 arcf_config_free(struct arcf_config *conf)
 {
 	assert(conf != NULL);
-	assert(conf->conf_refcnt == 0);
 
 	if (conf->conf_libopenarc != NULL)
 		arc_close(conf->conf_libopenarc);
