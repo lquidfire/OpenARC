@@ -1468,7 +1468,10 @@ arcf_config_load(struct config *data, struct arcf_config *conf,
 			conf->conf_signalg = ARC_SIGN_RSASHA256;
 		}
 
-		if ((conf->conf_mode & ARC_MODE_SIGN))
+		/* No explicit mode means we might need to sign, so these are
+		 * still required.
+		 */
+		if ((!conf->conf_mode) || (conf->conf_mode & ARC_MODE_SIGN))
 		{
 			if (config_get(data, "Domain",
 			                  &conf->conf_domain,
