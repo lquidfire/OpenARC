@@ -7,7 +7,7 @@
 #
 # Setup
 #
-AC_PREREQ(2.71)
+AC_PREREQ(2.61)
 
 #
 # Package version
@@ -38,8 +38,8 @@ AM_INIT_AUTOMAKE(
   1.11.1
   dnl Automake version before 1.13 (when the serial-tests option was
   dnl still the default) still defined the badly obsolete macro
-  dnl 'AC_PROG_INSTALL'.
-  m4_ifndef([AC_PROG_INSTALL], [serial-tests])
+  dnl 'AM_PROG_INSTALL'.
+  m4_ifndef([AM_PROG_INSTALL], [serial-tests])
 )
 AC_CONFIG_HEADERS([build-config.h])
 
@@ -61,9 +61,7 @@ AC_SUBST([LIBOPENARC_VERSION_INFO])
 # Checks for programs
 #
 AC_PROG_CC
-# AC_PROG_CC_C99
 AM_PROG_CC_C_O
-# AC_PROG_LIBTOOL
 LT_INIT
 
 PKG_PROG_PKG_CONFIG
