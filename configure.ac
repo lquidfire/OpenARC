@@ -36,14 +36,12 @@ AC_INIT([OpenARC],
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE(
   1.11.1
-  dnl Automake version before 1.13 (when the serial-tests option was
-  dnl still the default) still defined the badly obsolete macro
-  dnl 'AM_PROG_INSTALL'.
-  m4_ifndef([AM_PROG_INSTALL], [serial-tests])
 )
 AC_CONFIG_HEADERS([build-config.h])
 
 AC_CONFIG_MACRO_DIR([m4])
+
+LT_INIT
 
 #
 # Hexadecimal version, for use in generating dkim.h
@@ -61,9 +59,9 @@ AC_SUBST([LIBOPENARC_VERSION_INFO])
 # Checks for programs
 #
 AC_PROG_CC
-AC_PROG_CC_C99
+# autoconf 2.70 deprecated this, but it might still be necessary on old versions
+m4_version_prereq([2.70], [:], [AC_PROG_CC_C99])
 AM_PROG_CC_C_O
-AC_PROG_LIBTOOL
 
 PKG_PROG_PKG_CONFIG
 
@@ -964,23 +962,26 @@ AC_SUBST([SYSCONFDIR])
 # Finish up
 #
 
-AC_OUTPUT([	Makefile
-		docs/Makefile
-		contrib/Makefile
-			contrib/docs/Makefile
-			contrib/init/Makefile
-			contrib/init/generic/Makefile
-			contrib/init/redhat/Makefile
-			contrib/init/redhat/openarc
-			contrib/init/solaris/Makefile
-			contrib/spec/Makefile
-			contrib/spec/openarc.spec
-			contrib/systemd/Makefile
-			contrib/systemd/openarc.service
-		libopenarc/openarc.pc libopenarc/Makefile
-		libopenarc/docs/Makefile
-		openarc/Makefile openarc/openarc.8 openarc/openarc.conf.5
-			openarc/openarc.conf.simple
+AC_CONFIG_FILES([
+    Makefile
+    docs/Makefile
+    contrib/Makefile
+    contrib/docs/Makefile
+    contrib/init/Makefile
+    contrib/init/generic/Makefile
+    contrib/init/redhat/Makefile
+    contrib/init/redhat/openarc
+    contrib/init/solaris/Makefile
+    contrib/spec/Makefile
+    contrib/spec/openarc.spec
+    contrib/systemd/Makefile
+    contrib/systemd/openarc.service
+    libopenarc/openarc.pc
+    libopenarc/Makefile
+    libopenarc/docs/Makefile
+    openarc/Makefile
+    openarc/openarc.8
+    openarc/openarc.conf.5
+    openarc/openarc.conf.simple
 ])
-		#libopenarc/tests/Makefile
-		#openarc/tests/Makefile
+AC_OUTPUT
