@@ -3115,6 +3115,10 @@ arc_set_cv(ARC_MESSAGE *msg, ARC_CHAIN cv)
 	       cv == ARC_CHAIN_FAIL ||
 	       cv == ARC_CHAIN_PASS);
 
+	/* none is only valid if there is no existing chain */
+	if ((cv == ARC_CHAIN_NONE) && (msg->arc_nsets != 0))
+		cv = ARC_CHAIN_PASS;
+
 	msg->arc_cstate = cv;
 }
 
