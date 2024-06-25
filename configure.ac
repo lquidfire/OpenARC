@@ -889,31 +889,6 @@ AC_DEFINE_UNQUOTED([LIBOPENARC_FEATURE_STRING], "$LIBOPENARC_FEATURE_STRING",
                    [Feature string for printing])
 
 #
-# setup for testing
-# 
-
-AC_ARG_ENABLE([live-testing],
-              AS_HELP_STRING([--disable-live-testing],
-                             [disable tests that require Internet access]),
-              [live_tests="$enable_live_testing"], [live_tests="yes"])
-AM_CONDITIONAL(LIVE_TESTS, test x"$live_tests" = x"yes")
-
-#
-# specify test socket
-# 
-
-AC_ARG_WITH([test-socket],
-            AS_HELP_STRING([--with-test-socket],
-                           [specify socket to use for all tests]),
-            [testsocket="$withval"], [testsocket=""])
-AM_CONDITIONAL(TEST_SOCKET, test x"$testsocket" != x"")
-if test x"$testsocket" != x""
-then
-	TESTSOCKET=$testsocket
-	AC_SUBST(TESTSOCKET)
-fi
-
-#
 # Platform Specific Configuration
 #
 AC_CANONICAL_HOST
@@ -983,5 +958,6 @@ AC_CONFIG_FILES([
     openarc/openarc.8
     openarc/openarc.conf.5
     openarc/openarc.conf.simple
+    test/Makefile
 ])
 AC_OUTPUT
