@@ -3806,7 +3806,7 @@ mlfi_eom(SMFICTX *ctx)
 			size_t len;
 			u_char *hfvdest;
 			u_char hfname[BUFRSZ + 1];
-			u_char hfvalue[BUFRSZ + 1];
+			u_char hfvalue[ARC_MAXHEADER + 1];
 
 			memset(hfname, '\0', sizeof hfname);
 			strlcpy(hfname, arc_hdr_name(sealhdr, &len),
