@@ -46,6 +46,8 @@ extern "C" {
 #define ARC_HDRMARGIN		75	/* "standard" header margin */
 #define ARC_MAXHEADER		4096	/* buffer for caching one header */
 #define	ARC_MAXHOSTNAMELEN	256	/* max. FQDN we support */
+#define ARC_MAXLINELEN		1000	/* physical line limit (RFC5321) */
+#define ARC_MAXHDRNAMELEN	(ARC_MAXLINELEN - 3) /* deduct ":" CRLF */
 
 #define	ARC_AR_HDRNAME		"ARC-Authentication-Results"
 #define	ARC_DEFAULT_MINKEYSIZE	1024

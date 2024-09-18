@@ -2466,7 +2466,7 @@ arc_parse_header_field(ARC_MESSAGE *msg, u_char *hdr, size_t hlen,
 		end--;
 
 	/* don't allow incredibly large field names */
-	if (end - hdr > ARC_MAXHEADER)
+	if (end - hdr > ARC_MAXHDRNAMELEN)
 		return ARC_STAT_SYNTAX;
 
 	/* don't allow a field name containing a semicolon */
@@ -2816,8 +2816,8 @@ arc_eoh(ARC_MESSAGE *msg)
 
 	for (h = msg->arc_hhead; h != NULL; h = h->hdr_next)
 	{
-		char hnbuf[ARC_MAXHEADER + 1];
-		assert(h->hdr_namelen <= ARC_MAXHEADER);
+		char hnbuf[ARC_MAXHDRNAMELEN + 1];
+		assert(h->hdr_namelen <= ARC_MAXHDRNAMELEN);
 
 		memset(hnbuf, '\0', sizeof hnbuf);
 		strncpy(hnbuf, h->hdr_text, h->hdr_namelen);
