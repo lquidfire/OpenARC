@@ -24,12 +24,12 @@ experiment and provide their feedback to the development team.
 A substantial amount of the code here is based on code developed as
 part of the [OpenDKIM](http://www.opendkim.org/) project, a Trusted
 Domain Project activity, which started as a code fork of version 2.8.3
-of the open source `dkim-milter` package developed and maintained by
-Sendmail, Inc. The license used by OpenDKIM is found in the `LICENSE`
-file. Portions of this project are also covered by the Sendmail
-Open Source License, available in this distribution in the file
-`LICENSE.Sendmail`. See the copyright notice(s) in each source file to
-determine which license(s) are applicable to that file.
+of the open source `dkim-milter` package developed and maintained
+by Sendmail, Inc. The license used by OpenDKIM and OpenARC is found
+in the `LICENSE` file. Portions of this project are also covered
+by the Sendmail Open Source License, which can be found in the
+`LICENSE.Sendmail` file. See the copyright notice(s) in each source
+file to determine which license(s) are applicable to that file.
 
 ## Dependencies
 
