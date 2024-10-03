@@ -186,7 +186,7 @@ exit 0
 
 %files
 %license LICENSE LICENSE.Sendmail
-%doc README RELEASE_NOTES %{name}/%{name}.conf.sample
+%doc README.md RELEASE_NOTES %{name}/%{name}.conf.sample
 %dir %attr(0755,root,%{name}) %{_sysconfdir}/%{name}
 %config(noreplace) %attr(0644,root,%{name}) %{_sysconfdir}/%{name}.conf
 %config(noreplace) %attr(0440,%{name},%{name}) %{_sysconfdir}/%{name}/PeerList
