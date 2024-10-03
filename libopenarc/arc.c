@@ -865,9 +865,7 @@ arc_init(void)
 	lib->arcl_dns_waitreply = arc_res_waitreply;
 	strncpy(lib->arcl_tmpdir, DEFTMPDIR, sizeof lib->arcl_tmpdir - 1);
 
-#ifdef HAVE_SHA256
 	FEATURE_ADD(lib, ARC_FEATURE_SHA256);
-#endif /* HAVE_SHA256 */
 
 	return lib;
 }

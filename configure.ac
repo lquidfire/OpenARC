@@ -552,7 +552,7 @@ openssl_found="no"
 
 if test \( "$sslpath" = "auto" -o x"$sslpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
 then
-	PKG_CHECK_MODULES([LIBCRYPTO], [openssl >= 0.9.7],
+	PKG_CHECK_MODULES([LIBCRYPTO], [openssl >= 0.9.8],
 	                  [openssl_found="yes"],
 	                  [openssl_found="no"
 	                   AC_MSG_WARN([pkg-config for openssl not found, trying manual search...])
@@ -650,15 +650,6 @@ then
 			               AC_MSG_ERROR([libssl not found]), [-ldl])
 		]
 	)
-
-	AC_CHECK_DECL([SHA256_DIGEST_LENGTH],
-                      AC_DEFINE([HAVE_SHA256], 1,
- 	                        [Define to 1 if your crypto library has SHA256 support]),
-	              AC_MSG_WARN([SHA256 is required for DKIM but is not
-	                           supported with your version of OpenSSL]),
-	              [
-#include <sys/types.h>
-#include <openssl/sha.h>])
 
 	CFLAGS="$saved_CFLAGS"
 	CPPFLAGS="$saved_CPPFLAGS"

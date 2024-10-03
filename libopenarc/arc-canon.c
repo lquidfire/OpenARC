@@ -92,7 +92,6 @@ arc_canon_free(ARC_MESSAGE *msg, ARC_CANON *canon)
 			break;
 		  }
 
-#ifdef HAVE_SHA256
 		  case ARC_HASHTYPE_SHA256:
 		  {
 			struct arc_sha256 *sha256;
@@ -108,7 +107,6 @@ arc_canon_free(ARC_MESSAGE *msg, ARC_CANON *canon)
 
 			break;
 		  }
-#endif /* HAVE_SHA256 */
 
 		  default:
 			assert(0);
@@ -169,7 +167,6 @@ arc_canon_write(ARC_CANON *canon, u_char *buf, size_t buflen)
 		break;
 	  }
 
-#ifdef HAVE_SHA256
 	  case ARC_HASHTYPE_SHA256:
 	  {
 		struct arc_sha256 *sha256;
@@ -182,7 +179,6 @@ arc_canon_write(ARC_CANON *canon, u_char *buf, size_t buflen)
 
 		break;
 	  }
-#endif /* HAVE_SHA256 */
 	}
 
 	if (canon->canon_remain != (ssize_t) -1)
@@ -617,7 +613,6 @@ arc_canon_init(ARC_MESSAGE *msg, _Bool tmp, _Bool keep)
 		  	break;
 		  }
 
-#ifdef HAVE_SHA256
 		  case ARC_HASHTYPE_SHA256:
 		  {
 			struct arc_sha256 *sha256;
@@ -651,7 +646,6 @@ arc_canon_init(ARC_MESSAGE *msg, _Bool tmp, _Bool keep)
 
 		  	break;
 		  }
-#endif /* HAVE_SHA256 */
 
 		  default:
 			assert(0);
@@ -726,15 +720,8 @@ arc_add_canon(ARC_MESSAGE *msg, int type, arc_canon_t canon, int hashtype,
 	assert(msg != NULL);
 	assert(canon == ARC_CANON_SIMPLE || canon == ARC_CANON_RELAXED);
 
-	if (arc_libfeature(msg->arc_library, ARC_FEATURE_SHA256))
-	{
-		assert(hashtype == ARC_HASHTYPE_SHA1 ||
-		       hashtype == ARC_HASHTYPE_SHA256);
-	}
-	else
-	{
-		assert(hashtype == ARC_HASHTYPE_SHA1);
-	}
+	assert(hashtype == ARC_HASHTYPE_SHA1 ||
+	       hashtype == ARC_HASHTYPE_SHA256);
 
 	if (type == ARC_CANONTYPE_HEADER)
 	{
@@ -1087,7 +1074,6 @@ arc_canon_finalize(ARC_CANON *canon)
 		break;
 	  }
 
-#ifdef HAVE_SHA256
 	  case ARC_HASHTYPE_SHA256:
 	  {
 		struct arc_sha256 *sha256;
@@ -1100,7 +1086,6 @@ arc_canon_finalize(ARC_CANON *canon)
 
 		break;
 	  }
-#endif /* HAVE_SHA256 */
 
 	  default:
 		assert(0);
@@ -1922,7 +1907,6 @@ arc_canon_closebody(ARC_MESSAGE *msg)
 			break;
 		  }
 
-#ifdef HAVE_SHA256
 		  case ARC_HASHTYPE_SHA256:
 		  {
 			struct arc_sha256 *sha256;
@@ -1935,7 +1919,6 @@ arc_canon_closebody(ARC_MESSAGE *msg)
 
 			break;
 		  }
-#endif /* HAVE_SHA256 */
 
 		  default:
 			assert(0);
@@ -1983,7 +1966,6 @@ arc_canon_getfinal(ARC_CANON *canon, u_char **digest, size_t *dlen)
 		return ARC_STAT_OK;
 	  }
 
-#ifdef HAVE_SHA256
 	  case ARC_HASHTYPE_SHA256:
 	  {
 		struct arc_sha256 *sha256;
@@ -1994,7 +1976,6 @@ arc_canon_getfinal(ARC_CANON *canon, u_char **digest, size_t *dlen)
 
 		return ARC_STAT_OK;
 	  }
-#endif /* HAVE_SHA256 */
 
 	  default:
 		assert(0);

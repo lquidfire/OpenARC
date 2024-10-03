@@ -34,7 +34,6 @@ struct arc_sha1
 	u_char			sha1_out[SHA_DIGEST_LENGTH];
 };
 
-#ifdef HAVE_SHA256
 /* struct arc_sha256 -- stuff needed to do a sha256 hash */
 struct arc_sha256
 {
@@ -43,7 +42,6 @@ struct arc_sha256
 	SHA256_CTX		sha256_ctx;
 	u_char			sha256_out[SHA256_DIGEST_LENGTH];
 };
-#endif /* HAVE_SHA256 */
 
 /* struct arc_qmethod -- signature query method */
 struct arc_qmethod
