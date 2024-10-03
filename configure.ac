@@ -930,9 +930,7 @@ AC_SUBST([SYSCONFDIR])
 
 AC_CONFIG_FILES([
     Makefile
-    docs/Makefile
     contrib/Makefile
-    contrib/docs/Makefile
     contrib/init/Makefile
     contrib/init/generic/Makefile
     contrib/init/redhat/Makefile
@@ -944,7 +942,6 @@ AC_CONFIG_FILES([
     contrib/systemd/openarc.service
     libopenarc/openarc.pc
     libopenarc/Makefile
-    libopenarc/docs/Makefile
     openarc/Makefile
     openarc/openarc.8
     openarc/openarc.conf.5
