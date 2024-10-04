@@ -52,6 +52,12 @@ you will also need:
 * [Automake](https://www.gnu.org/software/automake/) >= 1.7
 * [libtool](https://www.gnu.org/software/libtool/) >= 2.2.6
 
+## Testing
+
+Tests can be run with `make check`. OpenARC's test suite requires
+Python >= 3.7, [pytest](https://pytest.org), and
+[miltertest](https://github.com/flowerysong/miltertest).
+
 ## Additional Documentation
 
 The man page for the openarc filter is present in the openarc

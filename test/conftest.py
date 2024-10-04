@@ -2,6 +2,7 @@
 
 import os
 import subprocess
+import time
 
 import pytest
 
@@ -41,17 +42,23 @@ def tool_path(scope='session'):
 
 
 @pytest.fixture()
-def milter_config(request, private_key):
+def milter_config(request, tmp_path, private_key):
     base_path = os.path.join(request.fspath.dirname, 'files')
+    config = {
+        'cwd': base_path,
+        'file': os.path.join(base_path, 'milter.conf'),
+        'sock': tmp_path.joinpath('milter.sock'),
+    }
     for candidate in [
         request.fspath.basename,    # test file
         request.function.__name__,  # test function
     ]:
         fname = os.path.join(base_path, '.'.join([candidate, 'conf']))
         if os.path.isfile(fname):
-            return fname
+            config['file'] = fname
+            return config
 
-    return os.path.join(base_path, 'milter.conf')
+    return config
 
 
 @pytest.fixture()
@@ -60,14 +67,16 @@ def milter_cmdline(tmp_path, tool_path, milter_config):
         tool_path('openarc/openarc'),
         '-f',
         '-v',
-        '-c', milter_config,
-        '-p', tmp_path.joinpath('milter.sock'),
+        '-c', milter_config['file'],
+        '-p', milter_config['sock'],
     ]
 
 
 @pytest.fixture()
-def milter(milter_cmdline):
-    milter_proc = subprocess.Popen(milter_cmdline)
+def milter(milter_cmdline, milter_config):
+    milter_proc = subprocess.Popen(milter_cmdline, cwd=milter_config['cwd'])
+    while not milter_proc.poll() and not os.path.exists(milter_config['sock']):
+        time.sleep(0.1)
 
     yield milter_proc
 

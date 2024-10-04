@@ -48,6 +48,7 @@ jobs:
           autoreconf -fiv
           ./configure
           make
+          echo $PWD >> $GITHUB_PATH
         working-directory: ${{ github.workspace }}/miltertest
 
       - name: Test OpenARC
