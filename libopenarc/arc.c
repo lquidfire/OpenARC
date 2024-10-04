@@ -1072,6 +1072,50 @@ arc_options(ARC_LIB *lib, int op, int arg, void *val, size_t valsz)
 }
 
 /*
+**  ARC_SET_DNS -- override DNS resolver
+**
+**  Parameters:
+**      lib -- library handle
+**      dns_init -- initialization function
+**      dns_callback -- callback function
+**      dns_callback_int -- callback interval
+**      dns_close -- close function
+**      dns_start -- start function
+**      dns_cancel -- cancel function
+**      dns_waitreply -- wait function
+**
+**  Return value:
+**      An ARC_STAT constant.
+*/
+
+ARC_STAT
+arc_set_dns(ARC_LIB *lib,
+	int (*dns_init) (void **srv),
+	void (*dns_callback) (const void *context),
+	int dns_callback_int,
+	void (*dns_close) (void *srv),
+	int (*dns_start) (void *srv, int type, unsigned char *query,
+		unsigned char *buf, size_t buflen, void **qh),
+	int (*dns_cancel) (void *srv, void *qh),
+	int (*dns_waitreply) (void *srv, void *qh, struct timeval *to,
+		size_t *bytes, int *error, int *dnssec))
+{
+	if (lib->arcl_dnsinit_done) {
+		return ARC_STAT_INTERNAL;
+	}
+
+	lib->arcl_dns_init = dns_init;
+	lib->arcl_dns_callback = dns_callback;
+	lib->arcl_callback_int = dns_callback_int;
+	lib->arcl_dns_close = dns_close;
+	lib->arcl_dns_start = dns_start;
+	lib->arcl_dns_cancel = dns_cancel;
+	lib->arcl_dns_waitreply = dns_waitreply;
+
+	return ARC_STAT_OK;
+}
+
+/*
 **  ARC_GETSSLBUF -- retrieve SSL error buffer
 **
 **  Parameters:

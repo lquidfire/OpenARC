@@ -363,6 +363,19 @@ extern const char *arc_geterror __P((ARC_MESSAGE *));
 extern ARC_STAT arc_options __P((ARC_LIB *, int, int, void *, size_t));
 
 /*
+**  ARC_SET_DNS -- override DNS resolver
+*/
+
+extern ARC_STAT arc_set_dns __P((ARC_LIB *,
+                                 int (*) (void **),
+                                 void (*)(const void *),
+                                 int,
+                                 void (*)(void *),
+                                 int (*)(void *, int, unsigned char *, unsigned char *, size_t, void **),
+                                 int (*) (void *, void *),
+                                 int (*) (void *, void *, struct timeval *, size_t *, int *, int *)));
+
+/*
 **  ARC_GETSSLBUF -- retrieve SSL error buffer
 **
 **  Parameters:
