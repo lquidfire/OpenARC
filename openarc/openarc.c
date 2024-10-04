@@ -275,7 +275,7 @@ char myhostname[MAXHOSTNAMELEN + 1];		/* local host's name */
 			} while (0)
 #define	ARCF_EOHMACROS	"i {daemon_name} {auth_type}"
 
-
+
 
 /*
 **  ==================================================================
@@ -3330,7 +3330,7 @@ mlfi_eoh(SMFICTX *ctx)
 									break;
 								}
 							}
-	
+
 						}
 					}
 
@@ -3610,7 +3610,7 @@ mlfi_eom(SMFICTX *ctx)
 		                  ipbuf, sizeof ipbuf);
 		break;
 	  }
-	
+
 	  case AF_INET6:
 	  {
 		struct sockaddr_in6 sin6;
@@ -3624,7 +3624,7 @@ mlfi_eom(SMFICTX *ctx)
 	  default:
 		break;
 	}
-	
+
 	/*
 	**  Signal end-of-message to ARC.
 	*/

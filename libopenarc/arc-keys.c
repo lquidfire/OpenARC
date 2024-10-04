@@ -208,7 +208,7 @@ arc_get_key_dns(ARC_MESSAGE *msg, u_char *buf, size_t buflen)
 		/* copy it first */
 		(void) dn_expand((unsigned char *) &ansbuf, eom, cp,
 		                 (char *) qname, sizeof qname);
- 
+
 		if ((n = dn_skipname(cp, eom)) < 0)
 		{
 			arc_error(msg, "'%s' reply corrupt", qname);
@@ -370,7 +370,7 @@ arc_get_key_dns(ARC_MESSAGE *msg, u_char *buf, size_t buflen)
 **  	and must be set prior to use of this function.  Failing to do
 **  	so will cause this function to return ARC_STAT_KEYFAIL every time.
 **  	The file should contain lines of the form:
-** 
+**
 **  		<selector>._domainkey.<domain> <space> key-data
 **
 **  	Case matching on the left is case-sensitive, but libopendkim already

@@ -312,7 +312,7 @@ config_load_level(char *file, struct configdef *def,
 						size_t newlen;
 
 						oldlen = strlen(*deprecated);
-						newlen = oldlen + 2 + 
+						newlen = oldlen + 2 +
 						         strlen(def[n].cd_name);
 						new = realloc(*deprecated,
 						              newlen);

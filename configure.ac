@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 #
 # Copyright (c) 2009-2017, The Trusted Domain Project.  All rights reserved.
-# 
+#
 
 #
 # Setup
@@ -45,13 +45,13 @@ LT_INIT
 
 #
 # Hexadecimal version, for use in generating dkim.h
-# 
+#
 HEX_VERSION=$(printf %08x $(( ((VERSION_RELEASE << 8 | VERSION_MAJOR_REV) << 8 | VERSION_MINOR_REV) << 8| VERSION_PATCH )))
 AC_SUBST([HEX_VERSION])
 
 #
 # library version, passed to libtool
-# 
+#
 LIBOPENARC_VERSION_INFO=$(printf %d:%d:%d LIBVERSION_CURRENT LIBVERSION_REVISION LIBVERSION_AGE)
 AC_SUBST([LIBOPENARC_VERSION_INFO])
 
@@ -128,11 +128,11 @@ AC_CHECK_TYPES([useconds_t])
 # See if libopenarc will need -lresolv
 #
 dnscheck='
-#include "confdefs.h" 
+#include "confdefs.h"
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/nameser.h>
-#include <resolv.h> 
+#include <resolv.h>
 int main() {
 res_mkquery (0, 0, 0, 0, 0, 0, 0, 0, 0);
 dn_expand (0, 0, 0, 0, 0);
@@ -163,7 +163,7 @@ $dnscheck
 	LIBS="$saved_LIBS"
 ])
 AC_SUBST([LIBRESOLV])
- 
+
 #
 # Checks for header files
 #
@@ -380,7 +380,7 @@ fi
 
 #
 # test coverage/profiling stuff
-# 
+#
 AC_ARG_ENABLE([codecoverage],
 	AS_HELP_STRING([--enable-codecoverage],
 	               [include code coverage/profiling code]))
@@ -508,7 +508,7 @@ AM_CONDITIONAL(GPROF_FILENAMES, test x"$gprof_gmon_out" = x"no")
 
 #
 # openarc
-# 
+#
 AC_ARG_ENABLE([filter],
               AS_HELP_STRING([--disable-filter],
                              [do not compile the openarc filter]),
@@ -787,7 +787,7 @@ AC_SUBST(LIBMILTER_LIBS)
 
 #
 # header filtering requires libjansson
-# 
+#
 
 AC_ARG_WITH([libjansson],
             AS_HELP_STRING([--with-libjansson],
@@ -920,7 +920,7 @@ AC_SUBST([DOMAIN])
 
 CPPFLAGS="$CPPFLAGS -DCONFIG_BASE=\\\"$sysconfdir\\\""
 
-test "x$prefix" = xNONE && prefix=$ac_default_prefix 
+test "x$prefix" = xNONE && prefix=$ac_default_prefix
 SYSCONFDIR=`eval echo "$sysconfdir"`
 AC_SUBST([SYSCONFDIR])
 

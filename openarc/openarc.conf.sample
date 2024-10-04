@@ -10,7 +10,7 @@
 ##  AuthservID string
 ##  	default (local host name)
 ##
-##  Defines the "authserv-id" token to be used when generating 
+##  Defines the "authserv-id" token to be used when generating
 ##  Authentication-Results headers after message verification.
 
 # AuthservID		example.com
@@ -34,7 +34,7 @@
 
 ##  AutoRestartRate n/t[u]
 ##  	default (none)
-## 
+##
 ##  Sets the maximum automatic restart rate.  See the opendkim.conf(5)
 ##  man page for the format of this parameter.
 
@@ -118,7 +118,7 @@ Domain			example.com
 ##  	default (none)
 ##
 ##  Specifies the path to the private key to use when signing.  Ignored if
-##  SigningTable and KeyTable are used.  No default; must be specified for 
+##  SigningTable and KeyTable are used.  No default; must be specified for
 ##  signing if SigningTable/KeyTable are not in use.
 
 KeyFile			/var/db/dkim/example.private
@@ -179,7 +179,7 @@ FinalReceiver { yes | no }
 
 ##  PidFile filename
 ##  	default (none)
-## 
+##
 ##  Name of the file where the filter should write its pid before beginning
 ##  normal operations.
 
@@ -256,7 +256,7 @@ Syslog			Yes
 ##  	default "mail"
 ##
 ##  Valid values are :
-##      auth cron daemon kern lpr mail news security syslog user uucp 
+##      auth cron daemon kern lpr mail news security syslog user uucp
 ##      local0 local1 local2 local3 local4 local5 local6 local7
 ##
 ##  syslog facility to be used

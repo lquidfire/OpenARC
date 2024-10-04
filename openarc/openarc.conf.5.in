@@ -26,7 +26,7 @@ the value is processed.  For positive values, the following are accepted:
 "T", "t", "Y", "y", "1".  For negative values, the following are accepted:
 "F", "f", "N", "n", "0".
 
-See the 
+See the
 .I openarc(8)
 man page for details about how and when the configuration file contents
 are reloaded.
@@ -161,10 +161,10 @@ should contain on each line a hostname, domain name (e.g. ".example.com"),
 IP address, an IPv6 address (including an IPv4 mapped address), or a
 CIDR-style IP specification (e.g. "192.168.1.0/24").  An entry beginning
 with a bang ("!") character means "not", allowing exclusions of specific
-hosts that are otherwise members of larger sets.  Host and domain names are 
-matched first, then the IP or IPv6 address depending on the connection 
-type.  More precise entries are preferred over less precise ones, i.e. 
-"192.168.1.1" will match before "!192.168.1.0/24".  The text form of IPv6 
+hosts that are otherwise members of larger sets.  Host and domain names are
+matched first, then the IP or IPv6 address depending on the connection
+type.  More precise entries are preferred over less precise ones, i.e.
+"192.168.1.1" will match before "!192.168.1.0/24".  The text form of IPv6
 addresses will be forced to lowercase when queried (RFC5952), so the contents
 of this data set should also use lowercase.  The IP address portion of an
 entry may optionally contain square brackets; both forms (with and without)
@@ -266,9 +266,9 @@ is specified.
 .SH NOTES
 Features that involve specification of IPv4 addresses or CIDR blocks
 will use the
-.I inet_addr(3) 
+.I inet_addr(3)
 function to parse that information.  Users should be familiar with the
-way that function handles the non-trivial cases (for example, "192.0.2/24"    
+way that function handles the non-trivial cases (for example, "192.0.2/24"
 and "192.0.2.0/24" are not the same thing).
 .SH FILES
 .TP

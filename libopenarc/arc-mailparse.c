@@ -215,7 +215,7 @@ arc_mail_first_special(u_char *p, u_char *e, u_char **special_out)
 					*special_out = at_ptr;
 				else
 					*special_out = p;
-				return 0; 
+				return 0;
 			}
 			else if (*p == '@')
 			{
@@ -385,7 +385,7 @@ arc_mail_parse(unsigned char *line, unsigned char **user_out,
 		err = arc_mail_first_special(line, e, &special);
 		if (err != 0)
 			return err;
-		
+
 		/* given the construct we're looking at, do the right thing */
 		switch (*special)
 		{
@@ -651,7 +651,7 @@ main(int argc, char **argv)
 
 		for (n = 0; users[n] != NULL || domains[n] != NULL; n++)
 		{
-			printf("user: '%s'\ndomain: '%s'\n", 
+			printf("user: '%s'\ndomain: '%s'\n",
 				users[n] ? arc_mail_unescape(users[n]) : "null",
 				domains[n] ? arc_mail_unescape(domains[n])
 			                   : "null");

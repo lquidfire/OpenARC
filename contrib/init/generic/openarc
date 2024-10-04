@@ -82,7 +82,7 @@ od_getpid() {
 
 od_killproc() {
 	[ -z "$1" ] && return 1
-	if [ -n "$2" ]; then 
+	if [ -n "$2" ]; then
 		signal=$2
 	else
 		signal="TERM"
@@ -193,20 +193,20 @@ case "$1" in
   start)
   	od_start
 	;;
-	
+
   stop)
   	od_stop
 	;;
-	
+
   restart|force-reload)
   	od_stop
 	od_start
 	;;
-	
+
   reload)
   	od_reload
 	;;
-	
+
   status)
 	od_status $NAME
 	;;
