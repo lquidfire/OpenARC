@@ -124,6 +124,7 @@ struct arcf_config
 	uint64_t	conf_fixedtime;		/* fixed timestamp */
 	char *		conf_selector;		/* signing selector */
 	char *		conf_keyfile;		/* key file */
+	char *          conf_testkeys;          /* keys for non-DNS lookup */
 	char *		conf_tmpdir;		/* temp file directory */
 	char *		conf_authservid;	/* ID for A-R fields */
 	char *		conf_peerfile;		/* peer hosts table */
@@ -1551,6 +1552,9 @@ arcf_config_load(struct config *data, struct arcf_config *conf,
 			conf->conf_fixedtime = strtoul(str, &end, 10);
 		}
 
+		(void) config_get(data, "TestKeys", &conf->conf_testkeys,
+		                  sizeof conf->conf_testkeys);
+
 		if (!conf->conf_dolog)
 		{
 			(void) config_get(data, "Syslog", &conf->conf_dolog,
@@ -1907,6 +1911,20 @@ arcf_config_setlib(struct arcf_config *conf, char **err)
 		if (err != NULL)
 			*err = "failed to set ARC library options";
 		return FALSE;
+	}
+
+	if (conf->conf_testkeys)
+	{
+		status = arc_options(conf->conf_libopenarc, ARC_OP_SETOPT,
+		                     ARC_OPTS_TESTKEYS, conf->conf_testkeys,
+		                     sizeof conf->conf_testkeys);
+
+		if (status != ARC_STAT_OK)
+		{
+			if (err != NULL)
+				*err = "failed to set ARC library options";
+			return FALSE;
+		}
 	}
 
 	if (conf->conf_signhdrs_raw != NULL)

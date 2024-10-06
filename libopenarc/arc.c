@@ -979,6 +979,21 @@ arc_options(ARC_LIB *lib, int op, int arg, void *val, size_t valsz)
 
 		return ARC_STAT_OK;
 
+	  case ARC_OPTS_TESTKEYS:
+		if (val == NULL)
+			return ARC_STAT_INVALID;
+
+		if (op == ARC_OP_GETOPT)
+		{
+			strlcpy((char *) val, lib->arcl_queryinfo, valsz);
+		}
+		else
+		{
+			strlcpy(lib->arcl_queryinfo, (char *) val,
+			        sizeof lib->arcl_queryinfo);
+		}
+		return ARC_STAT_OK;
+
 	  case ARC_OPTS_MINKEYSIZE:
 		if (val == NULL)
 			return ARC_STAT_INVALID;
@@ -2357,6 +2372,11 @@ arc_message(ARC_LIB *lib, arc_canon_t canonhdr, arc_canon_t canonbody,
 	msg->arc_signalg = signalg;
 	msg->arc_margin = ARC_HDRMARGIN;
 	msg->arc_mode = mode;
+
+	if (strlen(lib->arcl_queryinfo) > 0)
+	{
+		msg->arc_query = ARC_QUERY_FILE;
+	}
 
 	return msg;
 }

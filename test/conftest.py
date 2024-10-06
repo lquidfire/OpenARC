@@ -8,15 +8,27 @@ import pytest
 
 @pytest.fixture()
 def private_key(scope='session'):
-    filepath = os.path.dirname(os.path.realpath(__file__))
-    filepath = os.path.join(filepath, 'files', 'private.key')
+    basepath = os.path.dirname(os.path.realpath(__file__))
+    keypath = os.path.join(basepath, 'files', 'private.key')
     binargs = [
         'openssl',
         'genrsa',
-        '-out', filepath,
+        '-out', keypath,
         '2048',
     ]
     subprocess.run(binargs)
+
+    pubpath = os.path.join(basepath, 'files', 'public.key')
+    binargs = [
+        'openssl',
+        'rsa',
+        '-in', keypath,
+        '-pubout',
+    ]
+    res = subprocess.run(binargs, capture_output=True, text=True)
+    with open(pubpath, 'w') as f:
+        key = ''.join(res.stdout.splitlines()[1:-1])
+        f.write(f'elpmaxe._domainkey.example.com v=DKIM1; k=rsa; p={key}\n')
 
 
 @pytest.fixture()
