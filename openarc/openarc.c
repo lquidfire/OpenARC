@@ -135,7 +135,7 @@ struct arcf_config
 	const char **	conf_oversignhdrs;	/* fields to over-sign (array) */
 	u_char *	conf_keydata;		/* binary key data */
 	size_t		conf_keylen;		/* key length */
-	ssize_t		conf_maxhdrsz;		/* max. header size */
+	int		conf_maxhdrsz;		/* max. header size */
 	struct config *	conf_data;		/* configuration data */
 	ARC_LIB *	conf_libopenarc;	/* shared library instance */
 	struct conflist conf_peers;		/* peers hosts */
