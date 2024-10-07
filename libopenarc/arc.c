@@ -2920,6 +2920,19 @@ arc_eoh(ARC_MESSAGE *msg)
 
 	msg->arc_nsets = nsets;
 
+	if (nsets > 50) {
+		/* RFC 8617 5.2 Validator Actions
+		 * The maximum number of ARC Sets that can be attached to a
+		 * message is 50. If more than the maximum number exist, the
+		 * Chain Validation Status is "fail", and the algorithm stops
+		 * here.
+		 */
+		arc_error(msg, "Too many ARC sets: %u", nsets);
+		msg->arc_cstate = ARC_CHAIN_FAIL;
+		msg->arc_infail = TRUE;
+		return ARC_STAT_SYNTAX;
+	}
+
 	/* build up the array of ARC sets, for use later */
 	if (nsets > 0)
 	{
@@ -3237,6 +3250,12 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 	/* if the chain arrived already failed, don't add anything */
 	if (msg->arc_infail)
 	{
+		*seal = NULL;
+		return ARC_STAT_OK;
+	}
+
+	/* If there are already 50 sets we can't add anything */
+	if (msg->arc_nsets >= 50) {
 		*seal = NULL;
 		return ARC_STAT_OK;
 	}
