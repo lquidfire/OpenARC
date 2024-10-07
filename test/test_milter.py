@@ -148,6 +148,34 @@ def test_milter_resign(run_miltertest):
             assert msg['ARC-Seal'] == ''
 
 
+def test_milter_mode_s(run_miltertest):
+    res = run_miltertest([])
+
+    assert res.returncode == 0
+    assert res.stderr == ''
+
+    msg = message_from_string(res.stdout)
+
+    assert msg['Authentication-Results'] == ''
+    assert msg['ARC-Authentication-Results'] == 'i=1; example.com; arc=none'
+    assert 'ARC-Message-Signature' in msg
+    assert 'cv=none' in msg['ARC-Seal']
+
+
+def test_milter_mode_v(run_miltertest):
+    res = run_miltertest([])
+
+    assert res.returncode == 0
+    assert res.stderr == ''
+
+    msg = message_from_string(res.stdout)
+
+    assert msg['Authentication-Results'] == 'example.com; arc=none smtp.remote-ip=127.0.0.1'
+    assert msg['ARC-Authentication-Results'] == ''
+    assert msg['ARC-Message-Signature'] == ''
+    assert msg['ARC-Seal'] == ''
+
+
 def test_milter_ar(run_miltertest):
     res = run_miltertest([])
     msg = message_from_string(res.stdout)
