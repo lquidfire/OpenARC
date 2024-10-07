@@ -187,3 +187,10 @@ def test_milter_ar_multi(run_miltertest):
     msg = message_from_string(res.stdout)
     assert msg['Authentication-Results'] == 'example.com; arc=pass smtp.remote-ip=127.0.0.1'
     assert msg['ARC-Authentication-Results'] == 'i=2; example.com; arc=pass'
+
+
+def test_milter_peerlist(run_miltertest):
+    res = run_miltertest([])
+    assert res.returncode == 1
+    assert res.stdout == ''
+    assert res.stderr == 'miltertest: (stdin): [string "(stdin)"]:12: conninfo did not reply continue\n'
