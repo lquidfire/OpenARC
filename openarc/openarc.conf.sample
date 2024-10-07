@@ -177,6 +177,14 @@ KeyFile			/var/db/dkim/example.private
 
 # PeerList		filename
 
+## PermitAuthenticationOverrides { yes | no }
+##      default "no"
+##
+## Controls whether a previous Authentication-Result with the same authserv-id
+## is allowed to override the computed ARC chain validation status.
+
+# PermitAuthenticationOverrides no
+
 ##  PidFile filename
 ##  	default (none)
 ##

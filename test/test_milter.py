@@ -49,13 +49,13 @@ end
 
 -- get header set
 ar = mt.getheader(conn, "Authentication-Results", 0)
-print("Authentication-Results:" .. ar)
+print("Authentication-Results:" .. (ar or ""))
 aar = mt.getheader(conn, "ARC-Authentication-Results", 0)
-print("ARC-Authentication-Results:" .. aar)
+print("ARC-Authentication-Results:" .. (aar or ""))
 ams = mt.getheader(conn, "ARC-Message-Signature", 0)
-print("ARC-Message-Signature:" .. ams)
+print("ARC-Message-Signature:" .. (ams or ""))
 as = mt.getheader(conn, "ARC-Seal", 0)
-print("ARC-Seal:" .. as)
+print("ARC-Seal:" .. (as or ""))
 
 mt.disconnect(conn)
 '''
@@ -74,6 +74,14 @@ if mt.getreply(conn) ~= SMFIR_CONTINUE then
 end
 ''')
     return ''.join(cooked)
+
+
+def msg_arc_set(msg):
+    return [
+        ['ARC-Authentication-Results', msg['ARC-Authentication-Results']],
+        ['ARC-Message-Signature', msg['ARC-Message-Signature']],
+        ['ARC-Seal', msg['ARC-Seal']],
+    ]
 
 
 @pytest.fixture
@@ -109,8 +117,7 @@ def test_milter_basic(run_miltertest):
     msg = message_from_string(res.stdout)
 
     assert msg['Authentication-Results'] == 'example.com; arc=none smtp.remote-ip=127.0.0.1'
-    # FIXME: this should match the above
-    assert msg['ARC-Authentication-Results'] == 'i=1; example.com; none'
+    assert msg['ARC-Authentication-Results'] == 'i=1; example.com; arc=none'
     assert 'ARC-Message-Signature' in msg
     assert 'cv=none' in msg['ARC-Seal']
 
@@ -120,13 +127,8 @@ def test_milter_resign(run_miltertest):
     msg = message_from_string(res.stdout)
 
     headers = []
-    for i in range(2,50):
-        headers = [
-            ['ARC-Authentication-Results', msg['ARC-Authentication-Results']],
-            ['ARC-Message-Signature', msg['ARC-Message-Signature']],
-            ['ARC-Seal', msg['ARC-Seal']],
-            ['Authentication-Results', msg['Authentication-Results']],
-        ] + headers
+    for i in range(2, 52):
+        headers = msg_arc_set(msg) + [['Authentication-Results', msg['Authentication-Results']]] + headers
 
         res = run_miltertest(headers)
 
@@ -135,6 +137,53 @@ def test_milter_resign(run_miltertest):
 
         msg = message_from_string(res.stdout)
 
-        # FIXME: this should be arc=pass
-        assert msg['ARC-Authentication-Results'] == f'i={i}; example.com; arc=none smtp.remote-ip=127.0.0.1'
-        assert 'cv=pass' in msg['ARC-Seal']
+        assert msg['Authentication-Results'] == 'example.com; arc=pass smtp.remote-ip=127.0.0.1'
+
+        if i <= 50:
+            assert msg['ARC-Authentication-Results'] == f'i={i}; example.com; arc=pass'
+            assert 'cv=pass' in msg['ARC-Seal']
+        else:
+            assert msg['ARC-Authentication-Results'] == ''
+            assert msg['ARC-Message-Signature'] == ''
+            assert msg['ARC-Seal'] == ''
+
+
+def test_milter_ar(run_miltertest):
+    res = run_miltertest([])
+    msg = message_from_string(res.stdout)
+
+    # override the result to "fail"
+    headers = msg_arc_set(msg)
+    res = run_miltertest(headers + [['Authentication-Results', 'example.com; arc=fail']])
+
+    msg = message_from_string(res.stdout)
+    assert msg['Authentication-Results'] == 'example.com; arc=fail smtp.remote-ip=127.0.0.1'
+    assert msg['ARC-Authentication-Results'] == 'i=2; example.com; arc=fail'
+    assert 'cv=fail' in msg['ARC-Seal']
+
+    # override the result to "pass"
+    headers = msg_arc_set(msg) + headers
+    res = run_miltertest(headers + [['Authentication-Results', 'example.com; arc=pass']])
+
+    # the chain is dead because it came in as failed, no matter what A-R says
+    msg = message_from_string(res.stdout)
+    assert msg['Authentication-Results'] == 'example.com; arc=fail smtp.remote-ip=127.0.0.1'
+    assert msg['ARC-Authentication-Results'] == ''
+    assert msg['ARC-Message-Signature'] == ''
+    assert msg['ARC-Seal'] == ''
+
+
+def test_milter_ar_multi(run_miltertest):
+    res = run_miltertest([])
+    msg = message_from_string(res.stdout)
+
+    # make sure older headers don't override
+    headers = [
+        ['Authentication-Results', 'example.com; arc=pass'],
+        ['Authentication-Results', 'example.com; arc=fail'],
+    ] + msg_arc_set(msg)
+    res = run_miltertest(headers)
+
+    msg = message_from_string(res.stdout)
+    assert msg['Authentication-Results'] == 'example.com; arc=pass smtp.remote-ip=127.0.0.1'
+    assert msg['ARC-Authentication-Results'] == 'i=2; example.com; arc=pass'

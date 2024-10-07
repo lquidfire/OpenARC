@@ -3102,10 +3102,6 @@ arc_body(ARC_MESSAGE *msg, u_char *buf, size_t len)
 ARC_STAT
 arc_eom(ARC_MESSAGE *msg)
 {
-	/* nothing to do outside of verify mode */
-	if ((msg->arc_mode & ARC_MODE_VERIFY) == 0)
-		return ARC_STAT_OK;
-
 	/* nothing to do if the chain has been expressly failed */
 	if (msg->arc_state == ARC_CHAIN_FAIL)
 		return ARC_STAT_OK;
@@ -3194,7 +3190,11 @@ arc_set_cv(ARC_MESSAGE *msg, ARC_CHAIN cv)
 	if ((cv == ARC_CHAIN_NONE) && (msg->arc_nsets != 0))
 		cv = ARC_CHAIN_PASS;
 
-	msg->arc_cstate = cv;
+	/* only update the state if it's not a hard failure */
+	if (!msg->arc_infail)
+	{
+		msg->arc_cstate = cv;
+	}
 }
 
 /*
@@ -3796,6 +3796,16 @@ char *
 arc_get_domain(ARC_MESSAGE *msg)
 {
 	return msg->arc_domain;
+}
+
+/*
+**  ARC_CHAIN_STATUS -- retrieve chain status as an int
+*/
+
+ARC_CHAIN
+arc_chain_status(ARC_MESSAGE *msg)
+{
+	return msg->arc_cstate;
 }
 
 /*

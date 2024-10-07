@@ -116,6 +116,7 @@ struct arcf_config
 	_Bool		conf_safekeys;		/* require safe keys */
 	_Bool		conf_keeptmpfiles;	/* keep temp files */
 	_Bool		conf_finalreceiver;	/* act as final receiver */
+	_Bool		conf_overridecv;	/* allow A-R to override CV */
 	u_int		conf_refcnt;		/* reference count */
 	u_int		conf_mode;		/* mode flags */
 	arc_canon_t	conf_canonhdr;		/* canonicalization for header */
@@ -1504,6 +1505,10 @@ arcf_config_load(struct config *data, struct arcf_config *conf,
 		(void) config_get(data, "FinalReceiver",
 		                  &conf->conf_finalreceiver,
 		                  sizeof conf->conf_finalreceiver);
+
+		(void) config_get(data, "PermitAuthenticationOverrides",
+		                  &conf->conf_overridecv,
+				  sizeof conf->conf_overridecv);
 
 		(void) config_get(data, "TemporaryDirectory",
 		                  &conf->conf_tmpdir,
@@ -3534,6 +3539,58 @@ mlfi_body(SMFICTX *ctx, u_char *bodyp, size_t bodylen)
 	return SMFIS_CONTINUE;
 }
 
+
+/* helper function to handle overriding the chain state */
+static _Bool
+reconcile_arc_state(msgctx afc, struct result *r)
+{
+	int initial_cv;
+	int ar_cv;
+	int new_cv;
+
+	switch (r->result_result)
+	{
+	    case ARES_RESULT_NONE:
+		ar_cv = ARC_CHAIN_NONE;
+		break;
+
+	    case ARES_RESULT_PASS:
+		ar_cv = ARC_CHAIN_PASS;
+		break;
+
+	    case ARES_RESULT_FAIL:
+		ar_cv = ARC_CHAIN_FAIL;
+		break;
+
+	    default:
+		ar_cv = ARC_CHAIN_UNKNOWN;
+		break;
+	}
+
+	initial_cv = arc_chain_status(afc->mctx_arcmsg);
+	arc_set_cv(afc->mctx_arcmsg, ar_cv);
+	new_cv = arc_chain_status(afc->mctx_arcmsg);
+
+	if (new_cv != ar_cv)
+	{
+		/* allow the library to override the result */
+		switch (arc_chain_status(afc->mctx_arcmsg))
+		{
+		case ARC_CHAIN_NONE:
+			r->result_result = ARES_RESULT_NONE;
+			break;
+		case ARC_CHAIN_PASS:
+			r->result_result = ARES_RESULT_PASS;
+			break;
+		case ARC_CHAIN_FAIL:
+			r->result_result = ARES_RESULT_FAIL;
+			break;
+		}
+	}
+
+	return initial_cv != new_cv;
+}
+
 /*
 **  MLFI_EOM -- handler called at the end of the message; we can now decide
 **              based on the configuration if and how to add the text
@@ -3703,51 +3760,22 @@ mlfi_eom(SMFICTX *ctx)
 						**  value as the chain state.
 						*/
 
-						int cv;
+						if (!conf->conf_overridecv) {
+							continue;
+						}
 
 						arfound += 1;
 						if (arfound > 1)
 						{
-							arc_set_cv(afc->mctx_arcmsg,
-							           ARC_CHAIN_FAIL);
-
-							if (conf->conf_dolog)
-							{
-								syslog(LOG_INFO,
-								       "%s: chain state forced to \"fail\" due to multiple results present",
-								       afc->mctx_jobid);
-							}
-
 							continue;
 						}
 
-						switch (ar.ares_result[n].result_result)
-						{
-						    case ARES_RESULT_NONE:
-							cv = ARC_CHAIN_NONE;
-							break;
-
-						    case ARES_RESULT_PASS:
-							cv = ARC_CHAIN_PASS;
-							break;
-
-						    case ARES_RESULT_FAIL:
-							cv = ARC_CHAIN_FAIL;
-							break;
-
-						    default:
-							cv = ARC_CHAIN_UNKNOWN;
-							break;
-						}
-
-						arc_set_cv(afc->mctx_arcmsg,
-							   cv);
-
-						if (conf->conf_dolog)
+						if (reconcile_arc_state(afc, &ar.ares_result[n]) && conf->conf_dolog)
 						{
 							syslog(LOG_INFO,
 							       "%s: chain state forced to \"%s\" due to prior result found",
-							       afc->mctx_jobid, arc_chain_status_str(afc->mctx_arcmsg));
+							       afc->mctx_jobid,
+							       arc_chain_status_str(afc->mctx_arcmsg));
 						}
 					}
 
@@ -3788,6 +3816,17 @@ mlfi_eom(SMFICTX *ctx)
 					}
 				}
 			}
+		}
+
+		if (arfound == 0) {
+			/* Record the ARC status */
+			if (arcf_dstring_len(afc->mctx_tmpstr) > 0)
+			{
+				arcf_dstring_cat(afc->mctx_tmpstr, "; ");
+			}
+
+			arcf_dstring_printf(afc->mctx_tmpstr, "arc=%s",
+			                    arc_chain_status_str(afc->mctx_arcmsg));
 		}
 
 		/*

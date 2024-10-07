@@ -129,9 +129,10 @@ default is 0.
 .TP
 .I Mode (string)
 Selects the operating mode(s) for this filter.  If the string contains
-the character "s", the filter will sign and seal messages passing through
-the filter.  If the string contains the character "v", the filter
-will do signature and seal validation of arriving messages.  The two
+the character "s", the filter will seal messages passing through
+the filter by adding a new ARC set. If the string contains the character
+"v", the filter will validate existing ARC sets and record the chain
+validation status in an "Authentication-Results" header. The two
 can be combined.  If neither is specified, the operating mode will
 be inferred on a per-connection basis based on the entries in the
 .I InternalHosts
@@ -169,6 +170,11 @@ addresses will be forced to lowercase when queried (RFC5952), so the contents
 of this data set should also use lowercase.  The IP address portion of an
 entry may optionally contain square brackets; both forms (with and without)
 will be checked.
+
+.TP
+.I PermitAuthenticationOverrides (boolean)
+Controls whether a previous Authentication-Result with the same authserv-id
+is allowed to override the computed ARC chain validation status.
 
 .TP
 .I PidFile (string)

@@ -572,6 +572,13 @@ extern uint64_t arc_ssl_version __P((void));
 
 extern char *arc_get_domain __P((ARC_MESSAGE *msg));
 
+
+/*
+**  ARC_CHAIN_STATUS -- retrieve chain status as an int
+*/
+
+extern ARC_CHAIN arc_chain_status __P((ARC_MESSAGE *msg));
+
 /*
 **  ARC_CHAIN_STATUS_STR -- retrieve chain status, as a string
 **
