@@ -87,6 +87,14 @@ Domain			example.com
 
 # EnableCoredumps	no
 
+## FinalReceiver { yes | no }
+##      default "no"
+##
+## If set, causes this filter to pass chain signatory information downstream for
+## local policy evaluation in the event of an authentication failure.
+
+# FinalReceiver         no
+
 ##  FixedTimestamp timestamp
 ##  	default (none)
 ##
@@ -122,14 +130,6 @@ Domain			example.com
 ##  signing if SigningTable/KeyTable are not in use.
 
 KeyFile			/var/db/dkim/example.private
-
-## FinalReceiver { yes | no }
-##      default "no"
-##
-## If set, causes this filter to pass chain signatory information downstream for
-## local policy evaluation in the event of an authentication failure.
-
-FinalReceiver { yes | no }
 
 ##  MaximumHeaders n
 ##
