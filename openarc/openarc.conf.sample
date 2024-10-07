@@ -271,6 +271,14 @@ Syslog			Yes
 
 # TemporaryDirectory	/tmp
 
+##  TestKeys            file
+##      default (none)
+##  Name of a file containing static DKIM records that will be used
+##  for validation instead of live DNS lookups, one per line. This is not
+##  useful in a production environment.
+
+# TestKeys              filename
+
 ##  UMask mask
 ##  	default (none)
 ##
