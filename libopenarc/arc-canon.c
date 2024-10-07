@@ -1253,7 +1253,7 @@ arc_canon_runheaders(ARC_MESSAGE *msg)
 
 	if (msg->arc_hdrbuf == NULL)
 	{
-		msg->arc_hdrbuf = arc_dstring_new(msg, BUFRSZ, MAXBUFRSZ);
+		msg->arc_hdrbuf = arc_dstring_new(msg, ARC_MAXHEADER, 0);
 		if (msg->arc_hdrbuf == NULL)
 		{
 			ARC_FREE(hdrset);
@@ -1348,12 +1348,18 @@ arc_canon_runheaders(ARC_MESSAGE *msg)
 					*/
 
 					if (arc_dstring_len(msg->arc_hdrbuf) > 0)
-						arc_dstring_cat1(msg->arc_hdrbuf,
-						                 ':');
+						if (!arc_dstring_cat1(msg->arc_hdrbuf,
+						                      ':'))
+						{
+							return ARC_STAT_NORESOURCE;
+						}
 
-					arc_dstring_catn(msg->arc_hdrbuf,
-					                  hdr->hdr_text,
-					                  hdr->hdr_namelen);
+					if (!arc_dstring_catn(msg->arc_hdrbuf,
+					                      hdr->hdr_text,
+					                      hdr->hdr_namelen))
+					{
+						return ARC_STAT_NORESOURCE;
+					}
 					continue;
 				}
 
@@ -1377,12 +1383,18 @@ arc_canon_runheaders(ARC_MESSAGE *msg)
 				if (status == 0)
 				{
 					if (arc_dstring_len(msg->arc_hdrbuf) > 0)
-						arc_dstring_cat1(msg->arc_hdrbuf,
-						                 ':');
+						if (!arc_dstring_cat1(msg->arc_hdrbuf,
+						                      ':'))
+						{
+							return ARC_STAT_NORESOURCE;
+						}
 
-					arc_dstring_catn(msg->arc_hdrbuf,
-					                 hdr->hdr_text,
-					                 hdr->hdr_namelen);
+					if (!arc_dstring_catn(msg->arc_hdrbuf,
+					                      hdr->hdr_text,
+					                      hdr->hdr_namelen))
+					{
+						return ARC_STAT_NORESOURCE;
+					}
 				}
 				else
 				{
@@ -1509,7 +1521,10 @@ arc_canon_signature(ARC_MESSAGE *msg, struct arc_hdrfield *hdr, int type)
 			continue;
 
 		/* prepare the data */
-		arc_dstring_copy(msg->arc_hdrbuf, hdr->hdr_text);
+		if (!arc_dstring_copy(msg->arc_hdrbuf, hdr->hdr_text))
+		{
+			return ARC_STAT_NORESOURCE;
+		}
 		tmphdr.hdr_text = arc_dstring_get(msg->arc_hdrbuf);
 		tmphdr.hdr_namelen = hdr->hdr_namelen;
 		tmphdr.hdr_colon = tmphdr.hdr_text + (hdr->hdr_colon - hdr->hdr_text);
