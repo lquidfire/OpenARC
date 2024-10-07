@@ -996,7 +996,7 @@ arc_canon_strip_b(ARC_MESSAGE *msg, u_char *text)
 	arc_dstring_blank(msg->arc_hdrbuf);
 
 	tmp = tmpbuf;
-	end = tmpbuf + sizeof tmpbuf;
+	end = tmpbuf + sizeof tmpbuf - 1;
 
 	n = 0;
 	in = '\0';
