@@ -408,30 +408,6 @@ arcf_chgheader(SMFICTX *ctx, char *hname, int idx, char *hvalue)
 }
 
 /*
-**  ARCF_QUARANTINE -- wrapper for smfi_quarantine()
-**
-**  Parameters:
-**  	ctx -- milter (or test) context
-**  	reason -- quarantine reason
-**
-**  Return value:
-**  	An sfsistat.
-*/
-
-sfsistat
-arcf_quarantine(SMFICTX *ctx, char *reason)
-{
-	assert(ctx != NULL);
-
-	if (testmode)
-		return arcf_test_quarantine(ctx, reason);
-#ifdef SMFIF_QUARANTINE
-	else
-		return smfi_quarantine(ctx, reason);
-#endif /* SMFIF_QUARANTINE */
-}
-
-/*
 **  ARCF_ADDHEADER -- wrapper for smfi_addheader()
 **
 **  Parameters:
@@ -1577,17 +1553,6 @@ arcf_config_load(struct config *data, struct arcf_config *conf,
 			                  &conf->conf_addswhdr,
 			                  sizeof conf->conf_addswhdr);
 		}
-
-#ifndef SMFIF_QUARANTINE
-		if (conf->conf_capture)
-		{
-			strlcpy(err,
-			        "quarantining not supported (required for CaptureUnknownErrors",
-			        errlen);
-
-			return -1;
-		}
-#endif /* SMFIF_QUARANTINE */
 
 		if (become == NULL)
 		{
