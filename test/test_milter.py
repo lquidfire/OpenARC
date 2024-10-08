@@ -201,6 +201,21 @@ def test_milter_ar(run_miltertest):
     assert msg['ARC-Seal'] == ''
 
 
+def test_milter_ar_disabled(run_miltertest):
+    res = run_miltertest([])
+    msg = message_from_string(res.stdout)
+
+    # override the result to "fail"
+    headers = msg_arc_set(msg)
+    res = run_miltertest(headers + [['Authentication-Results', 'example.com; arc=fail']])
+
+    # `PermitAuthenticationOverrides = no`
+    msg = message_from_string(res.stdout)
+    assert msg['Authentication-Results'] == 'example.com; arc=pass smtp.remote-ip=127.0.0.1'
+    assert msg['ARC-Authentication-Results'] == 'i=2; example.com; arc=pass'
+    assert 'cv=pass' in msg['ARC-Seal']
+
+
 def test_milter_ar_multi(run_miltertest):
     res = run_miltertest([])
     msg = message_from_string(res.stdout)

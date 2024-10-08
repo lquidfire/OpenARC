@@ -1191,6 +1191,7 @@ arcf_config_new(void)
 
 	memset(new, '\0', sizeof(struct arcf_config));
 	new->conf_maxhdrsz = DEFMAXHDRSZ;
+	new->conf_overridecv = TRUE;
 	new->conf_safekeys = TRUE;
 
 	LIST_INIT(&new->conf_peers);
