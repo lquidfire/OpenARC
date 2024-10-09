@@ -29,27 +29,13 @@ jobs:
         run: sudo apt install libbsd-dev liblua5.4-dev libmilter-dev libssl-dev
 
       - name: Install Python dependencies
-        run: sudo pip install pytest
+        run: sudo pip install pytest git+https://github.com/flowerysong/python-libmilter#egg=libmilter
 
       - name: Build OpenARC
         run: |
           autoreconf -fiv
           CFLAGS='-Wall' ./configure
           make -j4
-
-      - name: Check out miltertest
-        uses: actions/checkout@v4
-        with:
-          repository: flowerysong/miltertest
-          path: miltertest
-
-      - name: Build miltertest
-        run: |
-          autoreconf -fiv
-          ./configure
-          make
-          echo $PWD >> $GITHUB_PATH
-        working-directory: ${{ github.workspace }}/miltertest
 
       - name: Test OpenARC
         run: |
