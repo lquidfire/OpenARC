@@ -22,7 +22,7 @@ def run_miltertest(request, milter, milter_config):
         sock = socket.socket(family=socket.AF_UNIX)
         sock.connect(bytes(milter_config['sock']))
         conn = libmilter.MilterConnection(sock)
-        conn.optneg_mta()
+        conn.optneg_mta(protocol=libmilter.SMFI_V6_PROT ^ libmilter.SMFIP_HDR_LEADSPC)
         conn.send(libmilter.SMFIC_CONNECT, hostname='localhost', address='127.0.0.1', family=libmilter.SMFIA_INET, port=666)
         conn.send(libmilter.SMFIC_HELO, helo='mx.example.com')
 
