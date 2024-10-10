@@ -3685,18 +3685,18 @@ mlfi_eom(SMFICTX *ctx)
 
 	if (BITSET(ARC_MODE_SIGN, cc->cctx_mode))
 	{
-		int arfound = 0;
-
+		_Bool arfound = FALSE;
+		memset(&ar, '\0', sizeof ar);
 		arcf_dstring_blank(afc->mctx_tmpstr);
 
 		/* assemble authentication results */
-		for (c = 0; ; c++)
+		for (int i = 0; ; i++)
 		{
-			hdr = arcf_findheader(afc, AUTHRESULTSHDR, c);
+			hdr = arcf_findheader(afc, AUTHRESULTSHDR, i);
 			if (hdr == NULL)
 				break;
-			status = ares_parse(hdr->hdr_val, &ar);
-			if (status != 0)
+			status = ares_parse(hdr->hdr_val, &ar, conf->conf_authservid);
+			if (status == -1)
 			{
 				if (conf->conf_dolog)
 				{
@@ -3707,93 +3707,65 @@ mlfi_eom(SMFICTX *ctx)
 
 				continue;
 			}
+		}
 
-			if (strcasecmp(conf->conf_authservid,
-			               ar.ares_host) == 0)
+		for (int i = 0; i < ar.ares_count; i++)
+		{
+			if (ar.ares_result[i].result_method == ARES_METHOD_ARC)
 			{
-				int m;
-				int n;
+				if (!conf->conf_overridecv) {
+					continue;
+				}
 
-				for (n = 0; n < ar.ares_count; n++)
+				arfound = TRUE;
+				if (reconcile_arc_state(afc, &ar.ares_result[i]) && conf->conf_dolog)
 				{
-					if (ar.ares_result[n].result_method == ARES_METHOD_UNKNOWN)
-					{
-						/* foolproof: should not happen */
-						if (conf->conf_dolog)
-						{
-								syslog(LOG_DEBUG,
-								       "%s: internal error: unknown method is found in ares_result, ignored",
-								       afc->mctx_jobid);
-						}
-						continue;
-					}
-					if (ar.ares_result[n].result_method == ARES_METHOD_ARC)
-					{
-						/*
-						**  If it's an ARC result under
-						**  our authserv-id, use that
-						**  value as the chain state.
-						*/
+					syslog(LOG_INFO,
+					       "%s: chain state forced to \"%s\" due to prior result found",
+					       afc->mctx_jobid,
+					       arc_chain_status_str(afc->mctx_arcmsg));
+				}
+			}
 
-						if (!conf->conf_overridecv) {
-							continue;
-						}
+			if (arcf_dstring_len(afc->mctx_tmpstr) > 0)
+			{
+				arcf_dstring_cat(afc->mctx_tmpstr,
+						 "; ");
+			}
 
-						arfound += 1;
-						if (arfound > 1)
-						{
-							continue;
-						}
+			arcf_dstring_printf(afc->mctx_tmpstr,
+					    "%s=%s",
+					    ares_getmethod(ar.ares_result[i].result_method),
+					    ares_getresult(ar.ares_result[i].result_result));
 
-						if (reconcile_arc_state(afc, &ar.ares_result[n]) && conf->conf_dolog)
-						{
-							syslog(LOG_INFO,
-							       "%s: chain state forced to \"%s\" due to prior result found",
-							       afc->mctx_jobid,
-							       arc_chain_status_str(afc->mctx_arcmsg));
-						}
-					}
+			if (ar.ares_result[i].result_reason[0] != '\0')
+			{
+				arcf_dstring_printf(afc->mctx_tmpstr,
+						    " reason=\"%s\"",
+						    ar.ares_result[i].result_reason);
+			}
 
-					if (arcf_dstring_len(afc->mctx_tmpstr) > 0)
-					{
-						arcf_dstring_cat(afc->mctx_tmpstr,
-						                 "; ");
-					}
-
+			for (int j = 0; j < ar.ares_result[i].result_props; j++)
+			{
+				if (ar.ares_result[i].result_ptype[j] == ARES_PTYPE_COMMENT)
+				{
 					arcf_dstring_printf(afc->mctx_tmpstr,
-					                    "%s=%s",
-					                    ares_getmethod(ar.ares_result[n].result_method),
-					                    ares_getresult(ar.ares_result[n].result_result));
-
-					if (ar.ares_result[n].result_comment[0] != '\0')
-					{
-						arcf_dstring_printf(afc->mctx_tmpstr,
-						                    " %s",
-						                    ar.ares_result[n].result_comment);
-					}
-
-					for (m = 0;
-					     m < ar.ares_result[n].result_props;
-					     m++)
-					{
-						arcf_dstring_printf(afc->mctx_tmpstr,
-						                    " %s.%s=%s",
-						                    ares_getptype(ar.ares_result[n].result_ptype[m]),
-						                    ar.ares_result[n].result_property[m],
-						                    ar.ares_result[n].result_value[m]);
-					}
-
-					if (ar.ares_result[n].result_reason[0] != '\0')
-					{
-						arcf_dstring_printf(afc->mctx_tmpstr,
-						                    " reason=\"%s\"",
-						                    ar.ares_result[n].result_reason);
-					}
+					                    " %s",
+					                    ar.ares_result[i].result_value[j]);
+				} else {
+					_Bool quote = !ares_istoken(ar.ares_result[i].result_value[j]);
+					arcf_dstring_printf(afc->mctx_tmpstr,
+							    " %s.%s=%s%s%s",
+							    ares_getptype(ar.ares_result[i].result_ptype[j]),
+							    ar.ares_result[i].result_property[j],
+							    quote ? "\"" : "",
+							    ar.ares_result[i].result_value[j],
+							    quote ? "\"" : "");
 				}
 			}
 		}
 
-		if (arfound == 0) {
+		if (!arfound) {
 			/* Record the ARC status */
 			if (arcf_dstring_len(afc->mctx_tmpstr) > 0)
 			{
@@ -3899,7 +3871,7 @@ mlfi_eom(SMFICTX *ctx)
 
 		if (ipout != NULL)
 		{
-			_Bool quote = strchr(ipout, ':') != NULL;
+			_Bool quote = !ares_istoken(ipout);
 
 			arcf_dstring_printf(afc->mctx_tmpstr,
 			                    " smtp.remote-ip=%s%s%s",
@@ -3910,7 +3882,7 @@ mlfi_eom(SMFICTX *ctx)
 
 		if (conf->conf_finalreceiver && arcchainlen > 0)
 		{
-			_Bool quote = strchr(arcchainbuf, ':') != NULL;
+			_Bool quote = !ares_istoken(arcchainbuf);
 
 			arcf_dstring_printf(afc->mctx_tmpstr,
 			                    " arc.chain=%s%s%s",

@@ -21,59 +21,61 @@
 #define	MAXPROPS	16
 #define	MAXAVALUE	256
 
-/* ARES_METHOD_T -- type for specifying an authentication method */
-typedef int ares_method_t;
+/* ARES_METHOD -- type for specifying an authentication method */
+typedef enum {
+	ARES_METHOD_UNKNOWN,
+	ARES_METHOD_ARC,
+	ARES_METHOD_AUTH,
+	ARES_METHOD_DKIM,
+	ARES_METHOD_DKIMADSP,
+	ARES_METHOD_DKIMATPS,
+	ARES_METHOD_DMARC,
+	ARES_METHOD_DNSWL,
+	ARES_METHOD_DOMAINKEYS,
+	ARES_METHOD_IPREV,
+	ARES_METHOD_RRVS,
+	ARES_METHOD_SENDERID,
+	ARES_METHOD_SMIME,
+	ARES_METHOD_SPF,
+	ARES_METHOD_VBR,
+} ares_method;
 
-#define	ARES_METHOD_UNKNOWN	(-1)
-#define	ARES_METHOD_AUTH	0
-#define	ARES_METHOD_DKIM	1
-#define	ARES_METHOD_DOMAINKEYS	2
-#define	ARES_METHOD_SENDERID	3
-#define	ARES_METHOD_SPF		4
-#define	ARES_METHOD_DKIMADSP	5
-#define	ARES_METHOD_IPREV	6
-#define	ARES_METHOD_DKIMATPS	7
-#define	ARES_METHOD_DMARC	8
-#define	ARES_METHOD_SMIME	9
-#define	ARES_METHOD_RRVS	10
-#define	ARES_METHOD_ARC		11
+/* ARES_RESULT -- type for specifying an authentication result */
+typedef enum {
+	ARES_RESULT_UNDEFINED,	/* "unknown" is an actual result */
+	ARES_RESULT_DISCARD,
+	ARES_RESULT_FAIL,
+	ARES_RESULT_NEUTRAL,
+	ARES_RESULT_NONE,
+	ARES_RESULT_NXDOMAIN,
+	ARES_RESULT_PASS,
+	ARES_RESULT_PERMERROR,
+	ARES_RESULT_POLICY,
+	ARES_RESULT_SIGNED,
+	ARES_RESULT_SOFTFAIL,
+	ARES_RESULT_TEMPERROR,
+	ARES_RESULT_UNKNOWN,
+} ares_result;
 
-/* ARES_RESULT_T -- type for specifying an authentication result */
-typedef int ares_result_t;
-
-#define	ARES_RESULT_UNDEFINED	(-1)
-#define	ARES_RESULT_PASS	0
-#define	ARES_RESULT_UNASSIGNED	1	/* UNASSIGNED */
-#define	ARES_RESULT_SOFTFAIL	2
-#define	ARES_RESULT_NEUTRAL	3
-#define	ARES_RESULT_TEMPERROR	4
-#define	ARES_RESULT_PERMERROR	5
-#define	ARES_RESULT_NONE	6
-#define ARES_RESULT_FAIL	7
-#define ARES_RESULT_POLICY	8
-#define ARES_RESULT_NXDOMAIN	9
-#define ARES_RESULT_SIGNED	10
-#define ARES_RESULT_UNKNOWN	11
-#define ARES_RESULT_DISCARD	12
-
-/* ARES_PTYPE_T -- type for specifying an authentication property */
-typedef int ares_ptype_t;
-
-#define	ARES_PTYPE_UNKNOWN	(-1)
-#define	ARES_PTYPE_SMTP		0
-#define	ARES_PTYPE_HEADER	1
-#define	ARES_PTYPE_BODY		2
-#define	ARES_PTYPE_POLICY	3
+/* ARES_PTYPE -- type for specifying an authentication property */
+typedef enum {
+	ARES_PTYPE_COMMENT = -1,
+	ARES_PTYPE_UNKNOWN,
+	ARES_PTYPE_BODY,
+	ARES_PTYPE_DNS,
+	ARES_PTYPE_HEADER,
+	ARES_PTYPE_POLICY,
+	ARES_PTYPE_SMTP,
+} ares_ptype;
 
 /* RESULT structure -- a single result */
 struct result
 {
 	int		result_props;
-	ares_method_t	result_method;
-	ares_result_t	result_result;
-	ares_ptype_t	result_ptype[MAXPROPS];
+	ares_method	result_method;
+	ares_result	result_result;
+	ares_ptype	result_ptype[MAXPROPS];
 	unsigned char	result_reason[MAXAVALUE + 1];
-	unsigned char	result_comment[MAXAVALUE + 1];
 	unsigned char	result_property[MAXPROPS][MAXAVALUE + 1];
 	unsigned char	result_value[MAXPROPS][MAXAVALUE + 1];
 };
@@ -87,23 +89,11 @@ struct authres
 	struct result	ares_result[MAXARESULTS];
 };
 
-/*
-**  ARES_PARSE -- parse an Authentication-Results: header, return a
-**                structure containing a parsed result
-**
-**  Parameters:
-**  	hdr -- NULL-terminated contents of an Authentication-Results:
-**  	       header field
-**  	ar -- a pointer to a (struct authres) loaded by values after parsing
-**
-**  Return value:
-**  	0 on success, -1 on failure.
-*/
+extern int ares_parse __P((u_char *, struct authres *, const char *));
+extern _Bool ares_istoken __P((const char *));
 
-extern int ares_parse __P((u_char *, struct authres *));
-
-extern const char *ares_getmethod __P((ares_method_t));
-extern const char *ares_getresult __P((ares_result_t));
-extern const char *ares_getptype __P((ares_ptype_t));
+extern const char *ares_getmethod __P((ares_method));
+extern const char *ares_getresult __P((ares_result));
+extern const char *ares_getptype __P((ares_ptype));
 
 #endif /* _OPENARC_AR_H_ */

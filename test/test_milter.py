@@ -158,7 +158,204 @@ def test_milter_mode_none_sign(run_miltertest):
     assert res['headers'][2] == ['ARC-Authentication-Results', 'i=1; example.com; arc=none']
 
 
-def test_milter_ar(run_miltertest):
+@pytest.mark.parametrize(
+    'data',
+    [
+        # Single header
+        [
+            [(
+                'example.com;'
+                ' iprev=pass\n\tpolicy.iprev=192.0.2.1 (mail.example.com);'
+                '\n\tspf=pass (domain of foo@example.com\n\t designates 192.0.2.1 as permitted sender);'
+                ' dkim=pass header.i=@example.com header.s=foo'
+            )],
+            (
+                'iprev=pass policy.iprev=192.0.2.1 (mail.example.com);'
+                ' spf=pass (domain of foo@example.com designates 192.0.2.1 as permitted sender);'
+                ' dkim=pass header.i=@example.com header.s=foo; arc=none'
+            ),
+        ],
+        # Multiple headers
+        [
+            [
+                'example.com; iprev=pass\n\tpolicy.iprev=192.0.2.1 (mail.example.com)',
+                'example.com; spf=pass (domain of foo@example.com\n\t designates 192.0.2.1 as permitted sender)',
+                'example.com; dkim=pass header.i=@example.com header.s=foo',
+            ],
+            (
+                'iprev=pass policy.iprev=192.0.2.1 (mail.example.com);'
+                ' spf=pass (domain of foo@example.com designates 192.0.2.1 as permitted sender);'
+                ' dkim=pass header.i=@example.com header.s=foo; arc=none'
+            ),
+        ],
+        # Multiple headers for the same method
+        [
+            [
+                'example.com; spf=pass',
+                'example.com; spf=fail',
+                'example.com; spf=none',
+            ],
+            'spf=pass; arc=none',
+        ],
+        # Same method multiple times
+        [
+            ['example.com; spf=pass; spf=fail; spf=none'],
+            'spf=pass; arc=none',
+        ],
+        # Header with more results than we're willing to store
+        [
+            [(
+                'example.com;'
+                ' dkim=pass header.i=@example.com header.s=foo;'
+                ' dkim=pass header.i=@example.com header.s=bar;'
+                ' dkim=pass header.i=@example.com header.s=baz;'
+                ' dkim=pass header.i=@example.com header.s=qux;'
+                ' dkim=pass header.i=@example.com header.s=quux;'
+                ' dkim=pass header.i=@example.com header.s=quuux;'
+                ' dkim=fail header.i=@example.com header.s=foo;'
+                ' dkim=fail header.i=@example.com header.s=bar;'
+                ' dkim=fail header.i=@example.com header.s=baz;'
+                ' dkim=fail header.i=@example.com header.s=qux;'
+                ' dkim=fail header.i=@example.com header.s=quux;'
+                ' dkim=fail header.i=@example.com header.s=quuux;'
+                ' dkim=policy header.i=@example.com header.s=foo;'
+                ' dkim=policy header.i=@example.com header.s=bar;'
+                ' dkim=policy header.i=@example.com header.s=baz;'
+                ' dkim=policy header.i=@example.com header.s=qux;'
+                ' dkim=policy header.i=@example.com header.s=quux;'
+                ' dkim=policy header.i=@example.com header.s=quuux;'
+                ' spf=pass'
+            )],
+            (
+                'dkim=pass header.i=@example.com header.s=foo;'
+                ' dkim=pass header.i=@example.com header.s=bar;'
+                ' dkim=pass header.i=@example.com header.s=baz;'
+                ' dkim=pass header.i=@example.com header.s=qux;'
+                ' dkim=pass header.i=@example.com header.s=quux;'
+                ' dkim=pass header.i=@example.com header.s=quuux;'
+                ' dkim=fail header.i=@example.com header.s=foo;'
+                ' dkim=fail header.i=@example.com header.s=bar;'
+                ' dkim=fail header.i=@example.com header.s=baz;'
+                ' dkim=fail header.i=@example.com header.s=qux;'
+                ' dkim=fail header.i=@example.com header.s=quux;'
+                ' dkim=fail header.i=@example.com header.s=quuux;'
+                ' dkim=policy header.i=@example.com header.s=foo;'
+                ' dkim=policy header.i=@example.com header.s=bar;'
+                ' dkim=policy header.i=@example.com header.s=baz;'
+                ' dkim=policy header.i=@example.com header.s=qux;'
+                ' arc=none'
+            )
+        ],
+        # Non-matching authserv-id
+        [
+            [
+                'example.com.example.net; spf=pass',
+                'otheradmd.example.com; spf=tempfail',
+                'example.net; spf=permfail',
+            ],
+            'arc=none',
+        ],
+        # CFWS
+        [
+            ['example.com; (a)spf (Sender Policy Framework) = pass (good) smtp (mail transfer) . (protocol) mailfrom = foo@example.com;'],
+            'spf=pass (good) smtp.mailfrom=foo@example.com; arc=none',
+        ],
+        # Unknown method
+        [
+            ['example.com; spf=pass; superspf=pass; arc=pass; superarc=fail policy.krypton=foo;'],
+            'spf=pass; arc=pass',
+        ],
+        # Unknown ptype
+        [
+            [
+                'example.com; spf=pass imap.override=true',
+                'example.com; spf=pass; iprev=pass dnssec.signed=true',
+            ],
+            'arc=none',
+        ],
+        # reason
+        [
+            ['example.com; spf=pass (ip4)reason="192.0.2.1 matched ip4:192.0.2.0/27 in _spf.example.com"; dmarc=pass'],
+            'spf=pass reason="192.0.2.1 matched ip4:192.0.2.0/27 in _spf.example.com" (ip4); dmarc=pass; arc=none',
+        ],
+        # misplaced reason
+        [
+            ['example.com; spf=pass; iprev=pass policy.iprev=192.0.2.1 reason="because"'],
+            'arc=none',
+        ],
+        # no-result
+        [
+            [
+                'example.com; none',
+                'example.com; none; spf=pass',
+                'example.com; spf=fail; none',
+            ],
+            'arc=none',
+        ],
+        # truncations
+        [
+            [
+                'example.com',
+                'example.com; spf',
+                'example.com; spf=',
+                'example.com; dmarc=pass; iprev=pass policy',
+                'example.com; dmarc=pass; iprev=pass policy.',
+                'example.com; dmarc=pass; iprev=pass policy.iprev',
+                'example.com; dmarc=pass; iprev=pass policy.iprev=',
+                'example.com; dmarc=pass; iprev=pass policy.iprev="',
+                'example.com; dmarc=pass; iprev=pass policy.iprev="1',
+                'example.com; dmarc=pass; iprev=pass policy.iprev="1" (',
+                'example.com; dmarc=pass; iprev=pass policy.iprev="1" ( a c',
+            ],
+            'arc=none',
+        ],
+        # bad sequences
+        [
+            [
+                'example.com; dmarc=pass; spf pass;',
+                'example.com; dmarc=pass; iprev=pass policy.iprev.192.0.2.1',
+                'example.com; dmarc=pass; iprev=pass policy=iprev=192.0.2.1',
+                'example.com; dmarc=pass reason "because";',
+            ],
+            'arc=none',
+        ],
+        # RFC 8904
+        [
+            ['example.com; dnswl=pass dns.zone=accept.example.com policy.ip=192.0.2.1 policy.txt="sure, yeah" dns.sec=yes'],
+            'dnswl=pass dns.zone=accept.example.com policy.ip=192.0.2.1 policy.txt="sure, yeah" dns.sec=yes; arc=none',
+        ],
+        # quoted-string
+        [
+            ['example.com; auth=pass smtp.auth="花木蘭\\"\\\\ []"'],
+            'auth=pass smtp.auth="花木蘭\\"\\\\ []"; arc=none',
+        ],
+        # version
+        [
+            [
+                'example.com 1; spf=pass',
+                'example.com 1 ; dmarc=pass',
+            ],
+            'spf=pass; dmarc=pass; arc=none',
+        ],
+        # invalid version
+        [
+            [
+                'example.com 12.0; spf=pass',
+                'example.com a; spf=pass',
+                'example.com 1 1; spf=pass',
+            ],
+            'arc=none',
+        ],
+    ]
+)
+def test_milter_ar(run_miltertest, data):
+    """Test Authentication-Results parsing"""
+    res = run_miltertest([['Authentication-Results', x] for x in data[0]])
+
+    assert res['headers'][3] == ['ARC-Authentication-Results', f'i=1; example.com; {data[1]}']
+
+
+def test_milter_ar_override(run_miltertest):
     """Override the chain validation state with Authentication-Results"""
     res = run_miltertest()
 
@@ -182,7 +379,7 @@ def test_milter_ar(run_miltertest):
     assert len(res['headers']) == 1
 
 
-def test_milter_ar_disabled(run_miltertest):
+def test_milter_ar_override_disabled(run_miltertest):
     """`PermitAuthenticationOverrides = no` preserves the actual state"""
     res = run_miltertest()
 
@@ -197,7 +394,7 @@ def test_milter_ar_disabled(run_miltertest):
     assert res['headers'][3] == ['ARC-Authentication-Results', 'i=2; example.com; arc=pass']
 
 
-def test_milter_ar_multi(run_miltertest):
+def test_milter_ar_override_multi(run_miltertest):
     """Only the most recent A-R header should matter"""
     res = run_miltertest()
 

@@ -57,39 +57,61 @@ struct lookup methods[] =
 	{ "dkim-adsp",		ARES_METHOD_DKIMADSP },
 	{ "dkim-atps",		ARES_METHOD_DKIMATPS },
 	{ "dmarc",		ARES_METHOD_DMARC },
+	{ "dnswl",		ARES_METHOD_DNSWL },
 	{ "domainkeys",		ARES_METHOD_DOMAINKEYS },
 	{ "iprev",		ARES_METHOD_IPREV },
 	{ "rrvs",		ARES_METHOD_RRVS },
 	{ "sender-id",		ARES_METHOD_SENDERID },
 	{ "smime",		ARES_METHOD_SMIME },
 	{ "spf",		ARES_METHOD_SPF },
+	{ "vbr",		ARES_METHOD_VBR },
 	{ NULL,			ARES_METHOD_UNKNOWN }
 };
 
 struct lookup aresults[] =
 {
-	{ "none",		ARES_RESULT_NONE },
-	{ "pass",		ARES_RESULT_PASS },
-	{ "fail",		ARES_RESULT_FAIL },
-	{ "policy",		ARES_RESULT_POLICY },
-	{ "neutral",		ARES_RESULT_NEUTRAL },
-	{ "temperror",		ARES_RESULT_TEMPERROR },
-	{ "permerror",		ARES_RESULT_PERMERROR },
-	{ "nxdomain",		ARES_RESULT_NXDOMAIN },
-	{ "signed",		ARES_RESULT_SIGNED },
-	{ "unknown",		ARES_RESULT_UNKNOWN },
 	{ "discard",		ARES_RESULT_DISCARD },
+	{ "fail",		ARES_RESULT_FAIL },
+	{ "neutral",		ARES_RESULT_NEUTRAL },
+	{ "none",		ARES_RESULT_NONE },
+	{ "nxdomain",		ARES_RESULT_NXDOMAIN },
+	{ "pass",		ARES_RESULT_PASS },
+	{ "permerror",		ARES_RESULT_PERMERROR },
+	{ "policy",		ARES_RESULT_POLICY },
+	{ "signed",		ARES_RESULT_SIGNED },
 	{ "softfail",		ARES_RESULT_SOFTFAIL },
-	{ NULL,			ARES_RESULT_UNKNOWN }
+	{ "temperror",		ARES_RESULT_TEMPERROR },
+	{ "unknown",		ARES_RESULT_UNKNOWN },
+	{ NULL,			ARES_RESULT_UNDEFINED }
 };
 
 struct lookup ptypes[] =
 {
-	{ "smtp",		ARES_PTYPE_SMTP },
-	{ "header",		ARES_PTYPE_HEADER },
 	{ "body",		ARES_PTYPE_BODY },
+	{ "dns",		ARES_PTYPE_DNS },
+	{ "header",		ARES_PTYPE_HEADER },
 	{ "policy",		ARES_PTYPE_POLICY },
+	{ "smtp",		ARES_PTYPE_SMTP },
 	{ NULL,			ARES_PTYPE_UNKNOWN }
+};
+
+
+enum ar_parser_state {
+	ARP_STATE_AUTHSERVID,
+	ARP_STATE_AUTHRESVERSION_OR_AUTHSERVID,
+	ARP_STATE_RESINFO,
+	ARP_STATE_METHODSPEC,
+	ARP_STATE_METHODSPEC_EQUALS,
+	ARP_STATE_RESULT,
+	ARP_STATE_REASONSPEC_EQUALS,
+	ARP_STATE_REASONSPEC_VALUE,
+	ARP_STATE_PROP_OR_REASON,
+	ARP_STATE_PTYPE,
+	ARP_STATE_PROPSPEC_DOT,
+	ARP_STATE_PROPERTY,
+	ARP_STATE_PROPSPEC_EQUALS,
+	ARP_STATE_PVALUE,
+	ARP_STATE_DONE,
 };
 
 /*
@@ -103,7 +125,7 @@ struct lookup ptypes[] =
 **  	ntokens -- number of token pointers available at "tokens"
 **
 **  Return value:
-**  	-1 -- not enough space at "outbuf" for tokenizing
+**  	-1 -- bad syntax or not enough space at "outbuf" for tokenizing
 **  	other -- number of tokens identified; may be greater than
 **  	"ntokens" if there were more tokens found than there were
 **  	pointers available.
@@ -142,11 +164,16 @@ ares_tokenize(u_char *input, u_char *outbuf, size_t outbuflen,
 				intok = TRUE;
 			}
 
+			if (*p == '\\' || *p == '"') {
+				/* Needs to remain escaped. */
+				*q = '\\';
+				q++;
+			}
 			*q = *p;
 			q++;
 			escaped = FALSE;
 		}
-		else if (*p == '\\')			/* escape */
+		else if (*p == '\\' && quoted)			/* escape */
 		{
 			escaped = TRUE;
 		}
@@ -204,20 +231,30 @@ ares_tokenize(u_char *input, u_char *outbuf, size_t outbuflen,
 		}
 		else if (isascii(*p) && isspace(*p))	/* whitespace */
 		{
-			if (quoted || parens > 0)
+			if (intok)
 			{
-				if (intok)
+				if (quoted)
 				{
 					*q = *p;
 					q++;
 				}
-			}
-			else if (intok)
-			{
-				intok = FALSE;
-				*q = '\0';
-				q++;
-				n++;
+				else if (parens > 0)
+				{
+					/* turn all whitespace in comments into single spaces */
+					*q = ' ';
+					q++;
+					while isspace(p[1])
+					{
+						p++;
+					}
+				}
+				else
+				{
+					intok = FALSE;
+					*q = '\0';
+					q++;
+					n++;
+				}
 			}
 		}
 		else if (strchr(ARES_TOKENS, *p) != NULL) /* delimiter */
@@ -268,8 +305,15 @@ ares_tokenize(u_char *input, u_char *outbuf, size_t outbuflen,
 		}
 	}
 
-	if (q >= end)
+	if (quoted || parens > 0)
+	{
 		return -1;
+	}
+
+	if (q >= end)
+	{
+		return -1;
+	}
 
 	if (intok)
 	{
@@ -337,37 +381,38 @@ ares_xconvert(struct lookup *table, int code)
 }
 
 /*
-**  ARES_METHOD_SEEN -- if we've already seen the results of the method,
-**                      returns its index
+**  ARES_METHOD_ADD -- add a parsed method to the results if there's room
+**  and we haven't already seen it.
 **
 **  Parameters:
-**  	ar -- pointer to a (struct authres)
-**  	n -- the last one that was loaded
-**	m -- the method to be searched
+**  	ar -- authentication results
+**	r -- result to add
 **
 **  Return value:
-**  	The index of the method in ar, if it is found, else -1
+**  	Whether the method was added
 */
 
-static int
-ares_method_seen(struct authres *ar, int n, ares_method_t m)
+static _Bool
+ares_method_add(struct authres *ar, struct result *r)
 {
-	int c;
-
-	if (ar->ares_result[n].result_method == ARES_METHOD_DKIM)
+	if (r->result_method == ARES_METHOD_UNKNOWN || ar->ares_count >= MAXARESULTS)
 	{
-		/* All results of DKIM should be kept */
-		return -1;
+		return FALSE;
 	}
-	for (c = 0; c < n; c++)
+	if (r->result_method != ARES_METHOD_DKIM)
 	{
-		if (ar->ares_result[c].result_method == m)
+		for (int i = 0; i < ar->ares_count; i++)
 		{
-			return c;
+			if (ar->ares_result[i].result_method == r->result_method)
+			{
+				return FALSE;
+			}
 		}
 	}
 
-	return -1;
+	memcpy(ar->ares_result + ar->ares_count, r, sizeof ar->ares_result[ar->ares_count]);
+	ar->ares_count++;
+	return TRUE;
 }
 
 /*
@@ -378,98 +423,111 @@ ares_method_seen(struct authres *ar, int n, ares_method_t m)
 **  	hdr -- NULL-terminated contents of an Authentication-Results:
 **  	       header field
 **  	ar -- a pointer to a (struct authres) loaded by values after parsing
+**	authserv -- string containing the authserv-id we care about
 **
 **  Return value:
-**  	0 on success, -1 on failure.
+**  	0 on success, -1 on failure, -2 when a header is uninteresting.
 */
 
 int
-ares_parse(u_char *hdr, struct authres *ar)
+ares_parse(u_char *hdr, struct authres *ar, const char *authserv)
 {
-	int n;
 	int ntoks;
-	int c;
-	int r = 0;
-	int state;
-	int prevstate;
-	int i; /* index of a result to be recorded */
-	ares_method_t m;
+	enum ar_parser_state state;
+	enum ar_parser_state prevstate;
+	ares_method m;
 	u_char tmp[ARC_MAXHEADER + 2];
 	u_char *tokens[ARES_MAXTOKENS];
+	u_char ares_host[ARC_MAXHOSTNAMELEN + 1];
+	struct result cur;
+	int initial_ares_count;
 
 	assert(hdr != NULL);
 	assert(ar != NULL);
 
-	memset(ar, '\0', sizeof *ar);
 	memset(tmp, '\0', sizeof tmp);
+	memset(&cur, '\0', sizeof cur);
+	memset(ares_host, '\0', sizeof ares_host);
 
 	ntoks = ares_tokenize(hdr, tmp, sizeof tmp, tokens, ARES_MAXTOKENS);
 	if (ntoks == -1 || ntoks > ARES_MAXTOKENS)
 		return -1;
 
-	prevstate = -1;
-	state = 0;
-	n = 0;
-	i = 0;
+	prevstate = ARP_STATE_AUTHSERVID;
+	state = ARP_STATE_AUTHSERVID;
+	initial_ares_count = ar->ares_count;
 
-	for (c = 0; c < ntoks; c++)
+	for (int c = 0; c < ntoks; c++)
 	{
-		if (tokens[c][0] == '(')		/* comment */
+		if (tokens[c][0] == '(')
 		{
-			if (i >= 0 && prevstate == 5)
-			{
-				/* record at most one comment only */
-				assert(state == 6);
-				strlcpy((char *) ar->ares_result[i].result_comment,
+			/* Comments are valid in a lot of places, but we're
+			 * only interested in storing ones that are placed
+			 * like properties
+			 */
+			if (cur.result_props < MAXPROPS &&
+			    (state == ARP_STATE_PROP_OR_REASON ||
+			    state == ARP_STATE_PTYPE)) {
+				cur.result_ptype[cur.result_props] = ARES_PTYPE_COMMENT;
+				strlcpy((char *) cur.result_value[cur.result_props],
 				        (char *) tokens[c],
-				        sizeof ar->ares_result[i].result_comment);
-				prevstate = state;
+				        sizeof cur.result_value[cur.result_props]);
+				cur.result_props++;
 			}
 			continue;
 		}
 
 		switch (state)
 		{
-		  case 0:				/* authserv-id */
-			if (!isascii(tokens[c][0]) ||
-			    !isalnum(tokens[c][0]))
+		  case ARP_STATE_AUTHSERVID:
+			if (!isascii(tokens[c][0]) || !isalnum(tokens[c][0]))
+			{
+				ar->ares_count = initial_ares_count;
 				return -1;
+			}
+
 
 			if (tokens[c][0] == ';')
 			{
 				prevstate = state;
-				state = 3;
+				state = ARP_STATE_METHODSPEC;
 			}
 			else
 			{
-				strlcat((char *) ar->ares_host,
-				        (char *) tokens[c],
-				        sizeof ar->ares_host);
+				strlcat((char *) ares_host, (char *) tokens[c], sizeof ares_host);
 
 				prevstate = state;
-				state = 1;
+				state = ARP_STATE_AUTHRESVERSION_OR_AUTHSERVID;
 			}
 
 			break;
 
-		  case 1:				/* [version] */
+		  case ARP_STATE_AUTHRESVERSION_OR_AUTHSERVID:
 			if (tokens[c][0] == '.' &&
-			    tokens[c][1] == '\0' && prevstate == 0)
+			    tokens[c][1] == '\0' && prevstate == ARP_STATE_AUTHSERVID)
 			{
-				strlcat((char *) ar->ares_host,
-				        (char *) tokens[c],
-				        sizeof ar->ares_host);
+				strlcat((char *) ares_host, (char *) tokens[c], sizeof ares_host);
 
 				prevstate = state;
-				state = 0;
+				state = ARP_STATE_AUTHSERVID;
 
 				break;
 			}
 
+			/* We've successfully assembled the authserv-id,
+			 * see if it's what we're looking for.
+			 */
+			if (authserv && strcasecmp(authserv, ares_host) != 0)
+			{
+				ar->ares_count = initial_ares_count;
+				return -2;
+			}
+			strlcpy(ar->ares_host, ares_host, sizeof ar->ares_host);
+
 			if (tokens[c][0] == ';')
 			{
 				prevstate = state;
-				state = 3;
+				state = ARP_STATE_METHODSPEC;
 			}
 			else if (isascii(tokens[c][0]) &&
 			         isdigit(tokens[c][0]))
@@ -479,136 +537,102 @@ ares_parse(u_char *hdr, struct authres *ar)
 				        sizeof ar->ares_version);
 
 				prevstate = state;
-				state = 2;
+				state = ARP_STATE_RESINFO;
 			}
 			else
 			{
+				ar->ares_count = initial_ares_count;
 				return -1;
 			}
 
 			break;
 
-		  case 2:				/* ; */
-			if (tokens[c][0] != ';' ||
-			    tokens[c][1] != '\0')
+		  case ARP_STATE_RESINFO:
+			if (tokens[c][0] != ';' || tokens[c][1] != '\0')
+			{
+				ar->ares_count = initial_ares_count;
 				return -1;
+			}
 
 			prevstate = state;
-			state = 3;
+			state = ARP_STATE_METHODSPEC;
 
 			break;
 
-		  case 3:				/* method/none */
+		  case ARP_STATE_METHODSPEC:
 			if (strcasecmp((char *) tokens[c], "none") == 0)
 			{
 				switch (prevstate)
 				{
-				  case 0:
-				  case 1:
-				  case 2:
+				  case ARP_STATE_AUTHSERVID:
+				  case ARP_STATE_AUTHRESVERSION_OR_AUTHSERVID:
+				  case ARP_STATE_RESINFO:
 					prevstate = state;
-					state = 14;
+					state = ARP_STATE_DONE;
 					continue;
 				 default:
 					/* should not have other resinfo */
+					ar->ares_count = initial_ares_count;
 					return -1;
 				}
 			}
 
+			memset(&cur, '\0', sizeof cur);
+
 			m = ares_convert(methods, (char *) tokens[c]);
-			switch(m)
-			{
-			  case ARES_METHOD_UNKNOWN:
-				i = -1;
-				break;
-			  case ARES_METHOD_DKIM:
-				i = n;
-				break;
-			  default:
-				i = ares_method_seen(ar, n, m);
-				if (i == -1)
-				{
-					i = n;
-				}
-				else
-				{
-					/* Reuse results field of same method */
-					memset(&ar->ares_result[i], '\0',
-					       sizeof(ar->ares_result[i]));
-				}
-			}
 
-			r = 0;
-			if (i >= MAXARESULTS)
-			{
-				/* continue parsing, but don't record */
-				i = -1;
-			}
-
-			if (i >= 0) {
-				ar->ares_result[i].result_method = m;
-			}
+			cur.result_method = m;
 			prevstate = state;
-			state = 4;
+			state = ARP_STATE_METHODSPEC_EQUALS;
 
 			break;
 
-		  case 4:				/* = */
-			if (tokens[c][0] != '=' ||
-			    tokens[c][1] != '\0')
+		  case ARP_STATE_METHODSPEC_EQUALS:
+			if (tokens[c][0] != '=' || tokens[c][1] != '\0')
+			{
+				ar->ares_count = initial_ares_count;
 				return -1;
-
-			prevstate = state;
-			state = 5;
-
-			break;
-
-		  case 5:				/* result */
-			if (i >= 0)
-			{
-				ar->ares_result[i].result_result = ares_convert(aresults,
-				                                                (char *) tokens[c]);
-				ar->ares_result[i].result_comment[0] = '\0';
 			}
+
 			prevstate = state;
-			state = 6;
+			state = ARP_STATE_RESULT;
 
 			break;
 
-		  case 7:				/* = (reason) */
-			if (tokens[c][0] != '=' ||
-			    tokens[c][1] != '\0')
+		  case ARP_STATE_RESULT:
+			cur.result_result = ares_convert(aresults, (char *) tokens[c]);
+			prevstate = state;
+			state = ARP_STATE_PROP_OR_REASON;
+
+			break;
+
+		  case ARP_STATE_REASONSPEC_EQUALS:
+			if (tokens[c][0] != '=' || tokens[c][1] != '\0')
+			{
+				ar->ares_count = initial_ares_count;
 				return -1;
-
-			prevstate = state;
-			state = 8;
-
-			break;
-
-		  case 8:
-			if (i >= 0)
-			{
-				strlcpy((char *) ar->ares_result[i].result_reason,
-				        (char *) tokens[c],
-				        sizeof ar->ares_result[i].result_reason);
 			}
-
 			prevstate = state;
-			state = 9;
+			state = ARP_STATE_REASONSPEC_VALUE;
 
 			break;
 
-		  case 6:				/* reason/propspec */
+		  case ARP_STATE_REASONSPEC_VALUE:
+			strlcpy((char *) cur.result_reason, (char *) tokens[c], sizeof cur.result_reason);
+
+			prevstate = state;
+			state = ARP_STATE_PTYPE;
+
+			break;
+
+		  case ARP_STATE_PROP_OR_REASON:
 			if (tokens[c][0] == ';' &&	/* neither */
 			    tokens[c][1] == '\0')
 			{
-				if (i == n)
-				{
-					n++;
-				}
-
+				ares_method_add(ar, &cur);
+				memset(&cur, '\0', sizeof cur);
 				prevstate = state;
-				state = 3;
+				state = ARP_STATE_METHODSPEC;
 
 				continue;
 			}
@@ -616,142 +640,163 @@ ares_parse(u_char *hdr, struct authres *ar)
 			if (strcasecmp((char *) tokens[c], "reason") == 0)
 			{				/* reason */
 				prevstate = state;
-				state = 7;
-
+				state = ARP_STATE_REASONSPEC_EQUALS;
 				continue;
 			}
 			else
 			{
 				prevstate = state;
-				state = 9;
+				state = ARP_STATE_PTYPE;
 			}
 
 			/* FALLTHROUGH */
 
-		  case 9:				/* ptype */
-			if (prevstate == 13 &&
+		  case ARP_STATE_PTYPE:
+			if (prevstate == ARP_STATE_PVALUE &&
 			    strchr(ARES_TOKENS2, tokens[c][0]) != NULL &&
 			    tokens[c][1] == '\0')
 			{
-				r--;
-
-				if (i >= 0)
-				{
-					strlcat((char *) ar->ares_result[i].result_value[r],
-					        (char *) tokens[c],
-					        sizeof ar->ares_result[i].result_value[r]);
-				}
+				/* actually a part of the previous value */
+				cur.result_props--;
+				strlcat((char *) cur.result_value[cur.result_props],
+				        (char *) tokens[c],
+				        sizeof cur.result_value[cur.result_props]);
 
 				prevstate = state;
-				state = 13;
-
+				state = ARP_STATE_PVALUE;
 				continue;
 			}
 
 			if (tokens[c][0] == ';' &&
 			    tokens[c][1] == '\0')
 			{
-				if (i == n)
-				{
-					n++;
-				}
-
+				ares_method_add(ar, &cur);
+				memset(&cur, '\0', sizeof(cur));
 				prevstate = state;
-				state = 3;
-
+				state = ARP_STATE_METHODSPEC;
 				continue;
 			}
 			else
 			{
-				ares_ptype_t x;
+				ares_ptype x;
 
 				x = ares_convert(ptypes, (char *) tokens[c]);
 				if (x == ARES_PTYPE_UNKNOWN)
-					return -1;
-
-				if (r < MAXPROPS && i >= 0)
 				{
-					ar->ares_result[i].result_ptype[r] = x;
+					ar->ares_count = initial_ares_count;
+					return -1;
+				}
+
+				if (cur.result_props < MAXPROPS)
+				{
+					cur.result_ptype[cur.result_props] = x;
 				}
 
 				prevstate = state;
-				state = 10;
+				state = ARP_STATE_PROPSPEC_DOT;
 			}
 
 			break;
 
-		  case 10:				/* . */
-			if (tokens[c][0] != '.' ||
-			    tokens[c][1] != '\0')
+		  case ARP_STATE_PROPSPEC_DOT:
+			if (tokens[c][0] != '.' || tokens[c][1] != '\0')
+			{
+				ar->ares_count = initial_ares_count;
 				return -1;
+			}
 
 			prevstate = state;
-			state = 11;
+			state = ARP_STATE_PROPERTY;
 
 			break;
 
-		  case 11:				/* property */
-			if (r < MAXPROPS && i >= 0)
+		  case ARP_STATE_PROPERTY:
+			if (cur.result_props < MAXPROPS)
 			{
-				strlcpy((char *) ar->ares_result[i].result_property[r],
+				strlcpy((char *) cur.result_property[cur.result_props],
 				        (char *) tokens[c],
-				        sizeof ar->ares_result[i].result_property[r]);
+				        sizeof cur.result_property[cur.result_props]);
 			}
 
 			prevstate = state;
-			state = 12;
+			state = ARP_STATE_PROPSPEC_EQUALS;
 
 			break;
 
-		  case 12:				/* = */
-			if (tokens[c][0] != '=' ||
-			    tokens[c][1] != '\0')
-				return -1;
-
-			prevstate = state;
-			state = 13;
-
-			break;
-
-		  case 13:				/* value */
-			if (r < MAXPROPS)
+		  case ARP_STATE_PROPSPEC_EQUALS:
+			if (tokens[c][0] != '=' || tokens[c][1] != '\0')
 			{
-				if (i >= 0)
-				{
-					strlcat((char *) ar->ares_result[i].result_value[r],
-					        (char *) tokens[c],
-					        sizeof ar->ares_result[i].result_value[r]);
-					ar->ares_result[i].result_props = r + 1;
-				}
-				r++;
+				ar->ares_count = initial_ares_count;
+				return -1;
 			}
 
 			prevstate = state;
-			state = 9;
+			state = ARP_STATE_PVALUE;
 
 			break;
 
-		  case 14:				/* only reached in case of a malformed A-R */
-			return -1;
+		  case ARP_STATE_PVALUE:
+			if (cur.result_props < MAXPROPS)
+			{
+				strlcat((char *) cur.result_value[cur.result_props],
+				        (char *) tokens[c],
+				        sizeof cur.result_value[cur.result_props]);
+				cur.result_props++;
+			}
 
-			break;				/* not reached, just to make some lint-like sw happy */
+			prevstate = state;
+			state = ARP_STATE_PTYPE;
+
+			break;
+
+		  case ARP_STATE_DONE:
+			/* unexpected content after a singleton value */
+			ar->ares_count = initial_ares_count;
+			return -1;
 		}
 	}
 
 	/* error out on non-terminal states */
-	if (state == 4 || state == 7 || state == 10 ||
-	    state == 11 || state == 12)
-		return -1;
-
-	if (i == n)
+	if (state != ARP_STATE_METHODSPEC &&
+	    state != ARP_STATE_PROP_OR_REASON &&
+	    state != ARP_STATE_PTYPE &&
+	    state != ARP_STATE_DONE)
 	{
-		/* the last resinfo was added */
-		n++;
+		ar->ares_count = initial_ares_count;
+		return -1;
 	}
 
-	ar->ares_count = n;
+	ares_method_add(ar, &cur);
 
 	return 0;
+}
+
+/*
+**  ARES_ISTOKEN -- check whether a string is a valid token
+**
+**  Parameters:
+**	str -- string to check
+**
+**  Return value:
+**	TRUE if the string contains no characters that require quoting,
+**      FALSE otherwise.
+*/
+_Bool
+ares_istoken(const char *str)
+{
+	for (const char *c = str; *c != '\0'; c++)
+	{
+		if (iscntrl(*c)) {
+			return FALSE;
+		}
+		/* ' ' and tspecials from RFC 2045 except @
+		 * (local-part@domain-name doesn't require quoting)
+		 */
+		if (strchr(" ()<>,;:\\\"/[]?=", *c) != NULL) {
+			return FALSE;
+		}
+	}
+	return TRUE;
 }
 
 /*
@@ -765,7 +810,7 @@ ares_parse(u_char *hdr, struct authres *ar)
 */
 
 const char *
-ares_getmethod(ares_method_t method)
+ares_getmethod(ares_method method)
 {
 	return (const char *) ares_xconvert(methods, method);
 }
@@ -781,7 +826,7 @@ ares_getmethod(ares_method_t method)
 */
 
 const char *
-ares_getresult(ares_result_t result)
+ares_getresult(ares_result result)
 {
 	return (const char *) ares_xconvert(aresults, result);
 }
@@ -797,7 +842,7 @@ ares_getresult(ares_result_t result)
 */
 
 const char *
-ares_getptype(ares_ptype_t ptype)
+ares_getptype(ares_ptype ptype)
 {
 	return (const char *) ares_xconvert(ptypes, ptype);
 }
@@ -840,7 +885,7 @@ main(int argc, char **argv)
 
 	printf("\n");
 
-	status = ares_parse(((u_char **)argv)[1], &ar);
+	status = ares_parse(((u_char **)argv)[1], &ar, NULL);
 	if (status == -1)
 	{
 		printf("%s: ares_parse() returned -1\n", progname);
