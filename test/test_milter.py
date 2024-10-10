@@ -55,6 +55,7 @@ def run_miltertest(request, milter, milter_config):
 
 
 def test_milter_basic(run_miltertest):
+    """Basic signing"""
     res = run_miltertest()
 
     assert res['headers'][0] == ['Authentication-Results', 'example.com; arc=none smtp.remote-ip=127.0.0.1']
@@ -65,6 +66,7 @@ def test_milter_basic(run_miltertest):
 
 
 def test_milter_resign(run_miltertest):
+    """Extend the chain as much as possible"""
     res = run_miltertest()
 
     headers = []
@@ -82,6 +84,7 @@ def test_milter_resign(run_miltertest):
 
 
 def test_milter_mode_s(run_miltertest):
+    """Sign mode"""
     res = run_miltertest()
 
     assert len(res['headers']) == 3
@@ -91,6 +94,7 @@ def test_milter_mode_s(run_miltertest):
 
 
 def test_milter_mode_v(run_miltertest):
+    """Verify mode"""
     res = run_miltertest()
 
     assert len(res['headers']) == 1
@@ -98,6 +102,7 @@ def test_milter_mode_v(run_miltertest):
 
 
 def test_milter_mode_none_verify(run_miltertest):
+    """No configured mode, from a host that's not in InternalHosts"""
     res = run_miltertest()
 
     assert len(res['headers']) == 1
@@ -105,6 +110,7 @@ def test_milter_mode_none_verify(run_miltertest):
 
 
 def test_milter_mode_none_sign(run_miltertest):
+    """No configured mode, from a host that's in InternalHosts"""
     res = run_miltertest()
 
     assert len(res['headers']) == 3
@@ -114,6 +120,7 @@ def test_milter_mode_none_sign(run_miltertest):
 
 
 def test_milter_ar(run_miltertest):
+    """Override the chain validation state with Authentication-Results"""
     res = run_miltertest()
 
     # override the result to "fail"
@@ -137,6 +144,7 @@ def test_milter_ar(run_miltertest):
 
 
 def test_milter_ar_disabled(run_miltertest):
+    """`PermitAuthenticationOverrides = no` preserves the actual state"""
     res = run_miltertest()
 
     # override the result to "fail"
@@ -145,16 +153,15 @@ def test_milter_ar_disabled(run_miltertest):
 
     res = run_miltertest(headers)
 
-    # `PermitAuthenticationOverrides = no`
     assert res['headers'][0] == ['Authentication-Results', 'example.com; arc=pass smtp.remote-ip=127.0.0.1']
     assert 'cv=pass' in res['headers'][1][1]
     assert res['headers'][3] == ['ARC-Authentication-Results', 'i=2; example.com; arc=pass']
 
 
 def test_milter_ar_multi(run_miltertest):
+    """Only the most recent A-R header should matter"""
     res = run_miltertest()
 
-    # make sure older headers don't override
     headers = [
         ['Authentication-Results', 'example.com; arc=pass'],
         ['Authentication-Results', 'example.com; arc=fail'],
@@ -168,5 +175,6 @@ def test_milter_ar_multi(run_miltertest):
 
 
 def test_milter_peerlist(run_miltertest):
+    """Connections from peers just get `accept` back immediately"""
     with pytest.raises(libmilter.MilterError, match='unexpected response: a'):
         run_miltertest()
