@@ -29,6 +29,15 @@ def private_key(scope='session'):
     res = subprocess.run(binargs, capture_output=True, text=True)
     with open(pubpath, 'w') as f:
         key = ''.join(res.stdout.splitlines()[1:-1])
+        f.write((
+            'sel._domainkey.dkimpy.example.com v=DKIM1; k=rsa; '
+            'p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqf/MoqRqzK3/bcCyLSx5'
+            'CDvyPotNDBjLLFHdMmcWDiSZ8saslFyNR6FkFxuNtw843m7MkwOSJ9TRd9p+OoRLDv'
+            'H0jDR1Dqq22QOJKiG5XQ91aZwin9jpWKkuoRoRZRhWrzUOJWAybHarsEQm9iCPh2zn'
+            'dbSPSzPQL1OsjURIuw5G9+/nr5rhJ72Qi6v86zofWUKdXhLf+oVmho79D0xGMFFm0f'
+            'b98xIeZlgJTnmrj/zuxIKHeVmGKI1j6L3xttdcDiUVRGxoubkFzg9TIBGhdeFkpa0C'
+            'ZuhB/1/U3f1oG3Upx5o/jXTQk/dwVaaeEXnRmTsfGYn4GQ9ziity1ijLsQIDAQAB\n'
+        ))
         f.write(f'elpmaxe._domainkey.example.com v=DKIM1; k=rsa; p={key}\n')
 
 
