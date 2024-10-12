@@ -35,7 +35,7 @@ file to determine which license(s) are applicable to that file.
 
 In order to build OpenARC, you will need:
 
-* [OpenSSL](https://openssl.org) >= 0.9.8
+* [OpenSSL](https://openssl.org) >= 1.0.0
 * Native implementations of `strlcat()` and `strlcpy()`,
   [libbsd](https://libbsd.freedesktop.org/), or some other library that
   provides them.

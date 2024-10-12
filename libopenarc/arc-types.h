@@ -25,22 +25,14 @@
 #include "arc.h"
 #include "arc-internal.h"
 
-/* struct arc_sha1 -- stuff needed to do a sha1 hash */
-struct arc_sha1
+/* struct arc_hash -- stuff needed to do a hash */
+struct arc_hash
 {
-	int			sha1_tmpfd;
-	BIO *			sha1_tmpbio;
-	SHA_CTX			sha1_ctx;
-	u_char			sha1_out[SHA_DIGEST_LENGTH];
-};
-
-/* struct arc_sha256 -- stuff needed to do a sha256 hash */
-struct arc_sha256
-{
-	int			sha256_tmpfd;
-	BIO *			sha256_tmpbio;
-	SHA256_CTX		sha256_ctx;
-	u_char			sha256_out[SHA256_DIGEST_LENGTH];
+	int			hash_tmpfd;
+	BIO *			hash_tmpbio;
+	EVP_MD_CTX *            hash_ctx;
+	u_char			hash_out[SHA256_DIGEST_LENGTH];
+	int			hash_outlen;
 };
 
 /* struct arc_qmethod -- signature query method */
@@ -119,7 +111,7 @@ struct arc_canon
 	arc_canon_t		canon_canon;
 	u_char *		canon_hashbuf;
 	u_char *		canon_hdrlist;
-	void *			canon_hash;
+	struct arc_hash *       canon_hash;
 	struct arc_dstring *	canon_buf;
 	struct arc_hdrfield *	canon_sigheader;
 	struct arc_canon *	canon_next;

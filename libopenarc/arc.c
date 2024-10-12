@@ -304,12 +304,11 @@ arc_key_hashesok(ARC_LIB *lib, u_char *hashlist)
 */
 
 ARC_STAT
-arc_parse_algorithm(ARC_MESSAGE *msg, u_char *alg, int *nid)
+arc_parse_algorithm(ARC_MESSAGE *msg, u_char *alg)
 {
 	arc_alg_t algtype;
 
 	assert(msg != NULL);
-	assert(nid != NULL);
 
 	if (alg == NULL)
 	{
@@ -323,13 +322,11 @@ arc_parse_algorithm(ARC_MESSAGE *msg, u_char *alg, int *nid)
 	{
 		msg->arc_hashtype = ARC_HASHTYPE_SHA1;
 		msg->arc_keytype = ARC_KEYTYPE_RSA;
-		*nid = NID_sha1;
 	}
 	else if (algtype == ARC_SIGN_RSASHA256)
 	{
 		msg->arc_hashtype = ARC_HASHTYPE_SHA256;
 		msg->arc_keytype = ARC_KEYTYPE_RSA;
-		*nid = NID_sha256;
 	}
 	else
 	{
@@ -2007,6 +2004,141 @@ arc_get_key(ARC_MESSAGE *msg, _Bool test)
 }
 
 /*
+**  ARC_VERIFY_HASH -- verify a hash
+**
+**  Parameters:
+**	msg -- ARC_MESSAGE handle
+**	b64sig -- base64 encoded signature
+**	h -- hash
+**	hlen -- hash length
+**
+**  Return value:
+**	An ARC_STAT_* constant.
+*/
+
+static ARC_STAT
+arc_verify_hash(ARC_MESSAGE *msg, unsigned char *b64sig, void *h, size_t hlen)
+{
+	int rc;
+	size_t b64siglen;
+	size_t b64bhlen;
+	size_t siglen;
+	size_t keysize;
+	ARC_STAT status;
+	u_char *alg;
+	u_char *b64bh;
+	u_char *b64bhtag;
+	void *sig;
+	BIO *keydata = NULL;
+	EVP_PKEY *pkey = NULL;
+	EVP_PKEY_CTX *ctx = NULL;
+
+	/* get the key from DNS (or wherever) */
+	status = arc_get_key(msg, FALSE);
+	if (status != ARC_STAT_OK)
+	{
+		arc_error(msg, "arc_get_key() failed");
+		return status;
+	}
+
+	b64siglen = strlen(b64sig);
+
+	sig = ARC_MALLOC(b64siglen);
+	if (sig == NULL )
+	{
+		arc_error(msg, "unable to allocate %d bytes", b64siglen);
+		return ARC_STAT_INTERNAL;
+	}
+
+	siglen = arc_base64_decode(b64sig, sig, b64siglen);
+	if (siglen < 0)
+	{
+		arc_error(msg, "unable to decode signature");
+		status = ARC_STAT_SYNTAX;
+		goto error;
+	}
+
+	keydata = BIO_new_mem_buf(msg->arc_key, msg->arc_keylen);
+	if (keydata == NULL)
+	{
+		arc_error(msg, "BIO_new_mem_buf() failed");
+		status = ARC_STAT_INTERNAL;
+		goto error;
+	}
+
+	pkey = d2i_PUBKEY_bio(keydata, NULL);
+	if (pkey == NULL)
+	{
+		arc_error(msg, "d2i_PUBKEY_bio() failed");
+		status = ARC_STAT_INTERNAL;
+		goto error;
+	}
+
+	keysize = EVP_PKEY_size(pkey);
+	/* FIXME: what is this actually measuring? Should this be
+	 * EVP_PKEY_bits() or EVP_PKEY_securitybits()?
+	 */
+	if (keysize * 8 < msg->arc_library->arcl_minkeysize)
+	{
+		arc_error(msg, "key size (%u) below minimum (%u)",
+			  keysize, msg->arc_library->arcl_minkeysize);
+		status = ARC_STAT_CANTVRFY;
+		goto error;
+	}
+
+	status = ARC_STAT_INTERNAL;
+	ctx = EVP_PKEY_CTX_new(pkey, NULL);
+	if (ctx == NULL)
+	{
+		arc_error(msg, "EVP_PKEY_CTX_new() failed");
+		goto error;
+	}
+
+	rc = EVP_PKEY_verify_init(ctx);
+	if (rc <= 0)
+	{
+		arc_error(msg, "EVP_PKEY_verify_init() failed");
+		goto error;
+	}
+
+	rc = EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_PADDING);
+	if (rc <= 0)
+	{
+		arc_error(msg, "EVP_PKEY_CTX_set_rsa_padding() failed");
+		goto error;
+	}
+
+	if (msg->arc_hashtype == ARC_HASHTYPE_SHA1)
+	{
+		rc = EVP_PKEY_CTX_set_signature_md(ctx, EVP_sha1());
+	}
+	else
+	{
+		rc = EVP_PKEY_CTX_set_signature_md(ctx, EVP_sha256());
+	}
+	if (rc <= 0)
+	{
+		arc_error(msg, "EVP_PKEY_CTX_set_signature_md() failed");
+		goto error;
+	}
+
+	status = ARC_STAT_BADSIG;
+	rc = EVP_PKEY_verify(ctx, sig, siglen, h, hlen);
+	if (rc == 1)
+	{
+		status = ARC_STAT_OK;
+	}
+
+error:
+	EVP_PKEY_CTX_free(ctx);
+	EVP_PKEY_free(pkey);
+	BIO_free(keydata);
+	ARC_FREE(sig);
+
+	return status;
+}
+
+/*
 **  ARC_VALIDATE_MSG -- validate a specific ARC-Message-Signature
 **
 **  Parameters:
@@ -2021,14 +2153,10 @@ arc_get_key(ARC_MESSAGE *msg, _Bool test)
 static ARC_STAT
 arc_validate_msg(ARC_MESSAGE *msg, u_int setnum)
 {
-	int nid;
-	int rsastat;
 	size_t elen;
 	size_t hhlen;
 	size_t bhlen;
-	size_t b64siglen;
 	size_t b64bhlen;
-	size_t siglen;
 	size_t keysize;
 	ARC_STAT status;
 	u_char *alg;
@@ -2037,13 +2165,9 @@ arc_validate_msg(ARC_MESSAGE *msg, u_int setnum)
 	u_char *b64bhtag;
 	void *hh;
 	void *bh;
-	void *sig;
 	struct arc_set *set;
 	struct arc_hdrfield *h;
 	ARC_KVSET *kvset;
-	BIO *keydata;
-	EVP_PKEY *pkey;
-	RSA *rsa;
 
 	assert(msg != NULL);
 
@@ -2074,18 +2198,10 @@ arc_validate_msg(ARC_MESSAGE *msg, u_int setnum)
 
 	/* store algorithm in msg, needed for arc_get_key() */
 	alg = arc_param_get(kvset, "a");
-	status = arc_parse_algorithm(msg, alg, &nid);
+	status = arc_parse_algorithm(msg, alg);
 	if (status != ARC_STAT_OK)
             // arc_error already set by arc_parse_algorithm()
             return status;
-
-	/* get the key from DNS (or wherever) */
-	status = arc_get_key(msg, FALSE);
-	if (status != ARC_STAT_OK)
-	{
-		arc_error(msg, "arc_get_key() failed");
-		return status;
-	}
 
 	/* extract the header and body hashes from the message */
 	status = arc_canon_gethashes(msg, &hh, &hhlen, &bh, &bhlen);
@@ -2098,70 +2214,13 @@ arc_validate_msg(ARC_MESSAGE *msg, u_int setnum)
 	/* extract the signature and body hash from the message */
 	b64sig = arc_param_get(kvset, "b");
 	b64bhtag = arc_param_get(kvset, "bh");
-	b64siglen = strlen(b64sig);
-
-	sig = ARC_MALLOC(b64siglen);
-	if (sig == NULL)
-	{
-		arc_error(msg, "unable to allocate %d bytes", b64siglen);
-		return ARC_STAT_INTERNAL;
-	}
-	siglen = arc_base64_decode(b64sig, sig, b64siglen);
-	if (siglen < 0)
-	{
-		arc_error(msg, "unable to decode signature");
-		return ARC_STAT_SYNTAX;
-	}
 
 	/* verify the signature against the header hash and the key */
-	keydata = BIO_new_mem_buf(msg->arc_key, msg->arc_keylen);
-	if (keydata == NULL)
+	status = arc_verify_hash(msg, b64sig, hh, hhlen);
+	if (status != ARC_STAT_OK)
 	{
-		arc_error(msg, "BIO_new_mem_buf() failed");
-		ARC_FREE(sig);
-		return ARC_STAT_INTERNAL;
+		return status;
 	}
-
-	pkey = d2i_PUBKEY_bio(keydata, NULL);
-	if (pkey == NULL)
-	{
-		arc_error(msg, "d2i_PUBKEY_bio() failed");
-		BIO_free(keydata);
-		ARC_FREE(sig);
-		return ARC_STAT_INTERNAL;
-	}
-
-	rsa = EVP_PKEY_get1_RSA(pkey);
-	if (rsa == NULL)
-	{
-		arc_error(msg, "EVP_PKEY_get1_RSA() failed");
-		EVP_PKEY_free(pkey);
-		BIO_free(keydata);
-		ARC_FREE(sig);
-		return ARC_STAT_INTERNAL;
-	}
-
-	keysize = RSA_size(rsa);
-	if (keysize * 8 < msg->arc_library->arcl_minkeysize)
-	{
-		arc_error(msg, "key size (%u) below minimum (%u)",
-		          keysize, msg->arc_library->arcl_minkeysize);
-		RSA_free(rsa);
-		EVP_PKEY_free(pkey);
-		BIO_free(keydata);
-		ARC_FREE(sig);
-		return ARC_STAT_CANTVRFY;
-	}
-
-	rsastat = RSA_verify(nid, hh, hhlen, sig, siglen, rsa);
-
-	RSA_free(rsa);
-	EVP_PKEY_free(pkey);
-	BIO_free(keydata);
-	ARC_FREE(sig);
-
-	if (rsastat != 1)
-		return ARC_STAT_BADSIG;
 
 	/* verify the signature's "bh" against our computed one */
 	b64bhlen = BASE64SIZE(bhlen);
@@ -2202,20 +2261,12 @@ arc_validate_msg(ARC_MESSAGE *msg, u_int setnum)
 static ARC_STAT
 arc_validate_seal(ARC_MESSAGE *msg, u_int setnum)
 {
-	int nid;
-	int rsastat;
 	ARC_STAT status;
 	size_t shlen;
-	size_t siglen;
-	size_t b64siglen;
 	u_char *b64sig;
 	void *sh;
-	void *sig;
 	u_char *alg;
 	struct arc_set *set;
-	BIO *keydata;
-	EVP_PKEY *pkey;
-	RSA *rsa;
 	ARC_KVSET *kvset;
 
 	assert(msg != NULL);
@@ -2230,7 +2281,7 @@ arc_validate_seal(ARC_MESSAGE *msg, u_int setnum)
 
 	/* store algorithm in msg, needed for arc_get_key() */
 	alg = arc_param_get(kvset, "a");
-	status = arc_parse_algorithm(msg, alg, &nid);
+	status = arc_parse_algorithm(msg, alg);
 	if (status != ARC_STAT_OK)
             // arc_error already set by arc_parse_algorithm()
             return status;
@@ -2246,14 +2297,6 @@ arc_validate_seal(ARC_MESSAGE *msg, u_int setnum)
 		return ARC_STAT_SYNTAX;
 	}
 
-	/* get the key from DNS (or wherever) */
-	status = arc_get_key(msg, FALSE);
-	if (status != ARC_STAT_OK)
-	{
-		arc_error(msg, "arc_get_key() failed");
-		return status;
-	}
-
 	/* extract the seal hash */
 	status = arc_canon_getsealhash(msg, setnum, &sh, &shlen);
 	if (status != ARC_STAT_OK)
@@ -2264,64 +2307,15 @@ arc_validate_seal(ARC_MESSAGE *msg, u_int setnum)
 
 	/* extract the signature from the seal */
 	b64sig = arc_param_get(kvset, "b");
-	b64siglen = strlen(b64sig);
-	sig = ARC_MALLOC(b64siglen);
-	if (sig == NULL)
-	{
-		arc_error(msg, "unable to allocate %d bytes", b64siglen);
-		return ARC_STAT_INTERNAL;
-	}
-	siglen = arc_base64_decode(b64sig, sig, b64siglen);
-	if (siglen < 0)
-	{
-		arc_error(msg, "unable to decode signature");
-		ARC_FREE(sig);
-		return ARC_STAT_SYNTAX;
-	}
 
 	/* verify the signature against the header hash and the key */
-	keydata = BIO_new_mem_buf(msg->arc_key, msg->arc_keylen);
-	if (keydata == NULL)
-	{
-		arc_error(msg, "BIO_new_mem_buf() failed");
-		ARC_FREE(sig);
-		return ARC_STAT_INTERNAL;
-	}
-
-	pkey = d2i_PUBKEY_bio(keydata, NULL);
-	if (pkey == NULL)
-	{
-		arc_error(msg, "d2i_PUBKEY_bio() failed");
-		BIO_free(keydata);
-		ARC_FREE(sig);
-		return ARC_STAT_INTERNAL;
-	}
-
-	rsa = EVP_PKEY_get1_RSA(pkey);
-	if (rsa == NULL)
-	{
-		arc_error(msg, "EVP_PKEY_get1_RSA() failed");
-		EVP_PKEY_free(pkey);
-		BIO_free(keydata);
-		ARC_FREE(sig);
-		return ARC_STAT_INTERNAL;
-	}
-
-	rsastat = RSA_verify(nid, sh, shlen, sig, siglen, rsa);
-
-	RSA_free(rsa);
-	EVP_PKEY_free(pkey);
-	BIO_free(keydata);
-	ARC_FREE(sig);
-
-	if (rsastat != 1)
+	status = arc_verify_hash(msg, b64sig, sh, shlen);
+	if (status == ARC_STAT_BADSIG)
 	{
 		msg->arc_cstate = ARC_CHAIN_FAIL;
-		return ARC_STAT_BADSIG;
 	}
 
-	/* if we got this far, the signature was good */
-	return ARC_STAT_OK;
+	return status;
 }
 
 /*
@@ -3220,24 +3214,24 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
             u_char *ar)
 {
 	int rstatus;
-	int siglen;
+	size_t siglen;
 	int nid;
 	u_int set;
-	ARC_STAT status;
+	ARC_STAT status = ARC_STAT_INTERNAL;
 	size_t diglen;
 	size_t keysize;
 	size_t len;
 	size_t b64siglen;
-	u_char *sighdr;
-	u_char *digest;
-	u_char *sigout;
-	u_char *b64sig;
+	u_char *sighdr = NULL;
+	u_char *digest = NULL;
+	u_char *sigout = NULL;
+	u_char *b64sig = NULL;
 	ARC_HDRFIELD *h;
 	ARC_HDRFIELD hdr;
 	struct arc_dstring *dstr;
-	BIO *keydata;
-	EVP_PKEY *pkey;
-	RSA *rsa;
+	BIO *keydata = NULL;
+	EVP_PKEY *pkey = NULL;
+	EVP_PKEY_CTX *ctx = NULL;
 
 	assert(msg != NULL);
 	assert(seal != NULL);
@@ -3270,7 +3264,8 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 	if (keydata == NULL)
 	{
 		arc_error(msg, "BIO_new_mem_buf() failed");
-		return ARC_STAT_NORESOURCE;
+		status = ARC_STAT_NORESOURCE;
+		goto error;
 	}
 
 	if (strncmp(key, "-----", 5) == 0)
@@ -3279,8 +3274,8 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 		if (pkey == NULL)
 		{
 			arc_error(msg, "PEM_read_bio_PrivateKey() failed");
-			BIO_free(keydata);
-			return ARC_STAT_NORESOURCE;
+			status = ARC_STAT_NORESOURCE;
+			goto error;
 		}
 	}
 	else
@@ -3289,40 +3284,47 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 		if (pkey == NULL)
 		{
 			arc_error(msg, "d2i_PrivateKey_bio() failed");
-			BIO_free(keydata);
-			return ARC_STAT_NORESOURCE;
+			status = ARC_STAT_NORESOURCE;
+			goto error;
 		}
 	}
 
-	rsa = EVP_PKEY_get1_RSA(pkey);
-	if (rsa == NULL)
+	ctx = EVP_PKEY_CTX_new(pkey, NULL);
+	if (ctx == NULL)
 	{
-		arc_error(msg, "EVP_PKEY_get1_RSA() failed");
-		EVP_PKEY_free(pkey);
-		BIO_free(keydata);
-		return ARC_STAT_NORESOURCE;
+		arc_error(msg, "EVP_PKEY_CTX_new() failed");
+		status = ARC_STAT_NORESOURCE;
+		goto error;
+	}
+	if (EVP_PKEY_sign_init(ctx) <= 0)
+	{
+		arc_error(msg, "EVP_PKEY_sign_init() failed");
+		status = ARC_STAT_INTERNAL;
+		goto error;
+	}
+	if (EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_PADDING) <= 0)
+	{
+		arc_error(msg, "EVP_PKEY_CTX_set_rsa_padding() failed");
+		status = ARC_STAT_INTERNAL;
+		goto error;
+	}
+	if (EVP_PKEY_CTX_set_signature_md(ctx, EVP_sha256()) <= 0)
+	{
+		arc_error(msg, "EVP_PKEY_CTX_set_signature_md() failed");
+		status = ARC_STAT_INTERNAL;
+		goto error;
 	}
 
-	keysize = RSA_size(rsa);
+	/* FIXME: what is this actually measuring? Should this be
+	 * EVP_PKEY_bits() or EVP_PKEY_securitybits()?
+	 */
+	keysize = EVP_PKEY_size(pkey);
 	if (keysize * 8 < msg->arc_library->arcl_minkeysize)
 	{
 		arc_error(msg, "key size (%u) below minimum (%u)",
 		          keysize, msg->arc_library->arcl_minkeysize);
-		EVP_PKEY_free(pkey);
-		RSA_free(rsa);
-		BIO_free(keydata);
-		return ARC_STAT_CANTVRFY;
-	}
-
-	sigout = ARC_MALLOC(keysize);
-	if (sigout == NULL)
-	{
-		arc_error(msg, "can't allocate %d bytes for signature",
-		          keysize);
-		EVP_PKEY_free(pkey);
-		RSA_free(rsa);
-		BIO_free(keydata);
-		return ARC_STAT_NORESOURCE;
+		status = ARC_STAT_CANTVRFY;
+		goto error;
 	}
 
 	dstr = arc_dstring_new(msg, ARC_MAXHEADER, 0);
@@ -3369,12 +3371,7 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 	if (status != ARC_STAT_OK)
 	{
 		arc_error(msg, "arc_parse_header_field() failed");
-		arc_dstring_free(dstr);
-		ARC_FREE(sigout);
-		EVP_PKEY_free(pkey);
-		RSA_free(rsa);
-		BIO_free(keydata);
-		return status;
+		goto error;
 	}
 
 	msg->arc_sealhead = h;
@@ -3389,12 +3386,7 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 	if (status != ARC_STAT_OK)
 	{
 		arc_error(msg, "arc_canon_closebody() failed");
-		arc_dstring_free(dstr);
-		ARC_FREE(sigout);
-		RSA_free(rsa);
-		EVP_PKEY_free(pkey);
-		BIO_free(keydata);
-		return status;
+		goto error;
 	}
 
 	/* construct the AMS */
@@ -3407,12 +3399,7 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 	if (status != ARC_STAT_OK)
 	{
 		arc_error(msg, "arc_getamshdr_d() failed");
-		arc_dstring_free(dstr);
-		ARC_FREE(sigout);
-		RSA_free(rsa);
-		EVP_PKEY_free(pkey);
-		BIO_free(keydata);
-		return status;
+		goto error;
 	}
 
 	arc_dstring_catn(dstr, sighdr, len);
@@ -3430,40 +3417,38 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 	if (status != ARC_STAT_OK)
 	{
 		arc_error(msg, "arc_canon_signature() failed");
-		arc_dstring_free(dstr);
-		ARC_FREE(sigout);
-		ARC_FREE(sighdr);
-		RSA_free(rsa);
-		EVP_PKEY_free(pkey);
-		BIO_free(keydata);
-		return ARC_STAT_INTERNAL;
+		status = ARC_STAT_INTERNAL;
+		goto error;
 	}
 
 	status = arc_canon_getfinal(msg->arc_sign_hdrcanon, &digest, &diglen);
 	if (status != ARC_STAT_OK)
 	{
 		arc_error(msg, "arc_canon_getfinal() failed");
-		arc_dstring_free(dstr);
-		ARC_FREE(sigout);
-		RSA_free(rsa);
-		EVP_PKEY_free(pkey);
-		BIO_free(keydata);
-		return ARC_STAT_INTERNAL;
+		status = ARC_STAT_INTERNAL;
+		goto error;
 	}
 
 	/* encrypt the digest; that's our signature */
-	nid = NID_sha256;
-	rstatus = RSA_sign(nid, digest, diglen, sigout, &siglen, rsa);
+	rstatus = EVP_PKEY_sign(ctx, NULL, &siglen, digest, diglen);
+	if (rstatus >= 0)
+	{
+		sigout = ARC_MALLOC(siglen);
+		if (sigout == NULL)
+		{
+			arc_error(msg, "can't allocate %d bytes for signature", siglen);
+			status = ARC_STAT_NORESOURCE;
+			goto error;
+		}
+		rstatus = EVP_PKEY_sign(ctx, sigout, &siglen, digest, diglen);
+	}
+
 	if (rstatus != 1 || siglen == 0)
 	{
-		arc_error(msg, "RSA_sign() failed (status %d, length %d)",
+		arc_error(msg, "EVP_PKEY_sign() failed (status %d, length %d)",
 		          rstatus, siglen);
-		arc_dstring_free(dstr);
-		ARC_FREE(sigout);
-		RSA_free(rsa);
-		EVP_PKEY_free(pkey);
-		BIO_free(keydata);
-		return ARC_STAT_INTERNAL;
+		status = ARC_STAT_INTERNAL;
+		goto error;
 	}
 
 	/* base64 encode it */
@@ -3474,12 +3459,8 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 	{
 		arc_error(msg, "can't allocate %d bytes for base64 signature",
 		          b64siglen);
-		arc_dstring_free(dstr);
-		ARC_FREE(sigout);
-		RSA_free(rsa);
-		EVP_PKEY_free(pkey);
-		BIO_free(keydata);
-		return ARC_STAT_NORESOURCE;
+		status = ARC_STAT_NORESOURCE;
+		goto error;
 	}
 
 	memset(b64sig, '\0', b64siglen);
@@ -3487,13 +3468,8 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 	if (rstatus == -1)
 	{
 		arc_error(msg, "signature base64 encoding failed");
-		arc_dstring_free(dstr);
-		ARC_FREE(b64sig);
-		ARC_FREE(sigout);
-		RSA_free(rsa);
-		EVP_PKEY_free(pkey);
-		BIO_free(keydata);
-		return ARC_STAT_INTERNAL;
+		status = ARC_STAT_INTERNAL;
+		goto error;
 	}
 
 	/* append it to the stub */
@@ -3506,13 +3482,8 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 	if (h == NULL)
 	{
 		arc_error(msg, "can't allocate %d bytes", sizeof hdr);
-		arc_dstring_free(dstr);
-		ARC_FREE(b64sig);
-		ARC_FREE(sigout);
-		RSA_free(rsa);
-		EVP_PKEY_free(pkey);
-		BIO_free(keydata);
-		return ARC_STAT_INTERNAL;
+		status = ARC_STAT_INTERNAL;
+		goto error;
 	}
 
 	h->hdr_text = ARC_STRDUP(arc_dstring_get(dstr));
@@ -3520,14 +3491,9 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 	{
 		arc_error(msg, "can't allocate %d bytes",
 		          arc_dstring_len(dstr));
-		arc_dstring_free(dstr);
+		status = ARC_STAT_INTERNAL;
 		ARC_FREE(h);
-		ARC_FREE(b64sig);
-		ARC_FREE(sigout);
-		RSA_free(rsa);
-		EVP_PKEY_free(pkey);
-		BIO_free(keydata);
-		return ARC_STAT_INTERNAL;
+		goto error;
 	}
 	h->hdr_colon = h->hdr_text + ARC_MSGSIG_HDRNAMELEN;
 	h->hdr_namelen = ARC_MSGSIG_HDRNAMELEN;
@@ -3551,12 +3517,7 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 	if (status != ARC_STAT_OK)
 	{
 		arc_error(msg, "arc_canon_add_to_seal() failed");
-		arc_dstring_free(dstr);
-		ARC_FREE(sigout);
-		RSA_free(rsa);
-		EVP_PKEY_free(pkey);
-		BIO_free(keydata);
-		return status;
+		goto error;
 	}
 
 	status = arc_getamshdr_d(msg, arc_dstring_len(dstr), &sighdr, &len,
@@ -3564,12 +3525,7 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 	if (status != ARC_STAT_OK)
 	{
 		arc_error(msg, "arc_getamshdr_d() failed");
-		arc_dstring_free(dstr);
-		ARC_FREE(sigout);
-		RSA_free(rsa);
-		EVP_PKEY_free(pkey);
-		BIO_free(keydata);
-		return status;
+		goto error;
 	}
 
 	arc_dstring_catn(dstr, sighdr, len);
@@ -3586,40 +3542,25 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 	if (status != ARC_STAT_OK)
 	{
 		arc_error(msg, "arc_canon_signature() failed");
-		arc_dstring_free(dstr);
-		ARC_FREE(sigout);
-		ARC_FREE(sighdr);
-		RSA_free(rsa);
-		EVP_PKEY_free(pkey);
-		BIO_free(keydata);
-		return ARC_STAT_INTERNAL;
+		status = ARC_STAT_INTERNAL;
+		goto error;
 	}
 
 	status = arc_canon_getfinal(msg->arc_sealcanon, &digest, &diglen);
 	if (status != ARC_STAT_OK)
 	{
 		arc_error(msg, "arc_canon_getseal() failed");
-		arc_dstring_free(dstr);
-		ARC_FREE(sigout);
-		RSA_free(rsa);
-		EVP_PKEY_free(pkey);
-		BIO_free(keydata);
-		return status;
+		goto error;
 	}
 
 	/* encrypt the digest; that's our signature */
-	nid = NID_sha256;
-	rstatus = RSA_sign(nid, digest, diglen, sigout, &siglen, rsa);
+	rstatus = EVP_PKEY_sign(ctx, sigout, &siglen, digest, diglen);
 	if (rstatus != 1 || siglen == 0)
 	{
-		arc_error(msg, "RSA_sign() failed (status %d, length %d)",
+		arc_error(msg, "EVP_PKEY_sign() failed (status %d, length %d)",
 		          rstatus, siglen);
-		arc_dstring_free(dstr);
-		ARC_FREE(sigout);
-		RSA_free(rsa);
-		EVP_PKEY_free(pkey);
-		BIO_free(keydata);
-		return ARC_STAT_INTERNAL;
+		status = ARC_STAT_INTERNAL;
+		goto error;
 	}
 
 	/* base64 encode it */
@@ -3628,13 +3569,8 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 	if (rstatus == -1)
 	{
 		arc_error(msg, "signature base64 encoding failed");
-		arc_dstring_free(dstr);
-		ARC_FREE(b64sig);
-		ARC_FREE(sigout);
-		RSA_free(rsa);
-		EVP_PKEY_free(pkey);
-		BIO_free(keydata);
-		return ARC_STAT_INTERNAL;
+		status = ARC_STAT_INTERNAL;
+		goto error;
 	}
 
 	/* append it to the stub */
@@ -3647,25 +3583,15 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 	if (h == NULL)
 	{
 		arc_error(msg, "can't allocate %d bytes", sizeof hdr);
-		arc_dstring_free(dstr);
-		ARC_FREE(b64sig);
-		ARC_FREE(sigout);
-		RSA_free(rsa);
-		EVP_PKEY_free(pkey);
-		BIO_free(keydata);
-		return ARC_STAT_INTERNAL;
+		status = ARC_STAT_INTERNAL;
+		goto error;
 	}
 	h->hdr_text = ARC_STRDUP(arc_dstring_get(dstr));
 	if (h->hdr_text == NULL)
 	{
 		arc_error(msg, "can't allocate %d bytes", sizeof hdr);
-		arc_dstring_free(dstr);
-		ARC_FREE(b64sig);
-		ARC_FREE(sigout);
-		RSA_free(rsa);
-		EVP_PKEY_free(pkey);
-		BIO_free(keydata);
-		return ARC_STAT_INTERNAL;
+		status = ARC_STAT_INTERNAL;
+		goto error;
 	}
 	h->hdr_colon = h->hdr_text + ARC_SEAL_HDRNAMELEN;
 	h->hdr_namelen = ARC_SEAL_HDRNAMELEN;
@@ -3676,17 +3602,22 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 	msg->arc_sealtail->hdr_next = h;
 	msg->arc_sealtail = h;
 
-	/* tidy up */
-	arc_dstring_free(dstr);
-	ARC_FREE(b64sig);
-	ARC_FREE(sigout);
-	RSA_free(rsa);
-		EVP_PKEY_free(pkey);
-	BIO_free(keydata);
-
 	*seal = msg->arc_sealhead;
 
-	return ARC_STAT_OK;
+	status = ARC_STAT_OK;
+
+error:
+	/* tidy up */
+	if (dstr)
+	{
+		arc_dstring_free(dstr);
+	}
+	ARC_FREE(b64sig);
+	ARC_FREE(sigout);
+	EVP_PKEY_free(pkey);
+	BIO_free(keydata);
+	EVP_PKEY_CTX_free(ctx);
+	return status;
 }
 
 /*

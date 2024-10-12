@@ -70,57 +70,28 @@ static void
 arc_canon_free(ARC_MESSAGE *msg, ARC_CANON *canon)
 {
 	assert(msg != NULL);
-	assert(canon != NULL);
+	if (canon == NULL)
+	{
+		return;
+	}
 
 	if (canon->canon_hash != NULL)
 	{
-		switch (canon->canon_hashtype)
-		{
-		  case ARC_HASHTYPE_SHA1:
-		  {
-			struct arc_sha1 *sha1;
-
-			sha1 = (struct arc_sha1 *) canon->canon_hash;
-
-			if (sha1->sha1_tmpbio != NULL)
-			{
-				BIO_free(sha1->sha1_tmpbio);
-				sha1->sha1_tmpfd = -1;
-				sha1->sha1_tmpbio = NULL;
-			}
-
-			break;
-		  }
-
-		  case ARC_HASHTYPE_SHA256:
-		  {
-			struct arc_sha256 *sha256;
-
-			sha256 = (struct arc_sha256 *) canon->canon_hash;
-
-			if (sha256->sha256_tmpbio != NULL)
-			{
-				BIO_free(sha256->sha256_tmpbio);
-				sha256->sha256_tmpfd = -1;
-				sha256->sha256_tmpbio = NULL;
-			}
-
-			break;
-		  }
-
-		  default:
-			assert(0);
-			/* NOTREACHED */
-		}
-
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+		EVP_MD_CTX_destroy(canon->canon_hash->hash_ctx);
+#else
+		EVP_MD_CTX_free(canon->canon_hash->hash_ctx);
+#endif /* OpenSSL < 1.1.0 */
+		BIO_free(canon->canon_hash->hash_tmpbio);
 		ARC_FREE(canon->canon_hash);
 	}
 
-	if (canon->canon_hashbuf != NULL)
-		ARC_FREE(canon->canon_hashbuf);
+	ARC_FREE(canon->canon_hashbuf);
 
 	if (canon->canon_buf != NULL)
+	{
 		arc_dstring_free(canon->canon_buf);
+	}
 
 	ARC_FREE(canon);
 }
@@ -152,33 +123,10 @@ arc_canon_write(ARC_CANON *canon, u_char *buf, size_t buflen)
 
 	assert(canon->canon_hash != NULL);
 
-	switch (canon->canon_hashtype)
+	EVP_DigestUpdate(canon->canon_hash->hash_ctx, buf, buflen);
+	if (canon->canon_hash->hash_tmpbio != NULL)
 	{
-	  case ARC_HASHTYPE_SHA1:
-	  {
-		struct arc_sha1 *sha1;
-
-		sha1 = (struct arc_sha1 *) canon->canon_hash;
-		SHA1_Update(&sha1->sha1_ctx, buf, buflen);
-
-		if (sha1->sha1_tmpbio != NULL)
-			BIO_write(sha1->sha1_tmpbio, buf, buflen);
-
-		break;
-	  }
-
-	  case ARC_HASHTYPE_SHA256:
-	  {
-		struct arc_sha256 *sha256;
-
-		sha256 = (struct arc_sha256 *) canon->canon_hash;
-		SHA256_Update(&sha256->sha256_ctx, buf, buflen);
-
-		if (sha256->sha256_tmpbio != NULL)
-			BIO_write(sha256->sha256_tmpbio, buf, buflen);
-
-		break;
-	  }
+		BIO_write(canon->canon_hash->hash_tmpbio, buf, buflen);
 	}
 
 	if (canon->canon_remain != (ssize_t) -1)
@@ -557,6 +505,7 @@ ARC_STAT
 arc_canon_init(ARC_MESSAGE *msg, _Bool tmp, _Bool keep)
 {
 	int fd;
+	int rc;
 	ARC_STAT status;
 	ARC_CANON *cur;
 
@@ -577,78 +526,52 @@ arc_canon_init(ARC_MESSAGE *msg, _Bool tmp, _Bool keep)
 		if (cur->canon_buf == NULL)
 			return ARC_STAT_NORESOURCE;
 
-		switch (cur->canon_hashtype)
+		cur->canon_hash = ARC_MALLOC(sizeof(struct arc_hash));
+		if (cur->canon_hash == NULL)
 		{
-		  case ARC_HASHTYPE_SHA1:
-		  {
-			struct arc_sha1 *sha1;
+			arc_error(msg, "unable to allocate %d bytes",
+			          sizeof(struct arc_hash));
+			return ARC_STAT_NORESOURCE;
+		}
+		memset(cur->canon_hash, '\0', sizeof(struct arc_hash));
 
-			sha1 = (struct arc_sha1 *) ARC_MALLOC(sizeof(struct arc_sha1));
-			if (sha1 == NULL)
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+		cur->canon_hash->hash_ctx = EVP_MD_CTX_create();
+#else
+		cur->canon_hash->hash_ctx = EVP_MD_CTX_new();
+#endif /* OpenSSL < 1.1.0 */
+		if (cur->canon_hash->hash_ctx == NULL)
+		{
+			arc_error(msg, "EVP_MD_CTX_new() failed");
+			return ARC_STAT_NORESOURCE;
+		}
+		if (cur->canon_hashtype == ARC_HASHTYPE_SHA1)
+		{
+			rc = EVP_DigestInit_ex(cur->canon_hash->hash_ctx,
+			                       EVP_sha1(), NULL);
+		}
+		else
+		{
+			rc = EVP_DigestInit_ex(cur->canon_hash->hash_ctx,
+			                       EVP_sha256(), NULL);
+		}
+
+		if (rc <= 0)
+		{
+			arc_error(msg, "EVP_DigestInit_ex() failed");
+			return ARC_STAT_INTERNAL;
+		}
+
+		if (tmp)
+		{
+			status = arc_tmpfile(msg, &fd, keep);
+			if (status != ARC_STAT_OK)
 			{
-				arc_error(msg,
-				          "unable to allocate %d byte(s)",
-				          sizeof(struct arc_sha1));
-				return ARC_STAT_NORESOURCE;
+				return status;
 			}
 
-			memset(sha1, '\0', sizeof(struct arc_sha1));
-			SHA1_Init(&sha1->sha1_ctx);
-
-			if (tmp)
-			{
-				status = arc_tmpfile(msg, &fd, keep);
-				if (status != ARC_STAT_OK)
-				{
-					ARC_FREE(sha1);
-					return status;
-				}
-
-				sha1->sha1_tmpfd = fd;
-				sha1->sha1_tmpbio = BIO_new_fd(fd, 1);
-			}
-
-			cur->canon_hash = sha1;
-
-		  	break;
-		  }
-
-		  case ARC_HASHTYPE_SHA256:
-		  {
-			struct arc_sha256 *sha256;
-
-			sha256 = (struct arc_sha256 *) ARC_MALLOC(sizeof(struct arc_sha256));
-			if (sha256 == NULL)
-			{
-				arc_error(msg,
-				          "unable to allocate %d byte(s)",
-				          sizeof(struct arc_sha256));
-				return ARC_STAT_NORESOURCE;
-			}
-
-			memset(sha256, '\0', sizeof(struct arc_sha256));
-			SHA256_Init(&sha256->sha256_ctx);
-
-			if (tmp)
-			{
-				status = arc_tmpfile(msg, &fd, keep);
-				if (status != ARC_STAT_OK)
-				{
-					ARC_FREE(sha256);
-					return status;
-				}
-
-				sha256->sha256_tmpfd = fd;
-				sha256->sha256_tmpbio = BIO_new_fd(fd, 1);
-			}
-
-			cur->canon_hash = sha256;
-
-		  	break;
-		  }
-
-		  default:
-			assert(0);
+			cur->canon_hash->hash_tmpfd = fd;
+			cur->canon_hash->hash_tmpbio = BIO_new_fd(fd, 1);
 		}
 	}
 
@@ -1059,37 +982,11 @@ arc_canon_finalize(ARC_CANON *canon)
 {
 	assert(canon != NULL);
 
-	switch (canon->canon_hashtype)
+	EVP_DigestFinal(canon->canon_hash->hash_ctx, canon->canon_hash->hash_out, &canon->canon_hash->hash_outlen);
+
+	if (canon->canon_hash->hash_tmpbio != NULL)
 	{
-	  case ARC_HASHTYPE_SHA1:
-	  {
-		struct arc_sha1 *sha1;
-
-		sha1 = (struct arc_sha1 *) canon->canon_hash;
-		SHA1_Final(sha1->sha1_out, &sha1->sha1_ctx);
-
-		if (sha1->sha1_tmpbio != NULL)
-			(void) BIO_flush(sha1->sha1_tmpbio);
-
-		break;
-	  }
-
-	  case ARC_HASHTYPE_SHA256:
-	  {
-		struct arc_sha256 *sha256;
-
-		sha256 = (struct arc_sha256 *) canon->canon_hash;
-		SHA256_Final(sha256->sha256_out, &sha256->sha256_ctx);
-
-		if (sha256->sha256_tmpbio != NULL)
-			(void) BIO_flush(sha256->sha256_tmpbio);
-
-		break;
-	  }
-
-	  default:
-		assert(0);
-		/* NOTREACHED */
+		BIO_flush(canon->canon_hash->hash_tmpbio);
 	}
 }
 
@@ -1907,38 +1804,7 @@ arc_canon_closebody(ARC_MESSAGE *msg)
 		arc_canon_buffer(cur, NULL, 0);
 
 		/* finalize */
-		switch (cur->canon_hashtype)
-		{
-		  case ARC_HASHTYPE_SHA1:
-		  {
-			struct arc_sha1 *sha1;
-
-			sha1 = (struct arc_sha1 *) cur->canon_hash;
-			SHA1_Final(sha1->sha1_out, &sha1->sha1_ctx);
-
-			if (sha1->sha1_tmpbio != NULL)
-				(void) BIO_flush(sha1->sha1_tmpbio);
-
-			break;
-		  }
-
-		  case ARC_HASHTYPE_SHA256:
-		  {
-			struct arc_sha256 *sha256;
-
-			sha256 = (struct arc_sha256 *) cur->canon_hash;
-			SHA256_Final(sha256->sha256_out, &sha256->sha256_ctx);
-
-			if (sha256->sha256_tmpbio != NULL)
-				(void) BIO_flush(sha256->sha256_tmpbio);
-
-			break;
-		  }
-
-		  default:
-			assert(0);
-			/* NOTREACHED */
-		}
+		arc_canon_finalize(cur);
 
 		cur->canon_done = TRUE;
 	}
@@ -1968,35 +1834,10 @@ arc_canon_getfinal(ARC_CANON *canon, u_char **digest, size_t *dlen)
 	if (!canon->canon_done)
 		return ARC_STAT_INVALID;
 
-	switch (canon->canon_hashtype)
-	{
-	  case ARC_HASHTYPE_SHA1:
-	  {
-		struct arc_sha1 *sha1;
+	*digest = canon->canon_hash->hash_out;
+	*dlen = canon->canon_hash->hash_outlen;
 
-		sha1 = (struct arc_sha1 *) canon->canon_hash;
-		*digest = sha1->sha1_out;
-		*dlen = sizeof sha1->sha1_out;
-
-		return ARC_STAT_OK;
-	  }
-
-	  case ARC_HASHTYPE_SHA256:
-	  {
-		struct arc_sha256 *sha256;
-
-		sha256 = (struct arc_sha256 *) canon->canon_hash;
-		*digest = sha256->sha256_out;
-		*dlen = sizeof sha256->sha256_out;
-
-		return ARC_STAT_OK;
-	  }
-
-	  default:
-		assert(0);
-		/* NOTREACHED */
-		return ARC_STAT_INTERNAL;
-	}
+	return ARC_STAT_OK;
 }
 
 /*
