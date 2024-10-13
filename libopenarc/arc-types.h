@@ -31,7 +31,7 @@ struct arc_hash
 	int			hash_tmpfd;
 	BIO *			hash_tmpbio;
 	EVP_MD_CTX *            hash_ctx;
-	u_char			hash_out[SHA256_DIGEST_LENGTH];
+	u_char			hash_out[EVP_MAX_MD_SIZE];
 	int			hash_outlen;
 };
 
