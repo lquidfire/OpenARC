@@ -38,7 +38,7 @@ def private_key(scope='session'):
             'b98xIeZlgJTnmrj/zuxIKHeVmGKI1j6L3xttdcDiUVRGxoubkFzg9TIBGhdeFkpa0C'
             'ZuhB/1/U3f1oG3Upx5o/jXTQk/dwVaaeEXnRmTsfGYn4GQ9ziity1ijLsQIDAQAB\n'
         ))
-        f.write(f'elpmaxe._domainkey.example.com v=DKIM1; k=rsa; p={key}\n')
+        f.write(f'elpmaxe._domainkey.example.com v=DKIM1; k=rsa; h=sha256; p={key}\n')
 
 
 @pytest.fixture()
