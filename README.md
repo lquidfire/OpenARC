@@ -54,9 +54,11 @@ you will also need:
 
 ## Testing
 
-Tests can be run with `make check`. OpenARC's test suite requires
-Python >= 3.7, [pytest](https://pytest.org), and
-[a Python library](https://github.com/flowerysong/python-libmilter).
+Tests can be run with `make check`. OpenARC's test suite requires:
+
+* Python >= 3.8
+* [pytest](https://pytest.org)
+* The Python [miltertest](https://pypi.org/project/miltertest/) library
 
 ## Additional Documentation
 

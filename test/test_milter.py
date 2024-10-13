@@ -2,7 +2,7 @@
 
 import socket
 
-import libmilter
+import miltertest
 import pytest
 
 
@@ -22,29 +22,29 @@ def run_miltertest(request, milter, milter_config):
         # Connect
         sock = socket.socket(family=socket.AF_UNIX)
         sock.connect(bytes(milter_config['sock']))
-        conn = libmilter.MilterConnection(sock)
-        conn.optneg_mta(protocol=libmilter.SMFI_V6_PROT ^ libmilter.SMFIP_HDR_LEADSPC)
-        conn.send(libmilter.SMFIC_CONNECT, hostname='localhost', address='127.0.0.1', family=libmilter.SMFIA_INET, port=666)
-        conn.send(libmilter.SMFIC_HELO, helo='mx.example.com')
+        conn = miltertest.MilterConnection(sock)
+        conn.optneg_mta(protocol=miltertest.SMFI_V6_PROT ^ miltertest.SMFIP_HDR_LEADSPC)
+        conn.send(miltertest.SMFIC_CONNECT, hostname='localhost', address='127.0.0.1', family=miltertest.SMFIA_INET, port=666)
+        conn.send(miltertest.SMFIC_HELO, helo='mx.example.com')
 
         # Envelope data
-        conn.send(libmilter.SMFIC_MAIL, args=['<sender@example.com>'])
-        conn.send(libmilter.SMFIC_RCPT, args=['<recipient@example.com>'])
+        conn.send(miltertest.SMFIC_MAIL, args=['<sender@example.com>'])
+        conn.send(miltertest.SMFIC_RCPT, args=['<recipient@example.com>'])
 
         # Send headers
-        conn.send(libmilter.SMFIC_DATA)
+        conn.send(miltertest.SMFIC_DATA)
         conn.send_headers(headers)
-        conn.send(libmilter.SMFIC_EOH)
+        conn.send(miltertest.SMFIC_EOH)
 
         # Send body
         conn.send_body(body)
         resp = conn.send_eom()
         ins_headers = []
         for msg in resp:
-            if msg[0] == libmilter.SMFIR_INSHEADER:
+            if msg[0] == miltertest.SMFIR_INSHEADER:
                 ins_headers.insert(msg[1]['index'], [msg[1]['name'], msg[1]['value']])
-            elif msg[0] in libmilter.DISPOSITION_REPLIES:
-                assert msg[0] == libmilter.SMFIR_ACCEPT
+            elif msg[0] in miltertest.DISPOSITION_REPLIES:
+                assert msg[0] == miltertest.SMFIR_ACCEPT
             else:
                 pytest.fail(f'Unexpected EOM response {msg}')
 
@@ -215,5 +215,5 @@ def test_milter_ar_multi(run_miltertest):
 
 def test_milter_peerlist(run_miltertest):
     """Connections from peers just get `accept` back immediately"""
-    with pytest.raises(libmilter.MilterError, match='unexpected response: a'):
+    with pytest.raises(miltertest.MilterError, match='unexpected response: a'):
         run_miltertest()
