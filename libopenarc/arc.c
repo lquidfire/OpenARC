@@ -2417,10 +2417,7 @@ arc_free(ARC_MESSAGE *msg)
 		ARC_FREE(msg->arc_hdrlist);
 	}
 
-	if (msg->arc_hdrbuf != NULL)
-	{
-		arc_dstring_free(msg->arc_hdrbuf);
-	}
+	arc_dstring_free(msg->arc_hdrbuf);
 
 	while (msg->arc_kvsethead != NULL)
 	{
@@ -2445,15 +2442,9 @@ arc_free(ARC_MESSAGE *msg)
 
 	arc_canon_cleanup(msg);
 
-	if (msg->arc_sealcanons != NULL)
-		ARC_FREE(msg->arc_sealcanons);
-
-	if (msg->arc_sets != NULL)
-		ARC_FREE(msg->arc_sets);
-
-	if (msg->arc_key != NULL)
-		ARC_FREE(msg->arc_key);
-
+	ARC_FREE(msg->arc_sealcanons);
+	ARC_FREE(msg->arc_sets);
+	ARC_FREE(msg->arc_key);
 	ARC_FREE(msg);
 }
 
@@ -3608,10 +3599,7 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 
 error:
 	/* tidy up */
-	if (dstr)
-	{
-		arc_dstring_free(dstr);
-	}
+	arc_dstring_free(dstr);
 	ARC_FREE(b64sig);
 	ARC_FREE(sigout);
 	EVP_PKEY_free(pkey);
@@ -3788,7 +3776,6 @@ arc_chain_custody_str(ARC_MESSAGE *msg, u_char *buf, size_t buflen)
 	tmpbuf = arc_dstring_new(msg, BUFRSZ, MAXBUFRSZ);
 	if (tmpbuf == NULL)
 	{
-		arc_dstring_free(tmpbuf);
 		arc_error(msg, "failed to allocate dynamic string");
 		return ARC_STAT_NORESOURCE;
 	}

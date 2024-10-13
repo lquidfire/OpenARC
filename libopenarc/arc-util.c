@@ -184,7 +184,10 @@ arc_dstring_new(ARC_MESSAGE *msg, int len, int maxlen)
 void
 arc_dstring_free(struct arc_dstring *dstr)
 {
-	assert(dstr != NULL);
+	if (dstr == NULL)
+	{
+		return;
+	}
 
 	ARC_FREE(dstr->ds_buf);
 	ARC_FREE(dstr);
