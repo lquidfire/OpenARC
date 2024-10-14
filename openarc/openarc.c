@@ -1358,9 +1358,6 @@ arcf_config_load(struct config *data, struct arcf_config *conf,
 #ifdef USE_LDAP
 	_Bool btmp;
 #endif /* USE_LDAP */
-	int maxsign;
-	int dbflags = 0;
-	uint64_t fixedtime = 0UL;
 	char *str;
 	char basedir[MAXPATHLEN + 1];
 
@@ -1379,8 +1376,6 @@ arcf_config_load(struct config *data, struct arcf_config *conf,
 
 	if (data != NULL)
 	{
-		int tmpint;
-
 		str = NULL;
 		(void) config_get(data, "Mode", &str, sizeof str);
 		if (str != NULL)
@@ -1405,7 +1400,6 @@ arcf_config_load(struct config *data, struct arcf_config *conf,
 		}
 		else
 		{
-			_Bool which = FALSE;
 			char *copy;
 			char *mode;
 			char *ctx;
@@ -2358,8 +2352,6 @@ arcf_findheader(msgctx afc, char *hname, int instance)
 _Bool
 arcf_checkhost(struct conflist *list, char *host)
 {
-	_Bool exists;
-	int status;
 	char *p;
 	struct configvalue *node;
 	char buf[BUFRSZ + 1];
@@ -2415,7 +2407,6 @@ arcf_checkip(struct conflist *list, struct sockaddr *ip)
 #if AF_INET6
 	if (ip->sa_family == AF_INET6)
 	{
-		int status;
 		int bits;
 		size_t dst_len;
 		size_t iplen;
@@ -2535,7 +2526,6 @@ arcf_checkip(struct conflist *list, struct sockaddr *ip)
 	{
 		_Bool exists;
 		int c;
-		int status;
 		int bits;
 		size_t iplen;
 		struct configvalue *node;
@@ -2754,7 +2744,6 @@ mlfi_negotiate(SMFICTX *ctx,
 sfsistat
 mlfi_connect(SMFICTX *ctx, char *host, _SOCK_ADDR *ip)
 {
-	char *err = NULL;
 	connctx cc;
 	struct arcf_config *conf;
 
@@ -3135,22 +3124,13 @@ sfsistat
 mlfi_eoh(SMFICTX *ctx)
 {
 	char last;
-	_Bool setidentity = FALSE;
-	_Bool domainok;
-	_Bool originok;
-	_Bool didfrom = FALSE;
-	int c;
 	u_int mode;
 	ARC_STAT status;
 	connctx cc;
 	msgctx afc;
 	char *p;
 	const u_char *err = NULL;
-	u_char *user;
-	u_char *domain;
 	struct arcf_config *conf;
-	struct arcf_dstring *addr;
-	Header from = NULL;
 	Header hdr;
 
 	assert(ctx != NULL);
@@ -3572,14 +3552,10 @@ reconcile_arc_state(msgctx afc, struct result *r)
 sfsistat
 mlfi_eom(SMFICTX *ctx)
 {
-	_Bool testkey = FALSE;
-	_Bool authorsig;
 	int status = ARC_STAT_OK;
 	int c;
-	sfsistat ret;
 	connctx cc;
 	msgctx afc;
-	char *authservid;
 	char *hostname;
 	struct arcf_config *conf;
 	ARC_HDRFIELD *seal = NULL;
@@ -3588,7 +3564,6 @@ mlfi_eom(SMFICTX *ctx)
 	struct sockaddr *ip;
 	Header hdr;
 	struct authres ar;
-	unsigned char header[ARC_MAXHEADER + 1];
 	u_char arcchainbuf[ARC_MAXHEADER + 1];
 	char ipbuf[ARC_MAXHOSTNAMELEN + 1];
 
@@ -4070,9 +4045,7 @@ main(int argc, char **argv)
 	_Bool autorestart = FALSE;
 	_Bool gotp = FALSE;
 	_Bool dofork = TRUE;
-	_Bool stricttest = FALSE;
 	_Bool configonly = FALSE;
-	_Bool querytest = FALSE;
 	int c;
 	int status;
 	int n;
@@ -4089,24 +4062,20 @@ main(int argc, char **argv)
 	time_t now;
 	gid_t gid = (gid_t) -1;
 	sigset_t sigset;
-	uint64_t fixedtime = (uint64_t) -1;
 	time_t maxrestartrate_t = 0;
 	pthread_t rt;
-	unsigned long tmpl;
 	const char *args = CMDLINEOPTS;
 	FILE *f;
 	struct passwd *pw = NULL;
 	struct group *gr = NULL;
 	char *become = NULL;
 	char *chrootdir = NULL;
-	char *extract = NULL;
 	char *p;
 	char *pidfile = NULL;
 #ifdef POPAUTH
 	char *popdbfile = NULL;
 #endif /* POPAUTH */
 	char *testfile = NULL;
-	char *testpubkeys = NULL;
 	struct config *cfg = NULL;
 	char *end;
 	char argstr[MAXARGV];

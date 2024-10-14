@@ -355,7 +355,6 @@ arc_genamshdr(ARC_MESSAGE *msg, struct arc_dstring *dstr, char *delim,
               _Bool seal)
 {
 	_Bool firsthdr;
-	_Bool nosigner = FALSE;
 	int n;
 	int status;
 	int delimlen;
@@ -363,7 +362,6 @@ arc_genamshdr(ARC_MESSAGE *msg, struct arc_dstring *dstr, char *delim,
 	char *format;
 	u_char *hash;
 	struct arc_hdrfield *hdr;
-	u_char tmp[ARC_MAXHEADER + 1];
 	u_char b64hash[ARC_MAXHEADER + 1];
 
 	assert(msg != NULL);
@@ -1454,8 +1452,6 @@ arc_process_set(ARC_MESSAGE *msg, arc_kvsettype_t type, u_char *str,
 	char *ctx;
 	ARC_KVSET *set;
 	const char *settype;
-	struct arc_plist *par;
-	struct arc_plist *dup;
 
 	assert(msg != NULL);
 	assert(str != NULL);
@@ -1843,11 +1839,7 @@ arc_process_set(ARC_MESSAGE *msg, arc_kvsettype_t type, u_char *str,
 ARC_STAT
 arc_get_key(ARC_MESSAGE *msg, _Bool test)
 {
-	_Bool gotkey = FALSE;			/* key stored */
-	_Bool gotset = FALSE;			/* set parsed */
-	_Bool gotreply = FALSE;			/* reply received */
 	int status;
-	int c;
 	struct arc_kvset *set = NULL;
 	struct arc_kvset *nextset;
 	unsigned char *p;
@@ -2021,13 +2013,9 @@ arc_verify_hash(ARC_MESSAGE *msg, unsigned char *b64sig, void *h, size_t hlen)
 {
 	int rc;
 	size_t b64siglen;
-	size_t b64bhlen;
 	size_t siglen;
 	size_t keysize;
 	ARC_STAT status;
-	u_char *alg;
-	u_char *b64bh;
-	u_char *b64bhtag;
 	void *sig;
 	BIO *keydata = NULL;
 	EVP_PKEY *pkey = NULL;
@@ -2157,7 +2145,6 @@ arc_validate_msg(ARC_MESSAGE *msg, u_int setnum)
 	size_t hhlen;
 	size_t bhlen;
 	size_t b64bhlen;
-	size_t keysize;
 	ARC_STAT status;
 	u_char *alg;
 	u_char *b64sig;
@@ -2166,7 +2153,6 @@ arc_validate_msg(ARC_MESSAGE *msg, u_int setnum)
 	void *hh;
 	void *bh;
 	struct arc_set *set;
-	struct arc_hdrfield *h;
 	ARC_KVSET *kvset;
 
 	assert(msg != NULL);
@@ -2655,7 +2641,6 @@ arc_header_field(ARC_MESSAGE *msg, u_char *hdr, size_t hlen)
 ARC_STAT
 arc_eoh_verify(ARC_MESSAGE *msg)
 {
-	u_int c;
 	u_int n;
 	u_int hashtype;
 	ARC_STAT status;
@@ -3206,8 +3191,6 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 {
 	int rstatus;
 	size_t siglen;
-	int nid;
-	u_int set;
 	ARC_STAT status = ARC_STAT_INTERNAL;
 	size_t diglen;
 	size_t keysize;
@@ -3760,7 +3743,6 @@ int
 arc_chain_custody_str(ARC_MESSAGE *msg, u_char *buf, size_t buflen)
 {
 	int set;
-	u_char *instance;
 	ARC_KVSET *kvset;
 	char *str = NULL;
 	struct arc_dstring *tmpbuf;

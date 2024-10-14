@@ -372,7 +372,6 @@ arcf_testfile(ARC_LIB *libopenarc, struct test_context *tctx,
 	int lineno = 0;
 	int hslineno = 0;
 	int c;
-	ARC_MESSAGE *msg;
 	char *p;
 	sfsistat ms;
 	char buf[MAXBUFRSZ];

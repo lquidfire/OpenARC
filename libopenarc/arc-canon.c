@@ -1113,14 +1113,11 @@ arc_canon_runheaders(ARC_MESSAGE *msg)
 	u_char savechar;
 	int c;
 	int n;
-	int in;
 	int nhdrs = 0;
-	int last = '\0';
 	ARC_STAT status;
 	u_char *tmp;
 	u_char *end;
 	ARC_CANON *cur;
-	u_char *p;
 	struct arc_hdrfield *hdr;
 	struct arc_hdrfield **hdrset;
 	struct arc_hdrfield tmphdr;
