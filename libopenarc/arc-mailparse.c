@@ -502,8 +502,8 @@ arc_mail_parse_multi(unsigned char *line, unsigned char ***users_out,
 	int n = 0;
 	int status;
 	int parens = 0;
-	char *p;
-	char *addr;
+	unsigned char *p;
+	unsigned char *addr;
 	unsigned char **uout = NULL;
 	unsigned char **dout = NULL;
 	unsigned char *u;

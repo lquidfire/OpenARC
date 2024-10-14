@@ -521,7 +521,7 @@ extern ARC_STAT arc_getseal __P((ARC_MESSAGE *, ARC_HDRFIELD **, char *,
 **  	Header field name stored in the object.
 */
 
-extern u_char *arc_hdr_name __P((ARC_HDRFIELD *, size_t *));
+extern unsigned char *arc_hdr_name __P((ARC_HDRFIELD *, size_t *));
 
 /*
 **  ARC_HDR_VALUE -- extract value from an ARC_HDRFIELD
@@ -533,7 +533,7 @@ extern u_char *arc_hdr_name __P((ARC_HDRFIELD *, size_t *));
 **  	Header field value stored in the object.
 */
 
-extern u_char *arc_hdr_value __P((ARC_HDRFIELD *));
+extern unsigned char *arc_hdr_value __P((ARC_HDRFIELD *));
 
 /*
 **  ARC_HDR_NEXT -- return pointer to next ARC_HDRFIELD

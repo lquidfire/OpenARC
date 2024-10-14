@@ -30,10 +30,10 @@
 
 /* prototypes */
 extern ARC_STAT arc_add_canon __P((ARC_MESSAGE *, int, arc_canon_t, int,
-                                   u_char *, struct arc_hdrfield *,
+                                   const char *, struct arc_hdrfield *,
                                    ssize_t length, ARC_CANON **));
 extern ARC_STAT arc_canon_add_to_seal __P((ARC_MESSAGE *));
-extern ARC_STAT arc_canon_bodychunk __P((ARC_MESSAGE *, u_char *, size_t));
+extern ARC_STAT arc_canon_bodychunk __P((ARC_MESSAGE *, char *, size_t));
 extern void arc_canon_cleanup __P((ARC_MESSAGE *));
 extern ARC_STAT arc_canon_closebody __P((ARC_MESSAGE *));
 extern ARC_STAT arc_canon_getfinal __P((ARC_CANON *, u_char **, size_t *));
@@ -42,18 +42,17 @@ extern ARC_STAT arc_canon_gethashes __P((ARC_MESSAGE *, void **, size_t *,
 extern ARC_STAT arc_canon_getsealhash __P((ARC_MESSAGE *, int,
                                            void **, size_t *));
 extern ARC_STAT arc_canon_header_string __P((struct arc_dstring *,
-                                             arc_canon_t,
-                                             unsigned char *,
-                                             size_t, _Bool));
+                                             arc_canon_t, char *, size_t,
+					     _Bool));
 extern ARC_STAT arc_canon_init __P((ARC_MESSAGE *, _Bool, _Bool));
 extern u_long arc_canon_minbody __P((ARC_MESSAGE *));
 extern ARC_STAT arc_canon_runheaders __P((ARC_MESSAGE *));
 extern ARC_STAT arc_canon_runheaders_seal __P((ARC_MESSAGE *));
-extern int arc_canon_selecthdrs __P((ARC_MESSAGE *, u_char *,
+extern int arc_canon_selecthdrs __P((ARC_MESSAGE *, const char *,
                                      struct arc_hdrfield **, int));
 extern ARC_STAT arc_canon_signature __P((ARC_MESSAGE *, struct arc_hdrfield *,
                                          int));
 
-extern ARC_STAT arc_parse_canon_t(unsigned char *, arc_canon_t *, arc_canon_t *);
+extern ARC_STAT arc_parse_canon_t(char *, arc_canon_t *, arc_canon_t *);
 
 #endif /* ! _ARC_CANON_H_ */

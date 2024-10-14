@@ -65,7 +65,7 @@ static _Bool
 arc_dstring_resize(struct arc_dstring *dstr, int len)
 {
 	int newsz;
-	unsigned char *new;
+	char *new;
 
 	assert(dstr != NULL);
 	assert(len > 0);
@@ -208,14 +208,14 @@ arc_dstring_free(struct arc_dstring *dstr)
 */
 
 _Bool
-arc_dstring_copy(struct arc_dstring *dstr, unsigned char *str)
+arc_dstring_copy(struct arc_dstring *dstr, const char *str)
 {
 	int len;
 
 	assert(dstr != NULL);
 	assert(str != NULL);
 
-	len = strlen((char *) str);
+	len = strlen(str);
 
 	/* too big? */
 	if (dstr->ds_max > 0 && len >= dstr->ds_max)
@@ -251,7 +251,7 @@ arc_dstring_copy(struct arc_dstring *dstr, unsigned char *str)
 */
 
 _Bool
-arc_dstring_cat(struct arc_dstring *dstr, unsigned char *str)
+arc_dstring_cat(struct arc_dstring *dstr, const char *str)
 {
 	size_t len;
 	size_t needed;
@@ -259,7 +259,7 @@ arc_dstring_cat(struct arc_dstring *dstr, unsigned char *str)
 	assert(dstr != NULL);
 	assert(str != NULL);
 
-	len = strlen((char *) str);
+	len = strlen(str);
 	needed = dstr->ds_len + len;
 
 	/* too big? */
@@ -339,7 +339,7 @@ arc_dstring_cat1(struct arc_dstring *dstr, int c)
 */
 
 _Bool
-arc_dstring_catn(struct arc_dstring *dstr, unsigned char *str, size_t nbytes)
+arc_dstring_catn(struct arc_dstring *dstr, const char *str, size_t nbytes)
 {
 	size_t needed;
 
@@ -378,7 +378,7 @@ arc_dstring_catn(struct arc_dstring *dstr, unsigned char *str, size_t nbytes)
 **  	Pointer to the NULL-terminated contents of "dstr".
 */
 
-unsigned char *
+char *
 arc_dstring_get(struct arc_dstring *dstr)
 {
 	assert(dstr != NULL);
@@ -506,10 +506,10 @@ arc_dstring_printf(struct arc_dstring *dstr, char *fmt, ...)
 **  	Pointer to the copy.  The caller owns it.
 */
 
-u_char *
-arc_strndup(u_char *src, size_t len)
+char *
+arc_strndup(const char *src, size_t len)
 {
-	u_char *ret;
+	char *ret;
 
 	ret = ARC_MALLOC(len + 1);
 	if (ret != NULL)
@@ -532,10 +532,10 @@ arc_strndup(u_char *src, size_t len)
 */
 
 void
-arc_collapse(u_char *str)
+arc_collapse(char *str)
 {
-	u_char *q;
-	u_char *r;
+	char *q;
+	char *r;
 
 	assert(str != NULL);
 
@@ -658,9 +658,9 @@ arc_hdrlist(u_char *buf, size_t buflen, u_char **hdrlist, _Bool first)
 */
 
 void
-arc_lowerhdr(unsigned char *str)
+arc_lowerhdr(char *str)
 {
-	unsigned char *p;
+	char *p;
 
 	assert(str != NULL);
 
@@ -699,7 +699,7 @@ arc_tmpfile(ARC_MESSAGE *msg, int *fp, _Bool keep)
 	snprintf(path, MAXPATHLEN, "%s/arc.XXXXXX",
 	         msg->arc_library->arcl_tmpdir);
 
-	for (p = path + strlen((char *) msg->arc_library->arcl_tmpdir) + 1;
+	for (p = path + strlen(msg->arc_library->arcl_tmpdir) + 1;
 	     *p != '\0';
 	     p++)
 	{
@@ -928,7 +928,7 @@ arc_check_dns_reply(unsigned char *ansbuf, size_t anslen,
 **  	A copy of "in" and its elements, or NULL on failure.
 */
 
-const char **
+char **
 arc_copy_array(char **in)
 {
 	unsigned int c;
@@ -958,7 +958,7 @@ arc_copy_array(char **in)
 
 	out[c] = NULL;
 
-	return (const char **) out;
+	return out;
 }
 
 /*

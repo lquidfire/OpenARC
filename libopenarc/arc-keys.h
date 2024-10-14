@@ -12,7 +12,7 @@
 #include "arc.h"
 
 /* prototypes */
-extern ARC_STAT arc_get_key_dns __P((ARC_MESSAGE *, u_char *, size_t));
-extern ARC_STAT arc_get_key_file __P((ARC_MESSAGE *, u_char *, size_t));
+extern ARC_STAT arc_get_key_dns __P((ARC_MESSAGE *, char *, size_t));
+extern ARC_STAT arc_get_key_file __P((ARC_MESSAGE *, char *, size_t));
 
 #endif /* ! _ARC_KEYS_H_ */

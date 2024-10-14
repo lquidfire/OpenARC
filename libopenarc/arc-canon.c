@@ -43,8 +43,8 @@
 #endif /* USE_STRL_H */
 
 /* definitions */
-#define	CRLF	(u_char *) "\r\n"
-#define	SP	(u_char *) " "
+#define	CRLF	"\r\n"
+#define	SP	" "
 
 /* macros */
 #define	ARC_ISWSP(x)	((x) == 011 || (x) == 040)
@@ -104,7 +104,7 @@ arc_canon_free(ARC_MESSAGE *msg, ARC_CANON *canon)
 */
 
 static void
-arc_canon_write(ARC_CANON *canon, u_char *buf, size_t buflen)
+arc_canon_write(ARC_CANON *canon, char *buf, size_t buflen)
 {
 	assert(canon != NULL);
 
@@ -141,7 +141,7 @@ arc_canon_write(ARC_CANON *canon, u_char *buf, size_t buflen)
 */
 
 static void
-arc_canon_buffer(ARC_CANON *canon, u_char *buf, size_t buflen)
+arc_canon_buffer(ARC_CANON *canon, char *buf, size_t buflen)
 {
 	assert(canon != NULL);
 
@@ -198,13 +198,13 @@ arc_canon_buffer(ARC_CANON *canon, u_char *buf, size_t buflen)
 
 ARC_STAT
 arc_canon_header_string(struct arc_dstring *dstr, arc_canon_t canon,
-                        unsigned char *hdr, size_t hdrlen, _Bool crlf)
+                        char *hdr, size_t hdrlen, _Bool crlf)
 {
 	_Bool space;
-	u_char *p;
-	u_char *tmp;
-	u_char *end;
-	u_char tmpbuf[BUFRSZ];
+	char *p;
+	char *tmp;
+	char *end;
+	char tmpbuf[BUFRSZ];
 	assert(dstr != NULL);
 	assert(hdr != NULL);
 
@@ -429,11 +429,11 @@ arc_canon_flushblanks(ARC_CANON *canon)
 
 static ARC_STAT
 arc_canon_fixcrlf(ARC_MESSAGE *msg, ARC_CANON *canon,
-                  u_char *buf, size_t buflen)
+                  const char *buf, size_t buflen)
 {
-	u_char prev;
-	u_char *p;
-	u_char *eob;
+	char prev;
+	const char *p;
+	const char *eob;
 
 	assert(msg != NULL);
 	assert(canon != NULL);
@@ -625,7 +625,7 @@ arc_canon_cleanup(ARC_MESSAGE *msg)
 
 ARC_STAT
 arc_add_canon(ARC_MESSAGE *msg, int type, arc_canon_t canon, int hashtype,
-               u_char *hdrlist, struct arc_hdrfield *sighdr,
+               const char *hdrlist, struct arc_hdrfield *sighdr,
                ssize_t length, ARC_CANON **cout)
 {
 	ARC_CANON *cur;
@@ -732,7 +732,7 @@ arc_add_canon(ARC_MESSAGE *msg, int type, arc_canon_t canon, int hashtype,
 */
 
 int
-arc_canon_selecthdrs(ARC_MESSAGE *msg, u_char *hdrlist,
+arc_canon_selecthdrs(ARC_MESSAGE *msg, const char *hdrlist,
                      struct arc_hdrfield **ptrs, int nptrs)
 {
 	int c;
@@ -742,7 +742,7 @@ arc_canon_selecthdrs(ARC_MESSAGE *msg, u_char *hdrlist,
 	size_t len;
 	char *bar;
 	char *ctx;
-	u_char *colon;
+	char *colon;
 	struct arc_hdrfield *hdr;
 	struct arc_hdrfield **lhdrs;
 	u_char **hdrs;
@@ -783,7 +783,7 @@ arc_canon_selecthdrs(ARC_MESSAGE *msg, u_char *hdrlist,
 		}
 	}
 
-	strlcpy((char *) msg->arc_hdrlist, (char *) hdrlist, ARC_MAXHEADER);
+	strlcpy(msg->arc_hdrlist, hdrlist, ARC_MAXHEADER);
 
 	/* mark all headers as not used */
 	for (hdr = msg->arc_hhead; hdr != NULL; hdr = hdr->hdr_next)
@@ -813,7 +813,7 @@ arc_canon_selecthdrs(ARC_MESSAGE *msg, u_char *hdrlist,
 	n = 0;
 
 	/* make a split-out copy of hdrlist */
-	for (bar = strtok_r((char *) msg->arc_hdrlist, ":", &ctx);
+	for (bar = strtok_r(msg->arc_hdrlist, ":", &ctx);
 	     bar != NULL;
 	     bar = strtok_r(NULL, ":", &ctx))
 	{
@@ -894,15 +894,14 @@ arc_canon_selecthdrs(ARC_MESSAGE *msg, u_char *hdrlist,
 */
 
 static ARC_STAT
-arc_canon_strip_b(ARC_MESSAGE *msg, u_char *text)
+arc_canon_strip_b(ARC_MESSAGE *msg, char *text)
 {
-	int n;
-	u_char in;
-	u_char last;
-	u_char *p;
-	u_char *tmp;
-	u_char *end;
-	u_char tmpbuf[BUFRSZ];
+	char in;
+	char last;
+	char *p;
+	char *tmp;
+	char *end;
+	char tmpbuf[BUFRSZ];
 
 	assert(msg != NULL);
 	assert(text != NULL);
@@ -912,7 +911,6 @@ arc_canon_strip_b(ARC_MESSAGE *msg, u_char *text)
 	tmp = tmpbuf;
 	end = tmpbuf + sizeof tmpbuf - 1;
 
-	n = 0;
 	in = '\0';
 	for (p = text; *p != '\0'; p++)
 	{
@@ -1115,18 +1113,12 @@ arc_canon_runheaders(ARC_MESSAGE *msg)
 	int n;
 	int nhdrs = 0;
 	ARC_STAT status;
-	u_char *tmp;
-	u_char *end;
 	ARC_CANON *cur;
 	struct arc_hdrfield *hdr;
 	struct arc_hdrfield **hdrset;
 	struct arc_hdrfield tmphdr;
-	u_char tmpbuf[BUFRSZ];
 
 	assert(msg != NULL);
-
-	tmp = tmpbuf;
-	end = tmpbuf + sizeof tmpbuf - 1;
 
 	if (msg->arc_hdrcnt == 0)
 		return ARC_STAT_OK;
@@ -1485,17 +1477,17 @@ arc_canon_minbody(ARC_MESSAGE *msg)
 */
 
 ARC_STAT
-arc_canon_bodychunk(ARC_MESSAGE *msg, u_char *buf, size_t buflen)
+arc_canon_bodychunk(ARC_MESSAGE *msg, char *buf, size_t buflen)
 {
 	_Bool fixcrlf;
 	ARC_STAT status;
 	u_int wlen;
 	ARC_CANON *cur;
 	size_t plen;
-	u_char *p;
-	u_char *wrote;
-	u_char *eob;
-	u_char *start;
+	char *p;
+	char *wrote;
+	char *eob;
+	char *start;
 
 	assert(msg != NULL);
 
@@ -1574,7 +1566,7 @@ arc_canon_bodychunk(ARC_MESSAGE *msg, u_char *buf, size_t buflen)
 						else
 						{
 							arc_canon_buffer(cur,
-							                 (u_char *) "\r",
+							                 "\r",
 							                 1);
 						}
 					}
@@ -1923,10 +1915,7 @@ ARC_STAT
 arc_canon_add_to_seal(ARC_MESSAGE *msg)
 {
 	ARC_STAT status;
-	struct arc_canon *sc;
 	struct arc_hdrfield *hdr;
-
-	sc = msg->arc_sealcanon;
 
 	for (hdr = msg->arc_sealhead; hdr != NULL; hdr = hdr->hdr_next)
 	{
@@ -1951,8 +1940,7 @@ arc_canon_add_to_seal(ARC_MESSAGE *msg)
 */
 
 ARC_STAT
-arc_parse_canon_t(unsigned char *tag, arc_canon_t *hdr_canon,
-                  arc_canon_t *body_canon)
+arc_parse_canon_t(char *tag, arc_canon_t *hdr_canon, arc_canon_t *body_canon)
 {
 	char *token = NULL;
 	int code = 0;

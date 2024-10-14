@@ -118,7 +118,7 @@ arc_error(ARC_MESSAGE *msg, const char *format, ...)
 {
 	int flen;
 	int saverr;
-	u_char *new;
+	char *new;
 	va_list va;
 
 	assert(msg != NULL);
@@ -140,7 +140,7 @@ arc_error(ARC_MESSAGE *msg, const char *format, ...)
 	for (;;)
 	{
 		va_start(va, format);
-		flen = vsnprintf((char *) msg->arc_error, msg->arc_errorlen,
+		flen = vsnprintf(msg->arc_error, msg->arc_errorlen,
 		                 format, va);
 		va_end(va);
 
@@ -183,11 +183,11 @@ arc_error(ARC_MESSAGE *msg, const char *format, ...)
 */
 
 static _Bool
-arc_key_hashok(ARC_MESSAGE *msg, u_char *hashlist)
+arc_key_hashok(ARC_MESSAGE *msg, char *hashlist)
 {
 	int hashalg;
-	u_char *x, *y;
-	u_char tmp[BUFRSZ + 1];
+	char *x, *y;
+	char tmp[BUFRSZ + 1];
 
 	assert(msg != NULL);
 
@@ -204,10 +204,9 @@ arc_key_hashok(ARC_MESSAGE *msg, u_char *hashlist)
 		{
 			if (x != NULL)
 			{
-				strlcpy((char *) tmp, (char *) x, sizeof tmp);
+				strlcpy(tmp, x, sizeof tmp);
 				tmp[y - x] = '\0';
-				hashalg = arc_name_to_code(hashes,
-				                           (char *) tmp);
+				hashalg = arc_name_to_code(hashes, tmp);
 				if (hashalg == msg->arc_hashtype)
 					return TRUE;
 			}
@@ -240,10 +239,10 @@ arc_key_hashok(ARC_MESSAGE *msg, u_char *hashlist)
 */
 
 static _Bool
-arc_key_hashesok(ARC_LIB *lib, u_char *hashlist)
+arc_key_hashesok(ARC_LIB *lib, char *hashlist)
 {
-	u_char *x, *y;
-	u_char tmp[BUFRSZ + 1];
+	char *x, *y;
+	char tmp[BUFRSZ + 1];
 
 	assert(lib != NULL);
 
@@ -262,11 +261,10 @@ arc_key_hashesok(ARC_LIB *lib, u_char *hashlist)
 			{
 				int hashcode;
 
-				strlcpy((char *) tmp, (char *) x, sizeof tmp);
+				strlcpy(tmp, x, sizeof tmp);
 				tmp[y - x] = '\0';
 
-				hashcode = arc_name_to_code(hashes,
-				                            (char *) tmp);
+				hashcode = arc_name_to_code(hashes, tmp);
 
 				if (hashcode != -1 &&
 				    (hashcode != ARC_HASHTYPE_SHA256 ||
@@ -297,14 +295,13 @@ arc_key_hashesok(ARC_LIB *lib, u_char *hashlist)
 **  Parameters:
 **  	msg -- ARC_MESSAGE handle
 **  	alg -- string containing the algorithm to parse
-**  	nid -- variable to write the message digest algorithm
 **
 **  Return value:
 **  	An ARC_STAT_* constant.
 */
 
 ARC_STAT
-arc_parse_algorithm(ARC_MESSAGE *msg, u_char *alg)
+arc_parse_algorithm(ARC_MESSAGE *msg, const char *alg)
 {
 	arc_alg_t algtype;
 
@@ -498,9 +495,8 @@ arc_genamshdr(ARC_MESSAGE *msg, struct arc_dstring *dstr, char *delim,
 			else
 			{
 				arc_dstring_cat1(dstr, ';');
-				arc_dstring_catn(dstr, (u_char *) delim,
-				                 delimlen);
-				arc_dstring_catn(dstr, (u_char *) "h=", 2);
+				arc_dstring_catn(dstr, delim, delimlen);
+				arc_dstring_catn(dstr, "h=", 2);
 			}
 
 			firsthdr = FALSE;
@@ -543,8 +539,8 @@ arc_genamshdr(ARC_MESSAGE *msg, struct arc_dstring *dstr, char *delim,
 
 	/* and finally, an empty b= */
 	arc_dstring_cat1(dstr, ';');
-	arc_dstring_catn(dstr, (u_char *) delim, delimlen);
-	arc_dstring_catn(dstr, (u_char *) "b=", 2);
+	arc_dstring_catn(dstr, delim, delimlen);
+	arc_dstring_catn(dstr, "b=", 2);
 
 	return arc_dstring_len(dstr);
 }
@@ -568,8 +564,8 @@ arc_genamshdr(ARC_MESSAGE *msg, struct arc_dstring *dstr, char *delim,
 **  	not contain a trailing CRLF.
 */
 
-ARC_STAT
-arc_getamshdr_d(ARC_MESSAGE *msg, size_t initial, u_char **buf, size_t *buflen,
+static ARC_STAT
+arc_getamshdr_d(ARC_MESSAGE *msg, size_t initial, char **buf, size_t *buflen,
                 _Bool seal)
 {
 	size_t len;
@@ -628,7 +624,7 @@ arc_getamshdr_d(ARC_MESSAGE *msg, size_t initial, u_char **buf, size_t *buflen,
 			if (!first)
 				arc_dstring_cat1(msg->arc_hdrbuf, ' ');
 
-			arc_dstring_cat(msg->arc_hdrbuf, (u_char *) pv);
+			arc_dstring_cat(msg->arc_hdrbuf, pv);
 
 			first = FALSE;
 		}
@@ -677,17 +673,14 @@ arc_getamshdr_d(ARC_MESSAGE *msg, size_t initial, u_char **buf, size_t *buflen,
 
 			if (len == 0 || first)
 			{
-				arc_dstring_catn(msg->arc_hdrbuf,
-				                  (u_char *) pv,
-				                  pvlen);
+				arc_dstring_catn(msg->arc_hdrbuf, pv, pvlen);
 				len += pvlen;
 				first = FALSE;
 			}
 			else if (forcewrap || len + pvlen > msg->arc_margin)
 			{
 				forcewrap = FALSE;
-				arc_dstring_catn(msg->arc_hdrbuf,
-				                  (u_char *) "\n\t", 2);
+				arc_dstring_catn(msg->arc_hdrbuf, "\n\t", 2);
 				len = 8;
 
 				if (strcmp(which, "h") == 0)
@@ -706,7 +699,7 @@ arc_getamshdr_d(ARC_MESSAGE *msg, size_t initial, u_char **buf, size_t *buflen,
 						if (ifirst)
 						{
 							arc_dstring_catn(msg->arc_hdrbuf,
-							                 (u_char *) tmp,
+							                 tmp,
 							                 tmplen);
 							len += tmplen;
 							ifirst = FALSE;
@@ -717,11 +710,11 @@ arc_getamshdr_d(ARC_MESSAGE *msg, size_t initial, u_char **buf, size_t *buflen,
 							                 ':');
 							len += 1;
 							arc_dstring_catn(msg->arc_hdrbuf,
-							                 (u_char *) "\n\t ",
+							                 "\n\t ",
 							                 3);
 							len = 9;
 							arc_dstring_catn(msg->arc_hdrbuf,
-							                 (u_char *) tmp,
+							                 tmp,
 							                 tmplen);
 							len += tmplen;
 						}
@@ -731,7 +724,7 @@ arc_getamshdr_d(ARC_MESSAGE *msg, size_t initial, u_char **buf, size_t *buflen,
 							                  ':');
 							len += 1;
 							arc_dstring_catn(msg->arc_hdrbuf,
-							                  (u_char *) tmp,
+							                  tmp,
 							                  tmplen);
 							len += tmplen;
 						}
@@ -750,8 +743,7 @@ arc_getamshdr_d(ARC_MESSAGE *msg, size_t initial, u_char **buf, size_t *buflen,
 					offset = whichlen + 1;
 
 					arc_dstring_catn(msg->arc_hdrbuf,
-					                 (u_char *) which,
-					                 whichlen);
+					                 which, whichlen);
 					arc_dstring_cat1(msg->arc_hdrbuf,
 					                 '=');
 
@@ -765,7 +757,7 @@ arc_getamshdr_d(ARC_MESSAGE *msg, size_t initial, u_char **buf, size_t *buflen,
 						if (msg->arc_margin - len == 0)
 						{
 							arc_dstring_catn(msg->arc_hdrbuf,
-							                  (u_char *) "\n\t ",
+							                  "\n\t ",
 							                  3);
 							len = 9;
 						}
@@ -773,8 +765,7 @@ arc_getamshdr_d(ARC_MESSAGE *msg, size_t initial, u_char **buf, size_t *buflen,
 						n = MIN(msg->arc_margin - len,
 						        y - x);
 						arc_dstring_catn(msg->arc_hdrbuf,
-						                  (u_char *) x,
-						                  n);
+						                  x, n);
 						x += n;
 						len += n;
 
@@ -783,7 +774,7 @@ arc_getamshdr_d(ARC_MESSAGE *msg, size_t initial, u_char **buf, size_t *buflen,
 				else
 				{			/* break at delimiter */
 					arc_dstring_catn(msg->arc_hdrbuf,
-					                  (u_char *) pv,
+					                  pv,
 					                  pvlen);
 					len += pvlen;
 				}
@@ -792,15 +783,12 @@ arc_getamshdr_d(ARC_MESSAGE *msg, size_t initial, u_char **buf, size_t *buflen,
 			{
 				if (!first)
 				{
-					arc_dstring_cat1(msg->arc_hdrbuf,
-					                  ' ');
+					arc_dstring_cat1(msg->arc_hdrbuf, ' ');
 					len += 1;
 				}
 
 				first = FALSE;
-				arc_dstring_catn(msg->arc_hdrbuf,
-				                  (u_char *) pv,
-				                  pvlen);
+				arc_dstring_catn(msg->arc_hdrbuf, pv, pvlen);
 				len += pvlen;
 			}
 		}
@@ -858,7 +846,7 @@ arc_init(void)
 	lib->arcl_dns_start = arc_res_query;
 	lib->arcl_dns_cancel = arc_res_cancel;
 	lib->arcl_dns_waitreply = arc_res_waitreply;
-	strncpy(lib->arcl_tmpdir, DEFTMPDIR, sizeof lib->arcl_tmpdir - 1);
+	strlcpy(lib->arcl_tmpdir, DEFTMPDIR, sizeof lib->arcl_tmpdir);
 
 	FEATURE_ADD(lib, ARC_FEATURE_SHA256);
 
@@ -902,7 +890,7 @@ arc_geterror(ARC_MESSAGE *msg)
 {
 	assert(msg != NULL);
 
-	return (const char *) msg->arc_error;
+	return msg->arc_error;
 }
 
 /*
@@ -945,17 +933,16 @@ arc_options(ARC_LIB *lib, int op, int arg, void *val, size_t valsz)
 	  case ARC_OPTS_TMPDIR:
 		if (op == ARC_OP_GETOPT)
 		{
-			strlcpy((char *) val, (char *) lib->arcl_tmpdir,
-			        valsz);
+			strlcpy((char *) val, lib->arcl_tmpdir, valsz);
 		}
 		else if (val == NULL)
 		{
-			strlcpy((char *) lib->arcl_tmpdir, DEFTMPDIR,
+			strlcpy(lib->arcl_tmpdir, DEFTMPDIR,
 			        sizeof lib->arcl_tmpdir);
 		}
 		else
 		{
-			strlcpy((char *) lib->arcl_tmpdir, (char *) val,
+			strlcpy(lib->arcl_tmpdir, (char *) val,
 			        sizeof lib->arcl_tmpdir);
 		}
 		return ARC_STAT_OK;
@@ -1063,16 +1050,18 @@ arc_options(ARC_LIB *lib, int op, int arg, void *val, size_t valsz)
 		}
 		else
 		{
-			const char **tmp;
-
-			tmp = arc_copy_array(val);
+			char **tmp = arc_copy_array(val);
 			if (tmp == NULL)
+			{
 				return ARC_STAT_NORESOURCE;
+			}
 
 			if (lib->arcl_oversignhdrs != NULL)
-				arc_clobber_array((char **) lib->arcl_oversignhdrs);
+			{
+				arc_clobber_array(lib->arcl_oversignhdrs);
+			}
 
-			lib->arcl_oversignhdrs = (u_char **) tmp;
+			lib->arcl_oversignhdrs = tmp;
 		}
 		return ARC_STAT_OK;
 
@@ -1154,7 +1143,7 @@ arc_getsslbuf(ARC_LIB *lib)
 */
 
 static _Bool
-arc_check_uint(u_char *value)
+arc_check_uint(char *value)
 {
 	uint64_t tmp = 0;
 	char *end;
@@ -1175,7 +1164,7 @@ arc_check_uint(u_char *value)
 	}
 	else
 	{
-		tmp = strtoll((char *) value, &end, 10);
+		tmp = strtoll(value, &end, 10);
 	}
 
 	return !(tmp <= 0 || errno != 0 || *end != '\0');
@@ -1192,8 +1181,8 @@ arc_check_uint(u_char *value)
 **  	Pointer to the parameter requested, or NULL if it's not in the set.
 */
 
-static u_char *
-arc_param_get(ARC_KVSET *set, u_char *param)
+static char *
+arc_param_get(ARC_KVSET *set, const char *param)
 {
 	ARC_PLIST *plist;
 
@@ -1204,7 +1193,7 @@ arc_param_get(ARC_KVSET *set, u_char *param)
 	     plist != NULL;
 	     plist = plist->plist_next)
 	{
-		if (strcmp((char *) plist->plist_param, (char *) param) == 0)
+		if (strcmp(plist->plist_param, param) == 0)
 			return plist->plist_value;
 	}
 
@@ -1317,27 +1306,26 @@ arc_set_udata(ARC_KVSET *set)
 static _Bool
 arc_key_smtp(ARC_KVSET *set)
 {
-	u_char *val;
+	char *val;
 	char *last;
-	u_char *p;
+	char *p;
 	char buf[BUFRSZ + 1];
 
 	assert(set != NULL);
 	assert(set->set_type == ARC_KVSETTYPE_KEY);
 
-	val = arc_param_get(set, (u_char * ) "s");
+	val = arc_param_get(set, "s");
 
 	if (val == NULL)
 		return TRUE;
 
-	strlcpy(buf, (char *) val, sizeof buf);
+	strlcpy(buf, val, sizeof buf);
 
-	for (p = (u_char *) strtok_r(buf, ":", &last);
+	for (p = strtok_r(buf, ":", &last);
 	     p != NULL;
-	     p = (u_char *) strtok_r(NULL, ":", &last))
+	     p = strtok_r(NULL, ":", &last))
 	{
-		if (strcmp((char *) p, "*") == 0 ||
-		    strcasecmp((char *) p, "email") == 0)
+		if (strcmp(p, "*") == 0 || strcasecmp(p, "email") == 0)
 			return TRUE;
 	}
 
@@ -1363,7 +1351,7 @@ arc_key_smtp(ARC_KVSET *set)
 */
 
 static int
-arc_add_plist(ARC_MESSAGE *msg, ARC_KVSET *set, u_char *param, u_char *value,
+arc_add_plist(ARC_MESSAGE *msg, ARC_KVSET *set, char *param, char *value,
               _Bool force, _Bool ignore_dups)
 {
 	ARC_PLIST *plist;
@@ -1384,8 +1372,7 @@ arc_add_plist(ARC_MESSAGE *msg, ARC_KVSET *set, u_char *param, u_char *value,
 	     plist != NULL;
 	     plist = plist->plist_next)
 	{
-		if (strcasecmp((char *) plist->plist_param,
-		               (char *) param) == 0)
+		if (strcasecmp(plist->plist_param, param) == 0)
 		{
 			if (ignore_dups)
 				return 0;
@@ -1438,17 +1425,17 @@ arc_add_plist(ARC_MESSAGE *msg, ARC_KVSET *set, u_char *param, u_char *value,
 */
 
 static ARC_STAT
-arc_process_set(ARC_MESSAGE *msg, arc_kvsettype_t type, u_char *str,
+arc_process_set(ARC_MESSAGE *msg, arc_kvsettype_t type, char *str,
                 size_t len, void *data, ARC_KVSET **out)
 {
 	_Bool spaced;
 	_Bool stop = FALSE;
 	int state;
 	int status;
-	u_char *p;
-	u_char *param;
-	u_char *value;
-	u_char *hcopy;
+	char *p;
+	char *param;
+	char *value;
+	char *hcopy;
 	char *ctx;
 	ARC_KVSET *set;
 	const char *settype;
@@ -1465,7 +1452,7 @@ arc_process_set(ARC_MESSAGE *msg, arc_kvsettype_t type, u_char *str,
 	state = 0;
 	spaced = FALSE;
 
-	hcopy = (u_char *) ARC_MALLOC(len + 1);
+	hcopy = ARC_MALLOC(len + 1);
 	if (hcopy == NULL)
 	{
 		arc_error(msg, "unable to allocate %d byte(s)", len + 1);
@@ -1649,8 +1636,7 @@ arc_process_set(ARC_MESSAGE *msg, arc_kvsettype_t type, u_char *str,
 
 	  case 2:					/* before value */
 		/* create an empty ARC_PLIST entry */
-		status = arc_add_plist(msg, set, param, (u_char *) "",
-		                       TRUE, FALSE);
+		status = arc_add_plist(msg, set, param, "", TRUE, FALSE);
 		if (status == -1)
 		{
 			set->set_bad = TRUE;
@@ -1673,14 +1659,14 @@ arc_process_set(ARC_MESSAGE *msg, arc_kvsettype_t type, u_char *str,
 	{
 	  case ARC_KVSETTYPE_SIGNATURE:
 		/* make sure required stuff is here */
-		if (arc_param_get(set, (u_char *) "s") == NULL ||
-		    arc_param_get(set, (u_char *) "h") == NULL ||
-		    arc_param_get(set, (u_char *) "d") == NULL ||
-		    arc_param_get(set, (u_char *) "b") == NULL ||
-		    arc_param_get(set, (u_char *) "bh") == NULL ||
-		    arc_param_get(set, (u_char *) "i") == NULL ||
-		    arc_param_get(set, (u_char *) "c") == NULL ||
-		    arc_param_get(set, (u_char *) "a") == NULL)
+		if (arc_param_get(set, "s") == NULL ||
+		    arc_param_get(set, "h") == NULL ||
+		    arc_param_get(set, "d") == NULL ||
+		    arc_param_get(set, "b") == NULL ||
+		    arc_param_get(set, "bh") == NULL ||
+		    arc_param_get(set, "i") == NULL ||
+		    arc_param_get(set, "c") == NULL ||
+		    arc_param_get(set, "a") == NULL)
 		{
 			arc_error(msg, "missing parameter(s) in %s data",
 			          settype);
@@ -1689,7 +1675,7 @@ arc_process_set(ARC_MESSAGE *msg, arc_kvsettype_t type, u_char *str,
 		}
 
 		/* make sure nothing got signed that shouldn't be */
-		p = arc_param_get(set, (u_char *) "h");
+		p = arc_param_get(set, "h");
 		hcopy = ARC_STRDUP(p);
 		if (hcopy == NULL)
 		{
@@ -1716,7 +1702,7 @@ arc_process_set(ARC_MESSAGE *msg, arc_kvsettype_t type, u_char *str,
 		ARC_FREE(hcopy);
 
 		/* test validity of "t", "x", and "i" */
-		p = arc_param_get(set, (u_char *) "t");
+		p = arc_param_get(set, "t");
 		if (p != NULL && !arc_check_uint(p))
 		{
 			arc_error(msg,
@@ -1726,7 +1712,7 @@ arc_process_set(ARC_MESSAGE *msg, arc_kvsettype_t type, u_char *str,
 			return ARC_STAT_SYNTAX;
 		}
 
-		p = arc_param_get(set, (u_char *) "x");
+		p = arc_param_get(set, "x");
 		if (p != NULL && !arc_check_uint(p))
 		{
 			arc_error(msg,
@@ -1736,7 +1722,7 @@ arc_process_set(ARC_MESSAGE *msg, arc_kvsettype_t type, u_char *str,
 			return ARC_STAT_SYNTAX;
 		}
 
-		if (!arc_check_uint(arc_param_get(set, (u_char *) "i")))
+		if (!arc_check_uint(arc_param_get(set, "i")))
 		{
 			arc_error(msg,
 			          "invalid \"i\" value in %s data",
@@ -1746,8 +1732,7 @@ arc_process_set(ARC_MESSAGE *msg, arc_kvsettype_t type, u_char *str,
 		}
 
 		/* default for "q" */
-		status = arc_add_plist(msg, set, (u_char *) "q",
-		                       (u_char *) "dns/txt", FALSE, TRUE);
+		status = arc_add_plist(msg, set, "q", "dns/txt", FALSE, TRUE);
 		if (status == -1)
 		{
 			set->set_bad = TRUE;
@@ -1757,8 +1742,7 @@ arc_process_set(ARC_MESSAGE *msg, arc_kvsettype_t type, u_char *str,
   		break;
 
 	  case ARC_KVSETTYPE_KEY:
-		status = arc_add_plist(msg, set, (u_char *) "k",
-		                       (u_char *) "rsa", FALSE, TRUE);
+		status = arc_add_plist(msg, set, "k", "rsa", FALSE, TRUE);
 		if (status == -1)
 		{
 			set->set_bad = TRUE;
@@ -1770,12 +1754,12 @@ arc_process_set(ARC_MESSAGE *msg, arc_kvsettype_t type, u_char *str,
 	  /* these have no defaults */
 	  case ARC_KVSETTYPE_SEAL:
 		/* make sure required stuff is here */
-		if (arc_param_get(set, (u_char *) "cv") == NULL ||
-		    arc_param_get(set, (u_char *) "i") == NULL ||
-		    arc_param_get(set, (u_char *) "b") == NULL ||
-		    arc_param_get(set, (u_char *) "s") == NULL ||
-		    arc_param_get(set, (u_char *) "d") == NULL ||
-		    arc_param_get(set, (u_char *) "a") == NULL)
+		if (arc_param_get(set, "cv") == NULL ||
+		    arc_param_get(set, "i") == NULL ||
+		    arc_param_get(set, "b") == NULL ||
+		    arc_param_get(set, "s") == NULL ||
+		    arc_param_get(set, "d") == NULL ||
+		    arc_param_get(set, "a") == NULL)
 		{
 			arc_error(msg, "missing parameter(s) in %s data",
 			          settype);
@@ -1784,7 +1768,7 @@ arc_process_set(ARC_MESSAGE *msg, arc_kvsettype_t type, u_char *str,
 		}
 
 		/* test validity of "i" */
-		p = arc_param_get(set, (u_char *) "i");
+		p = arc_param_get(set, "i");
 		if (p != NULL && !arc_check_uint(p))
 		{
 			arc_error(msg,
@@ -1797,7 +1781,7 @@ arc_process_set(ARC_MESSAGE *msg, arc_kvsettype_t type, u_char *str,
 		break;
 
 	  case ARC_KVSETTYPE_AR:
-		if (arc_param_get(set, (u_char *) "i") == NULL)
+		if (arc_param_get(set, "i") == NULL)
 		{
 			arc_error(msg, "missing parameter(s) in %s data",
 			          settype);
@@ -1806,7 +1790,7 @@ arc_process_set(ARC_MESSAGE *msg, arc_kvsettype_t type, u_char *str,
 		}
 
 		/* test validity of "i" */
-		p = arc_param_get(set, (u_char *) "i");
+		p = arc_param_get(set, "i");
 		if (p != NULL && !arc_check_uint(p))
 		{
 			arc_error(msg,
@@ -1842,8 +1826,8 @@ arc_get_key(ARC_MESSAGE *msg, _Bool test)
 	int status;
 	struct arc_kvset *set = NULL;
 	struct arc_kvset *nextset;
-	unsigned char *p;
-	unsigned char buf[BUFRSZ + 1];
+	char *p;
+	char buf[BUFRSZ + 1];
 
 	assert(msg != NULL);
 	assert(msg->arc_selector != NULL);
@@ -1877,8 +1861,8 @@ arc_get_key(ARC_MESSAGE *msg, _Bool test)
 		return ARC_STAT_SYNTAX;
 	}
 
-	status = arc_process_set(msg, ARC_KVSETTYPE_KEY, buf,
-				 strlen((char *) buf), NULL, NULL);
+	status = arc_process_set(msg, ARC_KVSETTYPE_KEY, buf, strlen(buf),
+	                         NULL, NULL);
 	if (status != ARC_STAT_OK)
 		return status;
 
@@ -1895,15 +1879,15 @@ arc_get_key(ARC_MESSAGE *msg, _Bool test)
 	assert(set != NULL);
 
 	/* verify key version first */
-	p = arc_param_get(set, (u_char *) "v");
-	if (p != NULL && strcmp((char *) p, DKIM_VERSION_KEY) != 0)
+	p = arc_param_get(set, "v");
+	if (p != NULL && strcmp(p, DKIM_VERSION_KEY) != 0)
 	{
 		arc_error(msg, "invalid key version '%s'", p);
 		return ARC_STAT_SYNTAX;
 	}
 
 	/* then make sure the hash type is something we can handle */
-	p = arc_param_get(set, (u_char *) "h");
+	p = arc_param_get(set, "h");
 	if (!arc_key_hashesok(msg->arc_library, p))
 	{
 		arc_error(msg, "unknown hash '%s'", p);
@@ -1924,20 +1908,20 @@ arc_get_key(ARC_MESSAGE *msg, _Bool test)
 	}
 
 	/* then key type */
-	p = arc_param_get(set, (u_char *) "k");
+	p = arc_param_get(set, "k");
 	if (p == NULL)
 	{
 		arc_error(msg, "key type missing");
 		return ARC_STAT_SYNTAX;
 	}
-	else if (arc_name_to_code(keytypes, (char *) p) == -1)
+	else if (arc_name_to_code(keytypes, p) == -1)
 	{
 		arc_error(msg, "unknown key type '%s'", p);
 		return ARC_STAT_SYNTAX;
 	}
 
 	/* decode the key */
-	msg->arc_b64key = arc_param_get(set, (u_char *) "p");
+	msg->arc_b64key = arc_param_get(set, "p");
 	if (msg->arc_b64key == NULL)
 	{
 		arc_error(msg, "key missing");
@@ -1947,7 +1931,7 @@ arc_get_key(ARC_MESSAGE *msg, _Bool test)
 	{
 		return ARC_STAT_REVOKED;
 	}
-	msg->arc_b64keylen = strlen((char *) msg->arc_b64key);
+	msg->arc_b64keylen = strlen(msg->arc_b64key);
 
 	if (msg->arc_key != NULL)
 		ARC_FREE(msg->arc_key);
@@ -1960,8 +1944,8 @@ arc_get_key(ARC_MESSAGE *msg, _Bool test)
 		return ARC_STAT_NORESOURCE;
 	}
 
-	status = arc_base64_decode(msg->arc_b64key, msg->arc_key,
-	                           msg->arc_b64keylen);
+	status = arc_base64_decode((unsigned char *) msg->arc_b64key,
+	                           msg->arc_key, msg->arc_b64keylen);
 	if (status < 0)
 	{
 		arc_error(msg, "key missing");
@@ -1972,7 +1956,7 @@ arc_get_key(ARC_MESSAGE *msg, _Bool test)
 	msg->arc_flags = 0;
 
 	/* store key flags */
-	p = arc_param_get(set, (u_char *) "t");
+	p = arc_param_get(set, "t");
 	if (p != NULL)
 	{
 		u_int flag;
@@ -1980,7 +1964,7 @@ arc_get_key(ARC_MESSAGE *msg, _Bool test)
 		char *last;
 		char tmp[BUFRSZ + 1];
 
-		strlcpy(tmp, (char *) p, sizeof tmp);
+		strlcpy(tmp, p, sizeof tmp);
 
 		for (t = strtok_r(tmp, ":", &last);
 		     t != NULL;
@@ -2009,7 +1993,7 @@ arc_get_key(ARC_MESSAGE *msg, _Bool test)
 */
 
 static ARC_STAT
-arc_verify_hash(ARC_MESSAGE *msg, unsigned char *b64sig, void *h, size_t hlen)
+arc_verify_hash(ARC_MESSAGE *msg, char *b64sig, void *h, size_t hlen)
 {
 	int rc;
 	size_t b64siglen;
@@ -2038,7 +2022,7 @@ arc_verify_hash(ARC_MESSAGE *msg, unsigned char *b64sig, void *h, size_t hlen)
 		return ARC_STAT_INTERNAL;
 	}
 
-	siglen = arc_base64_decode(b64sig, sig, b64siglen);
+	siglen = arc_base64_decode((unsigned char *)b64sig, sig, b64siglen);
 	if (siglen < 0)
 	{
 		arc_error(msg, "unable to decode signature");
@@ -2146,10 +2130,10 @@ arc_validate_msg(ARC_MESSAGE *msg, u_int setnum)
 	size_t bhlen;
 	size_t b64bhlen;
 	ARC_STAT status;
-	u_char *alg;
-	u_char *b64sig;
-	u_char *b64bh;
-	u_char *b64bhtag;
+	char *alg;
+	char *b64sig;
+	unsigned char *b64bh;
+	char *b64bhtag;
 	void *hh;
 	void *bh;
 	struct arc_set *set;
@@ -2186,8 +2170,9 @@ arc_validate_msg(ARC_MESSAGE *msg, u_int setnum)
 	alg = arc_param_get(kvset, "a");
 	status = arc_parse_algorithm(msg, alg);
 	if (status != ARC_STAT_OK)
-            // arc_error already set by arc_parse_algorithm()
+	{
             return status;
+	}
 
 	/* extract the header and body hashes from the message */
 	status = arc_canon_gethashes(msg, &hh, &hhlen, &bh, &bhlen);
@@ -2218,7 +2203,8 @@ arc_validate_msg(ARC_MESSAGE *msg, u_int setnum)
 	}
 	memset(b64bh, '\0', b64bhlen + 1);
 	elen = arc_base64_encode(bh, bhlen, b64bh, b64bhlen);
-	if (elen != strlen(b64bhtag) || strcmp(b64bh, b64bhtag) != 0)
+	if (elen != strlen(b64bhtag)
+	    || strcmp((char *) b64bh, b64bhtag) != 0)
 	{
 		ARC_FREE(b64bh);
 		arc_error(msg, "body hash mismatch");
@@ -2249,9 +2235,9 @@ arc_validate_seal(ARC_MESSAGE *msg, u_int setnum)
 {
 	ARC_STAT status;
 	size_t shlen;
-	u_char *b64sig;
+	char *b64sig;
 	void *sh;
-	u_char *alg;
+	char *alg;
 	struct arc_set *set;
 	ARC_KVSET *kvset;
 
@@ -2269,8 +2255,9 @@ arc_validate_seal(ARC_MESSAGE *msg, u_int setnum)
 	alg = arc_param_get(kvset, "a");
 	status = arc_parse_algorithm(msg, alg);
 	if (status != ARC_STAT_OK)
-            // arc_error already set by arc_parse_algorithm()
+	{
             return status;
+	}
 
 	if (msg->arc_selector == NULL)
 	{
@@ -2327,14 +2314,14 @@ arc_message(ARC_LIB *lib, arc_canon_t canonhdr, arc_canon_t canonbody,
 	if (mode == 0)
 	{
 		if (err != NULL)
-			*err = "no mode(s) selected";
+			*err = (unsigned char *) "no mode(s) selected";
 		return NULL;
 	}
 
 	msg = (ARC_MESSAGE *) ARC_MALLOC(sizeof *msg);
 	if (msg == NULL)
 	{
-		*err = strerror(errno);
+		*err = (unsigned char *) strerror(errno);
 	}
 	else
 	{
@@ -2448,12 +2435,12 @@ arc_free(ARC_MESSAGE *msg)
 */
 
 static ARC_STAT
-arc_parse_header_field(ARC_MESSAGE *msg, u_char *hdr, size_t hlen,
+arc_parse_header_field(ARC_MESSAGE *msg, const unsigned char *hdr, size_t hlen,
                        struct arc_hdrfield **ret)
 {
-	u_char *colon;
-	u_char *semicolon;
-	u_char *end = NULL;
+	const unsigned char *colon;
+	const unsigned char *semicolon;
+	const unsigned char *end = NULL;
 	size_t c;
 	struct arc_hdrfield *h;
 
@@ -2517,8 +2504,6 @@ arc_parse_header_field(ARC_MESSAGE *msg, u_char *hdr, size_t hlen,
 	if ((msg->arc_library->arcl_flags & ARC_LIBFLAGS_FIXCRLF) != 0)
 	{
 		u_char prev = '\0';
-		u_char *p;
-		u_char *q;
 		struct arc_dstring *tmphdr;
 
 		tmphdr = arc_dstring_new(msg, BUFRSZ, MAXBUFRSZ);
@@ -2528,9 +2513,9 @@ arc_parse_header_field(ARC_MESSAGE *msg, u_char *hdr, size_t hlen,
 			return ARC_STAT_NORESOURCE;
 		}
 
-		q = hdr + hlen;
-
-		for (p = hdr; p < q && *p != '\0'; p++)
+		for (const unsigned char *p = hdr, *q = hdr + hlen;
+		     p < q && *p != '\0';
+		     p++)
 		{
 			if (*p == '\n' && prev != '\r')		/* bare LF */
 			{
@@ -2559,7 +2544,7 @@ arc_parse_header_field(ARC_MESSAGE *msg, u_char *hdr, size_t hlen,
 	}
 	else
 	{
-		h->hdr_text = arc_strndup(hdr, hlen);
+		h->hdr_text = arc_strndup((char *) hdr, hlen);
 	}
 
 	if (h->hdr_text == NULL)
@@ -2645,7 +2630,7 @@ arc_eoh_verify(ARC_MESSAGE *msg)
 	u_int hashtype;
 	ARC_STAT status;
 	struct arc_hdrfield *h;
-	u_char *htag;
+	char *htag;
 	arc_canon_t hdr_canon;
 	arc_canon_t body_canon;
 
@@ -2661,7 +2646,7 @@ arc_eoh_verify(ARC_MESSAGE *msg)
 	htag = NULL;
 	if (msg->arc_nsets > 0)
 	{
-		u_char *c;
+		char *c;
 
 		/* headers, validation */
 		h = msg->arc_sets[msg->arc_nsets - 1].arcset_ams;
@@ -2831,7 +2816,7 @@ arc_eoh(ARC_MESSAGE *msg)
 	u_int nsets = 0;
 	arc_kvsettype_t type;
 	ARC_STAT status;
-	u_char *inst;
+	char *inst;
 	char *p;
 	struct arc_hdrfield *h;
 	ARC_KVSET *set;
@@ -3056,7 +3041,7 @@ arc_body(ARC_MESSAGE *msg, u_char *buf, size_t len)
 		return ARC_STAT_INVALID;
 	msg->arc_state = ARC_STATE_BODY;
 
-	return arc_canon_bodychunk(msg, buf, len);
+	return arc_canon_bodychunk(msg, (char *) buf, len);
 }
 
 /*
@@ -3094,8 +3079,8 @@ arc_eom(ARC_MESSAGE *msg)
 		else
 		{
 			u_int set;
-			u_char *inst;
-			u_char *cv;
+			char *inst;
+			char *cv;
 			ARC_KVSET *kvset;
 
 			msg->arc_cstate = ARC_CHAIN_PASS;
@@ -3196,10 +3181,10 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 	size_t keysize;
 	size_t len;
 	size_t b64siglen;
-	u_char *sighdr = NULL;
+	char *sighdr = NULL;
 	u_char *digest = NULL;
 	u_char *sigout = NULL;
-	u_char *b64sig = NULL;
+	unsigned char *b64sig = NULL;
 	ARC_HDRFIELD *h;
 	ARC_HDRFIELD hdr;
 	struct arc_dstring *dstr;
@@ -3242,7 +3227,7 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 		goto error;
 	}
 
-	if (strncmp(key, "-----", 5) == 0)
+	if (strncmp((char *) key, "-----", 5) == 0)
 	{
 		pkey = PEM_read_bio_PrivateKey(keydata, NULL, NULL, NULL);
 		if (pkey == NULL)
@@ -3340,7 +3325,8 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 		arc_dstring_printf(dstr, "; %s", (char *) ar);
 	}
 
-	status = arc_parse_header_field(msg, arc_dstring_get(dstr),
+	status = arc_parse_header_field(msg,
+	                                (unsigned char *) arc_dstring_get(dstr),
 	                                arc_dstring_len(dstr), &h);
 	if (status != ARC_STAT_OK)
 	{
@@ -3365,7 +3351,7 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 
 	/* construct the AMS */
 	arc_dstring_blank(dstr);
-	arc_dstring_catn(dstr, (u_char *) ARC_MSGSIG_HDRNAME ":",
+	arc_dstring_catn(dstr, ARC_MSGSIG_HDRNAME ":",
 	                 sizeof ARC_MSGSIG_HDRNAME);
 
 	status = arc_getamshdr_d(msg, arc_dstring_len(dstr), &sighdr, &len,
@@ -3447,7 +3433,7 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 	}
 
 	/* append it to the stub */
-	arc_dstring_cat(dstr, b64sig);
+	arc_dstring_cat(dstr, (char *) b64sig);
 
 	/* XXX -- wrapping needs to happen here */
 
@@ -3483,7 +3469,7 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 	*/
 
 	arc_dstring_blank(dstr);
-	arc_dstring_catn(dstr, (u_char *) ARC_SEAL_HDRNAME ":",
+	arc_dstring_catn(dstr, ARC_SEAL_HDRNAME ":",
 	                 sizeof ARC_SEAL_HDRNAME);
 
 	/* feed the seal we have so far */
@@ -3548,7 +3534,7 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 	}
 
 	/* append it to the stub */
-	arc_dstring_cat(dstr, b64sig);
+	arc_dstring_cat(dstr, (char *)b64sig);
 
 	/* XXX -- wrapping needs to happen here */
 
@@ -3601,12 +3587,13 @@ error:
 **  	Header field name stored in the object.
 */
 
-u_char *
+unsigned char *
 arc_hdr_name(ARC_HDRFIELD *hdr, size_t *len)
 {
-	if (len != NULL)
+	if (len != NULL) {
 		*len = hdr->hdr_namelen;
-	return hdr->hdr_text;
+	}
+	return (unsigned char *) hdr->hdr_text;
 }
 
 /*
@@ -3619,10 +3606,10 @@ arc_hdr_name(ARC_HDRFIELD *hdr, size_t *len)
 **  	Header field value stored in the object.
 */
 
-u_char *
+unsigned char *
 arc_hdr_value(ARC_HDRFIELD *hdr)
 {
-	return hdr->hdr_colon + 1;
+	return (unsigned char *) hdr->hdr_colon + 1;
 }
 
 /*
@@ -3770,10 +3757,11 @@ arc_chain_custody_str(ARC_MESSAGE *msg, u_char *buf, size_t buflen)
 		str = arc_param_get(kvset, "d");
 		(void) arc_dstring_printf(tmpbuf, "%s%s",
 		                          (set < msg->arc_nsets - 1 ? ":" : ""),
-		                          str);
+		                          (char *) str);
 	}
 
-	appendlen = snprintf(buf, buflen, "%s", arc_dstring_get(tmpbuf));
+	appendlen = snprintf((char *) buf, buflen, "%s",
+	                     (char *)arc_dstring_get(tmpbuf));
 	arc_dstring_free(tmpbuf);
 
 	return appendlen;

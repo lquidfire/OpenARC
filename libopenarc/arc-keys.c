@@ -65,7 +65,7 @@ extern void arc_error __P((ARC_MESSAGE *, const char *, ...));
 */
 
 ARC_STAT
-arc_get_key_dns(ARC_MESSAGE *msg, u_char *buf, size_t buflen)
+arc_get_key_dns(ARC_MESSAGE *msg, char *buf, size_t buflen)
 {
 	int status;
 	int qdcount;
@@ -81,10 +81,10 @@ arc_get_key_dns(ARC_MESSAGE *msg, u_char *buf, size_t buflen)
 	void *q;
 	ARC_LIB *lib;
 	unsigned char *txtfound = NULL;
-	unsigned char *p;
+	char *p;
 	unsigned char *cp;
 	unsigned char *eom;
-	unsigned char *eob;
+	char *eob;
 	unsigned char qname[ARC_MAXHOSTNAMELEN + 1];
 	unsigned char ansbuf[MAXPACKET];
 	struct timeval timeout;
@@ -197,8 +197,8 @@ arc_get_key_dns(ARC_MESSAGE *msg, u_char *buf, size_t buflen)
 
 	/* set up pointers */
 	memcpy(&hdr, ansbuf, sizeof hdr);
-	cp = (u_char *) &ansbuf + HFIXEDSZ;
-	eom = (u_char *) &ansbuf + anslen;
+	cp = (unsigned char *) &ansbuf + HFIXEDSZ;
+	eom = (unsigned char *) &ansbuf + anslen;
 
 	/* skip over the name at the front of the answer */
 	for (qdcount = ntohs((unsigned short) hdr.qdcount);
@@ -378,13 +378,13 @@ arc_get_key_dns(ARC_MESSAGE *msg, u_char *buf, size_t buflen)
 */
 
 ARC_STAT
-arc_get_key_file(ARC_MESSAGE *msg, u_char *buf, size_t buflen)
+arc_get_key_file(ARC_MESSAGE *msg, char *buf, size_t buflen)
 {
 	int n;
 	FILE *f;
-	u_char *p;
-	u_char *p2;
-	u_char *path;
+	char *p;
+	char *p2;
+	char *path;
 	char name[ARC_MAXHOSTNAMELEN + 1];
 
 	assert(msg != NULL);
@@ -399,7 +399,7 @@ arc_get_key_file(ARC_MESSAGE *msg, u_char *buf, size_t buflen)
 		return ARC_STAT_KEYFAIL;
 	}
 
-	f = fopen((char *) path, "r");
+	f = fopen(path, "r");
 	if (f == NULL)
 	{
 		arc_error(msg, "%s: fopen(): %s", path, strerror(errno));

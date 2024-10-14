@@ -32,7 +32,7 @@ struct arc_hash
 	BIO *			hash_tmpbio;
 	EVP_MD_CTX *            hash_ctx;
 	u_char			hash_out[EVP_MAX_MD_SIZE];
-	int			hash_outlen;
+	unsigned int		hash_outlen;
 };
 
 /* struct arc_qmethod -- signature query method */
@@ -57,8 +57,8 @@ struct arc_hdrfield
 	uint32_t		hdr_flags;
 	size_t			hdr_namelen;
 	size_t			hdr_textlen;
-	u_char *		hdr_colon;
-	u_char *		hdr_text;
+	char *			hdr_colon;
+	char *			hdr_text;
 	void *			hdr_data;
 	struct arc_hdrfield *	hdr_next;
 };
@@ -77,8 +77,8 @@ struct arc_set
 /* struct arc_plist -- a parameter/value pair */
 struct arc_plist
 {
-	u_char *		plist_param;
-	u_char *		plist_value;
+	char *			plist_param;
+	char *			plist_value;
 	struct arc_plist *	plist_next;
 };
 
@@ -87,7 +87,7 @@ struct arc_kvset
 {
 	_Bool			set_bad;
 	arc_kvsettype_t		set_type;
-	u_char *		set_data;
+	char *			set_data;
 	void *			set_udata;
 	struct arc_plist *	set_plist[NPRINTABLE];
 	struct arc_kvset *	set_next;
@@ -109,8 +109,8 @@ struct arc_canon
 	ssize_t			canon_wrote;
 	ssize_t			canon_length;
 	arc_canon_t		canon_canon;
-	u_char *		canon_hashbuf;
-	u_char *		canon_hdrlist;
+	char *			canon_hashbuf;
+	const char *		canon_hdrlist;
 	struct arc_hash *       canon_hash;
 	struct arc_dstring *	canon_buf;
 	struct arc_hdrfield *	canon_sigheader;
@@ -146,14 +146,14 @@ struct arc_msghandle
 	arc_canon_t		arc_canonbody;
 	ARC_CHAIN		arc_cstate;
 	ARC_SIGERROR		arc_sigerror;
-	u_char *		arc_key;
-	u_char *		arc_error;
-	u_char *		arc_hdrlist;
-	u_char *		arc_domain;
-	u_char *		arc_selector;
-	u_char *		arc_authservid;
-	u_char *		arc_b64sig;
-	u_char *		arc_b64key;
+	unsigned char *		arc_key;
+	char *			arc_error;
+	char *			arc_hdrlist;
+	char *			arc_domain;
+	char *			arc_selector;
+	char *			arc_authservid;
+	char *			arc_b64sig;
+	char *			arc_b64key;
 	void *			arc_signature;
 	struct arc_qmethod *	arc_querymethods;
 	struct arc_xtag *	arc_xtags;
@@ -190,7 +190,7 @@ struct arc_lib
 	u_int			arcl_minkeysize;
 	u_int *			arcl_flist;
 	struct arc_dstring *	arcl_sslerrbuf;
-	u_char **		arcl_oversignhdrs;
+	char **			arcl_oversignhdrs;
 	void			(*arcl_dns_callback) (const void *context);
 	void			*arcl_dns_service;
 	int			(*arcl_dns_init) (void **srv);
@@ -208,8 +208,8 @@ struct arc_lib
 				                       int *error,
 				                       int *dnssec);
 	regex_t			arcl_hdrre;
-	u_char			arcl_tmpdir[MAXPATHLEN + 1];
-	u_char			arcl_queryinfo[MAXPATHLEN + 1];
+	char			arcl_tmpdir[MAXPATHLEN - 11];
+	char			arcl_queryinfo[MAXPATHLEN + 1];
 };
 
 #endif /* _ARC_TYPES_H_ */
