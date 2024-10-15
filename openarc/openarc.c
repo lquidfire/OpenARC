@@ -1042,32 +1042,6 @@ arcf_lookup_strtoint(char *opt, struct lookup *table)
 }
 
 /*
-**  ARCF_LOOKUP_INTTOSTR -- look up the string matching an internal code
-**
-**  Parameters:
-**  	code -- code to look up
-**  	table -- lookup table to use
-**
-**  Return value:
-**  	String version of the option, or NULL on error.
-*/
-
-static const char *
-arcf_lookup_inttostr(int code, struct lookup *table)
-{
-	int c;
-
-	for (c = 0; ; c++)
-	{
-		if (table[c].code == -1 || table[c].code == code)
-			return table[c].str;
-	}
-
-	assert(0);
-	/* NOTREACHED */
-}
-
-/*
 **  ARCF_SIGHANDLER -- signal handler
 **
 **  Parameters:
@@ -2138,32 +2112,6 @@ arcf_initcontext(struct arcf_config *conf)
 }
 
 /*
-**  ARCF_LOG_SSL_ERRORS -- log any queued SSL library errors
-**
-**  Parameters:
-**  	arc -- ARC handle
-**  	sig -- signature handle
-**  	jobid -- job ID to include in log messages
-**
-**  Return value:
-**  	None.
-*/
-
-static void
-arcf_log_ssl_errors(ARC_LIB *arc, char *jobid)
-{
-	const char *errbuf;
-
-	assert(arc != NULL);
-	assert(jobid != NULL);
-
-	errbuf = arc_getsslbuf(arc);
-
-	if (errbuf != NULL)
-		syslog(LOG_INFO, "%s: SSL %s", jobid, errbuf);
-}
-
-/*
 **  ARCF_CLEANUP -- release local resources related to a message
 **
 **  Parameters:
@@ -2395,7 +2343,6 @@ arcf_checkhost(struct conflist *list, char *host)
 _Bool
 arcf_checkip(struct conflist *list, struct sockaddr *ip)
 {
-	_Bool exists;
 	char ipbuf[ARC_MAXHOSTNAMELEN + 1];
 
 	assert(ip != NULL);
@@ -2428,8 +2375,6 @@ arcf_checkip(struct conflist *list, struct sockaddr *ip)
 		inet_ntop(AF_INET6, &addr, dst, dst_len);
 		arcf_lowercase((u_char *) dst);
 		iplen = strlen(dst);
-
-		exists = FALSE;
 
 		LIST_FOREACH(node, list, entries)
 			if (strcmp(ipbuf, node->value) == 0)
@@ -2524,7 +2469,6 @@ arcf_checkip(struct conflist *list, struct sockaddr *ip)
 
 	if (ip->sa_family == AF_INET)
 	{
-		_Bool exists;
 		int c;
 		int bits;
 		size_t iplen;
@@ -2535,9 +2479,6 @@ arcf_checkip(struct conflist *list, struct sockaddr *ip)
 
 		memcpy(&sin, ip, sizeof sin);
 		memcpy(&addr.s_addr, &sin.sin_addr, sizeof addr.s_addr);
-
-		/* try the IP address directly */
-		exists = FALSE;
 
 		ipbuf[0] = '!';
 		(void) arcf_inet_ntoa(addr, &ipbuf[1], sizeof ipbuf - 1);
@@ -2745,7 +2686,6 @@ sfsistat
 mlfi_connect(SMFICTX *ctx, char *host, _SOCK_ADDR *ip)
 {
 	connctx cc;
-	struct arcf_config *conf;
 
 	arcf_config_reload();
 
@@ -2777,15 +2717,9 @@ mlfi_connect(SMFICTX *ctx, char *host, _SOCK_ADDR *ip)
 		cc->cctx_config = curconf;
 		curconf->conf_refcnt++;
 
-		conf = curconf;
-
 		pthread_mutex_unlock(&conf_lock);
 
 		arcf_setpriv(ctx, cc);
-	}
-	else
-	{
-		conf = cc->cctx_config;
 	}
 
 	arcf_lowercase((u_char *) host);
@@ -3553,7 +3487,6 @@ sfsistat
 mlfi_eom(SMFICTX *ctx)
 {
 	int status = ARC_STAT_OK;
-	int c;
 	connctx cc;
 	msgctx afc;
 	char *hostname;
