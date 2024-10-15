@@ -3212,7 +3212,7 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 	unsigned char *b64sig = NULL;
 	ARC_HDRFIELD *h;
 	ARC_HDRFIELD hdr;
-	struct arc_dstring *dstr;
+	struct arc_dstring *dstr = NULL;
 	BIO *keydata = NULL;
 	EVP_PKEY *pkey = NULL;
 	EVP_PKEY_CTX *ctx = NULL;
