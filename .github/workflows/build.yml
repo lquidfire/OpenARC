@@ -34,7 +34,7 @@ jobs:
       - name: Build OpenARC
         run: |
           autoreconf -fiv
-          CFLAGS='-Wall' ./configure
+          CFLAGS='-Wall -Werror' ./configure
           make -j4
 
       - name: Test OpenARC
@@ -45,7 +45,7 @@ jobs:
         run: |
           make distclean
           CC=clang ./configure
-          make -j4
+          make -j4 CFLAGS='-Wall -Werror'
 
       - name: Build OpenARC without milter
         run: |
