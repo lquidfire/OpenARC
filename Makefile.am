@@ -40,8 +40,10 @@ libopenarc_libopenarc_la_SOURCES = \
 	libopenarc/arc-tables.h \
 	libopenarc/arc-types.h \
 	libopenarc/arc-util.c \
-	libopenarc/arc-util.h
-libopenarc_libopenarc_la_CPPFLAGS = $(LIBCRYPTO_CPPFLAGS)
+	libopenarc/arc-util.h \
+	util/arc-dstring.c \
+	util/arc-dstring.h
+libopenarc_libopenarc_la_CPPFLAGS = -I$(srcdir)/util $(LIBCRYPTO_CPPFLAGS)
 libopenarc_libopenarc_la_CFLAGS = $(LIBCRYPTO_INCDIRS) $(LIBOPENARC_INC)
 libopenarc_libopenarc_la_LDFLAGS = -no-undefined  $(LIBCRYPTO_LIBDIRS) -version-info $(LIBOPENARC_VERSION_INFO)
 libopenarc_libopenarc_la_LIBADD = $(LIBOPENARC_LIBS) $(LIBCRYPTO_LDADD)
@@ -64,7 +66,6 @@ libopenarc/symbols.map: $(libopenarc_libopenarc_include_HEADERS)
 		sed -e s/\[\*\;\]//g -e s/\[\\\[\\\]\]//g -e s/\(.*// | \
 		sort -u -o $@
 
-
 if BUILD_FILTER
 dist_doc_DATA += openarc/openarc.conf.sample
 man_MANS = openarc/openarc.conf.5 openarc/openarc.8
@@ -83,10 +84,12 @@ openarc_openarc_SOURCES = \
 	openarc/openarc-test.c \
 	openarc/openarc-test.h \
 	openarc/util.c \
-	openarc/util.h
+	openarc/util.h \
+	util/arc-dstring.c \
+	util/arc-dstring.h
 openarc_openarc_CC = $(PTHREAD_CC)
 openarc_openarc_CFLAGS = $(PTHREAD_CFLAGS) $(LIBCRYPTO_CFLAGS)
-openarc_openarc_CPPFLAGS = -I$(srcdir)/libopenarc $(LIBCRYPTO_CPPFLAGS) $(LIBMILTER_INCDIRS) $(LIBJANSSON_CPPFLAGS)
+openarc_openarc_CPPFLAGS = -I$(srcdir)/libopenarc -I$(srcdir)/util $(LIBCRYPTO_CPPFLAGS) $(LIBMILTER_INCDIRS) $(LIBJANSSON_CPPFLAGS)
 openarc_openarc_LDFLAGS = $(LIBCRYPTO_LIBDIRS) $(LIBMILTER_LIBDIRS) $(PTHREAD_CFLAGS) $(LIBJANSSON_LDFLAGS)
 openarc_openarc_LDADD = libopenarc/libopenarc.la $(LIBMILTER_LIBS) $(LIBCRYPTO_LIBS) $(PTHREAD_LIBS) $(LIBJANSSON_LIBS) $(LIBRESOLV)
 endif

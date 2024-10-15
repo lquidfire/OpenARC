@@ -79,6 +79,7 @@
 #endif /* USE_STRL_H */
 
 /* openarc includes */
+#include "arc-dstring.h"
 #include "config.h"
 #include "openarc-ar.h"
 #include "openarc-config.h"
@@ -157,7 +158,7 @@ struct msgctx
 	struct Header *	mctx_hqhead;		/* header queue head */
 	struct Header *	mctx_hqtail;		/* header queue tail */
 	ARC_MESSAGE *	mctx_arcmsg;		/* libopenarc message */
-	struct arcf_dstring * mctx_tmpstr;	/* temporary string */
+	struct arc_dstring * mctx_tmpstr;	/* temporary string */
 };
 
 /*
@@ -2166,7 +2167,7 @@ arcf_cleanup(SMFICTX *ctx)
 #endif /* _FFR_VBR */
 
 		if (afc->mctx_tmpstr != NULL)
-			arcf_dstring_free(afc->mctx_tmpstr);
+			arc_dstring_free(afc->mctx_tmpstr);
 
 #ifdef _FFR_STATSEXT
 		if (afc->mctx_statsext != NULL)
@@ -2955,11 +2956,11 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 
 	if (afc->mctx_tmpstr == NULL)
 	{
-		afc->mctx_tmpstr = arcf_dstring_new(BUFRSZ, 0);
+		afc->mctx_tmpstr = arc_dstring_new(BUFRSZ, 0, NULL, NULL);
 		if (afc->mctx_tmpstr == NULL)
 		{
 			if (conf->conf_dolog)
-				syslog(LOG_ERR, "arcf_dstring_new() failed");
+				syslog(LOG_ERR, "arc_dstring_new() failed");
 
 			TRYFREE(newhdr->hdr_hdr);
 			free(newhdr);
@@ -2971,7 +2972,7 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 	}
 	else
 	{
-		arcf_dstring_blank(afc->mctx_tmpstr);
+		arc_dstring_blank(afc->mctx_tmpstr);
 	}
 
 	if (!cc->cctx_noleadspc)
@@ -3006,14 +3007,14 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 		while (isascii(*p) && isspace(*p))
 			p++;
 
-		arcf_dstring_copy(afc->mctx_tmpstr, (u_char *) p);
+		arc_dstring_copy(afc->mctx_tmpstr, p);
 	}
 	else
 	{
-		arcf_dstring_copy(afc->mctx_tmpstr, (u_char *) headerv);
+		arc_dstring_copy(afc->mctx_tmpstr, headerv);
 	}
 
-	newhdr->hdr_val = strdup((char *) arcf_dstring_get(afc->mctx_tmpstr));
+	newhdr->hdr_val = strdup(arc_dstring_get(afc->mctx_tmpstr));
 
 	newhdr->hdr_next = NULL;
 	newhdr->hdr_prev = afc->mctx_hqtail;
@@ -3290,13 +3291,13 @@ mlfi_eoh(SMFICTX *ctx)
 	{
 		if (afc->mctx_tmpstr == NULL)
 		{
-			afc->mctx_tmpstr = arcf_dstring_new(BUFRSZ, 0);
+			afc->mctx_tmpstr = arc_dstring_new(BUFRSZ, 0, NULL, NULL);
 			if (afc->mctx_tmpstr == NULL)
 			{
 				if (conf->conf_dolog)
 				{
 					syslog(LOG_ERR,
-					       "%s: arcf_dstring_new() failed",
+					       "%s: arc_dstring_new() failed",
 					       afc->mctx_jobid);
 				}
 
@@ -3305,13 +3306,13 @@ mlfi_eoh(SMFICTX *ctx)
 		}
 		else
 		{
-			arcf_dstring_blank(afc->mctx_tmpstr);
+			arc_dstring_blank(afc->mctx_tmpstr);
 		}
 
-		arcf_dstring_copy(afc->mctx_tmpstr, (u_char *) hdr->hdr_hdr);
-		arcf_dstring_cat1(afc->mctx_tmpstr, ':');
+		arc_dstring_copy(afc->mctx_tmpstr, hdr->hdr_hdr);
+		arc_dstring_cat1(afc->mctx_tmpstr, ':');
 		if (!cc->cctx_noleadspc)
-			arcf_dstring_cat1(afc->mctx_tmpstr, ' ');
+			arc_dstring_cat1(afc->mctx_tmpstr, ' ');
 
 		last = '\0';
 
@@ -3319,16 +3320,16 @@ mlfi_eoh(SMFICTX *ctx)
 		for (p = hdr->hdr_val; *p != '\0'; p++)
 		{
 			if (*p == '\n' && last != '\r')
-				arcf_dstring_cat1(afc->mctx_tmpstr, '\r');
+				arc_dstring_cat1(afc->mctx_tmpstr, '\r');
 
-			arcf_dstring_cat1(afc->mctx_tmpstr, *p);
+			arc_dstring_cat1(afc->mctx_tmpstr, *p);
 
 			last = *p;
 		}
 
 		status = arc_header_field(afc->mctx_arcmsg,
-		                          (u_char *) arcf_dstring_get(afc->mctx_tmpstr),
-		                          arcf_dstring_len(afc->mctx_tmpstr));
+		                          (unsigned char *) arc_dstring_get(afc->mctx_tmpstr),
+		                          arc_dstring_len(afc->mctx_tmpstr));
 		if (status != ARC_STAT_OK)
 		{
 			if (conf->conf_dolog)
@@ -3530,11 +3531,11 @@ mlfi_eom(SMFICTX *ctx)
 
 	if (afc->mctx_tmpstr == NULL)
 	{
-		afc->mctx_tmpstr = arcf_dstring_new(BUFRSZ, 0);
+		afc->mctx_tmpstr = arc_dstring_new(BUFRSZ, 0, NULL, NULL);
 		if (afc->mctx_tmpstr == NULL)
 		{
 			if (conf->conf_dolog)
-				syslog(LOG_ERR, "arcf_dstring_new() failed");
+				syslog(LOG_ERR, "arc_dstring_new() failed");
 
 			return SMFIS_TEMPFAIL;
 		}
@@ -3595,7 +3596,7 @@ mlfi_eom(SMFICTX *ctx)
 	{
 		_Bool arfound = FALSE;
 		memset(&ar, '\0', sizeof ar);
-		arcf_dstring_blank(afc->mctx_tmpstr);
+		arc_dstring_blank(afc->mctx_tmpstr);
 
 		/* assemble authentication results */
 		for (int i = 0; ; i++)
@@ -3635,53 +3636,52 @@ mlfi_eom(SMFICTX *ctx)
 				}
 			}
 
-			if (arcf_dstring_len(afc->mctx_tmpstr) > 0)
+			if (arc_dstring_len(afc->mctx_tmpstr) > 0)
 			{
-				arcf_dstring_cat(afc->mctx_tmpstr,
-						 "; ");
+				arc_dstring_cat(afc->mctx_tmpstr, "; ");
 			}
 
-			arcf_dstring_printf(afc->mctx_tmpstr,
-					    "%s=%s",
-					    ares_getmethod(ar.ares_result[i].result_method),
-					    ares_getresult(ar.ares_result[i].result_result));
+			arc_dstring_printf(afc->mctx_tmpstr,
+					   "%s=%s",
+					   ares_getmethod(ar.ares_result[i].result_method),
+					   ares_getresult(ar.ares_result[i].result_result));
 
 			if (ar.ares_result[i].result_reason[0] != '\0')
 			{
-				arcf_dstring_printf(afc->mctx_tmpstr,
-						    " reason=\"%s\"",
-						    ar.ares_result[i].result_reason);
+				arc_dstring_printf(afc->mctx_tmpstr,
+						   " reason=\"%s\"",
+						   ar.ares_result[i].result_reason);
 			}
 
 			for (int j = 0; j < ar.ares_result[i].result_props; j++)
 			{
 				if (ar.ares_result[i].result_ptype[j] == ARES_PTYPE_COMMENT)
 				{
-					arcf_dstring_printf(afc->mctx_tmpstr,
-					                    " %s",
-					                    ar.ares_result[i].result_value[j]);
+					arc_dstring_printf(afc->mctx_tmpstr,
+					                   " %s",
+					                   ar.ares_result[i].result_value[j]);
 				} else {
 					_Bool quote = !ares_istoken(ar.ares_result[i].result_value[j]);
-					arcf_dstring_printf(afc->mctx_tmpstr,
-							    " %s.%s=%s%s%s",
-							    ares_getptype(ar.ares_result[i].result_ptype[j]),
-							    ar.ares_result[i].result_property[j],
-							    quote ? "\"" : "",
-							    ar.ares_result[i].result_value[j],
-							    quote ? "\"" : "");
+					arc_dstring_printf(afc->mctx_tmpstr,
+							   " %s.%s=%s%s%s",
+							   ares_getptype(ar.ares_result[i].result_ptype[j]),
+							   ar.ares_result[i].result_property[j],
+							   quote ? "\"" : "",
+							   ar.ares_result[i].result_value[j],
+							   quote ? "\"" : "");
 				}
 			}
 		}
 
 		if (!arfound) {
 			/* Record the ARC status */
-			if (arcf_dstring_len(afc->mctx_tmpstr) > 0)
+			if (arc_dstring_len(afc->mctx_tmpstr) > 0)
 			{
-				arcf_dstring_cat(afc->mctx_tmpstr, "; ");
+				arc_dstring_cat(afc->mctx_tmpstr, "; ");
 			}
 
-			arcf_dstring_printf(afc->mctx_tmpstr, "arc=%s",
-			                    arc_chain_status_str(afc->mctx_arcmsg));
+			arc_dstring_printf(afc->mctx_tmpstr, "arc=%s",
+			                   arc_chain_status_str(afc->mctx_arcmsg));
 		}
 
 		/*
@@ -3694,8 +3694,8 @@ mlfi_eom(SMFICTX *ctx)
 		                     conf->conf_domain,
 		                     conf->conf_keydata,
 		                     conf->conf_keylen,
-		                     arcf_dstring_len(afc->mctx_tmpstr) > 0
-		                     ? arcf_dstring_get(afc->mctx_tmpstr)
+		                     arc_dstring_len(afc->mctx_tmpstr) > 0
+		                     ? arc_dstring_get(afc->mctx_tmpstr)
 		                     : NULL);
 		if (status != ARC_STAT_OK)
 		{
@@ -3770,37 +3770,37 @@ mlfi_eom(SMFICTX *ctx)
 			return SMFIS_TEMPFAIL;
 		}
 
-		arcf_dstring_blank(afc->mctx_tmpstr);
-		arcf_dstring_printf(afc->mctx_tmpstr,
-		                    "%s%s; arc=%s",
-		                    cc->cctx_noleadspc ? " " : "",
-		                    conf->conf_authservid,
-		                    arc_chain_status_str(afc->mctx_arcmsg));
+		arc_dstring_blank(afc->mctx_tmpstr);
+		arc_dstring_printf(afc->mctx_tmpstr,
+		                   "%s%s; arc=%s",
+		                   cc->cctx_noleadspc ? " " : "",
+		                   conf->conf_authservid,
+		                   arc_chain_status_str(afc->mctx_arcmsg));
 
 		if (ipout != NULL)
 		{
 			_Bool quote = !ares_istoken(ipout);
 
-			arcf_dstring_printf(afc->mctx_tmpstr,
-			                    " smtp.remote-ip=%s%s%s",
-			                    quote ? "\"" : "",
-			                    ipout,
-			                    quote ? "\"" : "");
+			arc_dstring_printf(afc->mctx_tmpstr,
+			                   " smtp.remote-ip=%s%s%s",
+			                   quote ? "\"" : "",
+			                   ipout,
+			                   quote ? "\"" : "");
 		}
 
 		if (conf->conf_finalreceiver && arcchainlen > 0)
 		{
 			_Bool quote = !ares_istoken(arcchainbuf);
 
-			arcf_dstring_printf(afc->mctx_tmpstr,
-			                    " arc.chain=%s%s%s",
-			                    quote ? "\"" : "",
-			                    arcchainbuf,
-			                    quote ? "\"" : "");
+			arc_dstring_printf(afc->mctx_tmpstr,
+			                   " arc.chain=%s%s%s",
+			                   quote ? "\"" : "",
+			                   arcchainbuf,
+			                   quote ? "\"" : "");
 		}
 
 		if (arcf_insheader(ctx, 0, AUTHRESULTSHDR,
-		                   arcf_dstring_get(afc->mctx_tmpstr)) != MI_SUCCESS)
+		                   arc_dstring_get(afc->mctx_tmpstr)) != MI_SUCCESS)
 		{
 			if (conf->conf_dolog)
 			{

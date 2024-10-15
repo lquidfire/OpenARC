@@ -307,7 +307,7 @@ typedef struct arc_hdrfield ARC_HDRFIELD;
 **  	None.
 */
 
-extern void arc_error __P((ARC_MESSAGE *, const char *, ...));
+extern void arc_error(ARC_MESSAGE *, const char *, ...);
 
 /*
 **  ARC_INIT -- create a library instance

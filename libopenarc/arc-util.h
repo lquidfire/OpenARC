@@ -17,38 +17,8 @@
 /* libopenarc includes */
 #include "arc.h"
 
-/* struct arc_dstring -- a dynamically-sized string */
-struct arc_dstring
-{
-	int			ds_alloc;
-	int			ds_max;
-	int			ds_len;
-	char *			ds_buf;
-	ARC_MESSAGE *		ds_msg;
-};
-
-extern void arc_dstring_blank __P((struct arc_dstring *));
-extern _Bool arc_dstring_cat __P((struct arc_dstring *, const char *));
-extern _Bool arc_dstring_cat1 __P((struct arc_dstring *, int));
-extern _Bool arc_dstring_catn __P((struct arc_dstring *, const char *, size_t));
-extern _Bool arc_dstring_copy __P((struct arc_dstring *, const char *));
-extern void arc_dstring_free __P((struct arc_dstring *));
-extern char *arc_dstring_get __P((struct arc_dstring *));
-extern int arc_dstring_len __P((struct arc_dstring *));
-extern struct arc_dstring *arc_dstring_new __P((ARC_MESSAGE *, int, int));
-extern size_t arc_dstring_printf __P((struct arc_dstring *dstr, char *fmt,
-                                      ...));
-
-extern char *arc_strdup __P((const char *));
-
 extern int arc_check_dns_reply __P((unsigned char *ansbuf, size_t anslen,
                                     int xclass, int xtype));
-
-extern void arc_clobber_array __P((char **));
-extern void arc_collapse __P((char *));
-extern char **arc_copy_array __P((char **));
-extern void arc_lowerhdr __P((char *));
-extern char *arc_strndup(const char *, size_t);
 
 extern _Bool arc_hdrlist __P((u_char *, size_t, u_char **, _Bool));
 

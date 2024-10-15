@@ -32,6 +32,8 @@
 #include "arc-util.h"
 #include "arc-tables.h"
 
+#include "arc-dstring.h"
+
 /* libbsd if found */
 #ifdef USE_BSD_H
 # include <bsd/string.h>
@@ -365,7 +367,7 @@ arc_canon_header(ARC_MESSAGE *msg, ARC_CANON *canon, struct arc_hdrfield *hdr,
 
 	if (msg->arc_canonbuf == NULL)
 	{
-		msg->arc_canonbuf = arc_dstring_new(msg, hdr->hdr_textlen, 0);
+		msg->arc_canonbuf = arc_dstring_new(hdr->hdr_textlen, 0, msg, &arc_error_cb);
 		if (msg->arc_canonbuf == NULL)
 			return ARC_STAT_NORESOURCE;
 	}
@@ -441,7 +443,7 @@ arc_canon_fixcrlf(ARC_MESSAGE *msg, ARC_CANON *canon,
 
 	if (msg->arc_canonbuf == NULL)
 	{
-		msg->arc_canonbuf = arc_dstring_new(msg, buflen, 0);
+		msg->arc_canonbuf = arc_dstring_new(buflen, 0, msg, &arc_error_cb);
 		if (msg->arc_canonbuf == NULL)
 			return ARC_STAT_NORESOURCE;
 	}
@@ -517,7 +519,7 @@ arc_canon_init(ARC_MESSAGE *msg, _Bool tmp, _Bool keep)
 		}
 		cur->canon_hashbufsize = ARC_HASHBUFSIZE;
 		cur->canon_hashbuflen = 0;
-		cur->canon_buf = arc_dstring_new(msg, BUFRSZ, BUFRSZ);
+		cur->canon_buf = arc_dstring_new(BUFRSZ, BUFRSZ, msg, &arc_error_cb);
 		if (cur->canon_buf == NULL)
 			return ARC_STAT_NORESOURCE;
 
@@ -1130,7 +1132,7 @@ arc_canon_runheaders(ARC_MESSAGE *msg)
 
 	if (msg->arc_hdrbuf == NULL)
 	{
-		msg->arc_hdrbuf = arc_dstring_new(msg, ARC_MAXHEADER, 0);
+		msg->arc_hdrbuf = arc_dstring_new(ARC_MAXHEADER, 0, msg, &arc_error_cb);
 		if (msg->arc_hdrbuf == NULL)
 		{
 			ARC_FREE(hdrset);
@@ -1380,7 +1382,7 @@ arc_canon_signature(ARC_MESSAGE *msg, struct arc_hdrfield *hdr, int type)
 
 	if (msg->arc_hdrbuf == NULL)
 	{
-		msg->arc_hdrbuf = arc_dstring_new(msg, ARC_MAXHEADER, 0);
+		msg->arc_hdrbuf = arc_dstring_new(ARC_MAXHEADER, 0, msg, &arc_error_cb);
 		if (msg->arc_hdrbuf == NULL)
 			return ARC_STAT_NORESOURCE;
 	}

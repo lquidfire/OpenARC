@@ -54,6 +54,8 @@
 #include "arc.h"
 #include "base64.h"
 
+#include "arc-dstring.h"
+
 /* libbsd if found */
 #ifdef USE_BSD_H
 # include <bsd/string.h>
@@ -113,13 +115,12 @@ void arc_error __P((ARC_MESSAGE *, const char *, ...));
 **  	None.
 */
 
-void
-arc_error(ARC_MESSAGE *msg, const char *format, ...)
+static void
+arc_verror(ARC_MESSAGE *msg, const char *format, va_list ap)
 {
 	int flen;
 	int saverr;
 	char *new;
-	va_list va;
 
 	assert(msg != NULL);
 	assert(format != NULL);
@@ -139,14 +140,17 @@ arc_error(ARC_MESSAGE *msg, const char *format, ...)
 
 	for (;;)
 	{
-		va_start(va, format);
+		va_list aq;
+		va_copy(aq, ap);
 		flen = vsnprintf(msg->arc_error, msg->arc_errorlen,
-		                 format, va);
-		va_end(va);
+		                 format, aq);
+		va_end(aq);
 
 		/* compensate for broken vsnprintf() implementations */
 		if (flen == -1)
+		{
 			flen = msg->arc_errorlen * 2;
+		}
 
 		if (flen >= msg->arc_errorlen)
 		{
@@ -168,6 +172,27 @@ arc_error(ARC_MESSAGE *msg, const char *format, ...)
 	}
 
 	errno = saverr;
+
+}
+
+void
+arc_error(ARC_MESSAGE *msg, const char *format, ...)
+{
+	va_list va;
+
+	va_start(va, format);
+	arc_verror(msg, format, va);
+	va_end(va);
+}
+
+void
+arc_error_cb(void *msg, const char *format, ...)
+{
+	va_list va;
+
+	va_start(va, format);
+	arc_verror(msg, format, va);
+	va_end(va);
 }
 
 /*
@@ -579,7 +604,7 @@ arc_getamshdr_d(ARC_MESSAGE *msg, size_t initial, char **buf, size_t *buflen,
 
 #define	DELIMITER	"\001"
 
-	tmpbuf = arc_dstring_new(msg, BUFRSZ, MAXBUFRSZ);
+	tmpbuf = arc_dstring_new(BUFRSZ, MAXBUFRSZ, msg, &arc_error_cb);
 	if (tmpbuf == NULL)
 	{
 		arc_error(msg, "failed to allocate dynamic string");
@@ -588,7 +613,7 @@ arc_getamshdr_d(ARC_MESSAGE *msg, size_t initial, char **buf, size_t *buflen,
 
 	if (msg->arc_hdrbuf == NULL)
 	{
-		msg->arc_hdrbuf = arc_dstring_new(msg, BUFRSZ, MAXBUFRSZ);
+		msg->arc_hdrbuf = arc_dstring_new(BUFRSZ, MAXBUFRSZ, msg, &arc_error_cb);
 		if (msg->arc_hdrbuf == NULL)
 		{
 			arc_dstring_free(tmpbuf);
@@ -2506,7 +2531,7 @@ arc_parse_header_field(ARC_MESSAGE *msg, const unsigned char *hdr, size_t hlen,
 		u_char prev = '\0';
 		struct arc_dstring *tmphdr;
 
-		tmphdr = arc_dstring_new(msg, BUFRSZ, MAXBUFRSZ);
+		tmphdr = arc_dstring_new(BUFRSZ, MAXBUFRSZ, msg, &arc_error_cb);
 		if (tmphdr == NULL)
 		{
 			ARC_FREE(h);
@@ -2537,14 +2562,14 @@ arc_parse_header_field(ARC_MESSAGE *msg, const unsigned char *hdr, size_t hlen,
 		if (prev == '\r')				/* end CR */
 			arc_dstring_cat1(tmphdr, '\n');
 
-		h->hdr_text = arc_strndup(arc_dstring_get(tmphdr),
+		h->hdr_text = strndup(arc_dstring_get(tmphdr),
 		                          arc_dstring_len(tmphdr));
 
 		arc_dstring_free(tmphdr);
 	}
 	else
 	{
-		h->hdr_text = arc_strndup((char *) hdr, hlen);
+		h->hdr_text = strndup((char *) hdr, hlen);
 	}
 
 	if (h->hdr_text == NULL)
@@ -3286,7 +3311,7 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, char *authservid,
 		goto error;
 	}
 
-	dstr = arc_dstring_new(msg, ARC_MAXHEADER, 0);
+	dstr = arc_dstring_new(ARC_MAXHEADER, 0, msg, &arc_error_cb);
 
 	/*
 	**  Generate a new signature and store it.
@@ -3742,7 +3767,7 @@ arc_chain_custody_str(ARC_MESSAGE *msg, u_char *buf, size_t buflen)
 	if (msg->arc_cstate != ARC_CHAIN_PASS)
 		return 0;
 
-	tmpbuf = arc_dstring_new(msg, BUFRSZ, MAXBUFRSZ);
+	tmpbuf = arc_dstring_new(BUFRSZ, MAXBUFRSZ, msg, &arc_error_cb);
 	if (tmpbuf == NULL)
 	{
 		arc_error(msg, "failed to allocate dynamic string");
