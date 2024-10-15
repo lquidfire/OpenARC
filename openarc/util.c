@@ -73,9 +73,6 @@ static char *optlist[] =
 	NULL
 };
 
-/* base64 alphabet */
-static unsigned char alphabet[64] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
 /*
 **  ARCF_OPTLIST -- print active FFRs
 **
@@ -135,46 +132,6 @@ arcf_setmaxfd(void)
 			       strerror(errno));
 		}
 	}
-}
-
-/*
-**  ARCF_HOSTLIST -- see if a hostname is in a pattern of hosts/domains
-**
-**  Parameters:
-**  	host -- hostname to compare
-**   	list -- NULL-terminated char * array to search
-**
-**  Return value:
-**  	TRUE iff either "host" was in the list or it match a domain pattern
-**  	found in the list.
-*/
-
-_Bool
-arcf_hostlist(char *host, char **list)
-{
-	int c;
-	char *p;
-
-	assert(host != NULL);
-	assert(list != NULL);
-
-	/* walk the entire list */
-	for (c = 0; list[c] != NULL; c++)
-	{
-		/* first try a full hostname match */
-		if (strcasecmp(host, list[c]) == 0)
-			return TRUE;
-
-		/* try each domain */
-		for (p = strchr(host, '.'); p != NULL; p = strchr(p + 1, '.'))
-		{
-			if (strcasecmp(p, list[c]) == 0)
-				return TRUE;
-		}
-	}
-
-	/* not found */
-	return FALSE;
 }
 
 /*
@@ -268,104 +225,6 @@ arcf_socket_cleanup(char *sockspec)
 	/* connection apparently succeeded */
 	close(s);
 	return EADDRINUSE;
-}
-
-/*
-**  ARCF_BASE64_ENCODE_FILE -- base64-encode a file
-**
-**  Parameters:
-**  	infd -- input file descriptor
-**  	out -- output stream
-**  	lm -- left margin
-** 	rm -- right margin
-**  	initial -- space consumed on the initial line
-**
-**  Return value:
-**  	None (yet).
-*/
-
-void
-arcf_base64_encode_file(infd, out, lm, rm, initial)
-	int infd;
-	FILE *out;
-	int lm;
-	int rm;
-	int initial;
-{
-	int len;
-	int bits;
-	int c;
-	int d;
-	int char_count;
-	ssize_t rlen;
-	char buf[MAXBUFRSZ];
-
-	assert(infd >= 0);
-	assert(out != NULL);
-	assert(lm >= 0);
-	assert(rm >= 0);
-	assert(initial >= 0);
-
-	bits = 0;
-	char_count = 0;
-	len = initial;
-
-	(void) lseek(infd, 0, SEEK_SET);
-
-	for (;;)
-	{
-		rlen = read(infd, buf, sizeof buf);
-		if (rlen == -1)
-			break;
-
-		for (c = 0; c < rlen; c++)
-		{
-			bits += buf[c];
-			char_count++;
-			if (char_count == 3)
-			{
-				fputc(alphabet[bits >> 18], out);
-				fputc(alphabet[(bits >> 12) & 0x3f], out);
-				fputc(alphabet[(bits >> 6) & 0x3f], out);
-				fputc(alphabet[bits & 0x3f], out);
-				len += 4;
-				if (rm > 0 && lm > 0 && len >= rm - 4)
-				{
-					fputc('\n', out);
-					for (d = 0; d < lm; d++)
-						fputc(' ', out);
-					len = lm;
-				}
-				bits = 0;
-				char_count = 0;
-			}
-			else
-			{
-				bits <<= 8;
-			}
-		}
-
-		if (rlen < (ssize_t) sizeof buf)
-			break;
-	}
-
-	if (char_count != 0)
-	{
-		if (rm > 0 && lm > 0 && len >= rm - 4)
-		{
-			fputc('\n', out);
-			for (d = 0; d < lm; d++)
-				fputc(' ', out);
-		}
-		bits <<= 16 - (8 * char_count);
-		fputc(alphabet[bits >> 18], out);
-		fputc(alphabet[(bits >> 12) & 0x3f], out);
-		if (char_count == 1)
-			fputc('=', out);
-		else
-			fputc(alphabet[(bits >> 6) & 0x3f], out);
-		fputc('=', out);
-	}
 }
 
 /*
