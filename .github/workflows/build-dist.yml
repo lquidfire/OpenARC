@@ -1,0 +1,33 @@
+name: build-dist
+on:
+  push:
+    tags:
+      - v*
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          path: openarc
+          fetch-depth: 0
+
+      - name: apt update
+        run: sudo apt update
+
+      - name: Install dependencies
+        run: sudo apt install libbsd-dev libmilter-dev libssl-dev
+
+      - name: Build dist tarball
+        run: |
+          autoreconf -fiv
+          ./configure
+          make release
+        working-directory: ${{ github.workspace }}/openarc
+
+      - name: Save dist files
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: ${{ github.workspace }}/openarc/openarc-*

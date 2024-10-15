@@ -15,7 +15,8 @@ AC_PREREQ(2.61)
 m4_define([VERSION_RELEASE], 1)
 m4_define([VERSION_MAJOR_REV], 0)
 m4_define([VERSION_MINOR_REV], 0)
-m4_define([VERSION_PATCH], 0)
+# leave this empty for an actual release
+m4_define([VERSION_PRE], [rc0])
 
 #
 # Library version
@@ -23,14 +24,14 @@ m4_define([VERSION_PATCH], 0)
 # 	- bump "revision" with internal source code changes
 #
 m4_define([LIBVERSION_CURRENT], 0)
-m4_define([LIBVERSION_REVISION], 0)
+m4_define([LIBVERSION_REVISION], 1)
 m4_define([LIBVERSION_AGE], 0)
 
 #
 # Autotools setup
 #
 AC_INIT([OpenARC],
-        [VERSION_RELEASE.VERSION_MAJOR_REV.VERSION_MINOR_REV],
+        [m4_join([], VERSION_RELEASE.VERSION_MAJOR_REV.VERSION_MINOR_REV, VERSION_PRE)],
         [bugs@trusteddomain.org])
 
 AC_CONFIG_AUX_DIR([build-aux])
@@ -42,9 +43,9 @@ AC_CONFIG_MACRO_DIR([m4])
 LT_INIT
 
 #
-# Hexadecimal version, for use in generating dkim.h
+# Hexadecimal version, for use in generating arc.h
 #
-HEX_VERSION=$(printf %08x $(( ((VERSION_RELEASE << 8 | VERSION_MAJOR_REV) << 8 | VERSION_MINOR_REV) << 8| VERSION_PATCH )))
+HEX_VERSION=$(printf %08x $(( ((VERSION_RELEASE << 8 | VERSION_MAJOR_REV) << 8 | VERSION_MINOR_REV) << 8 )))
 AC_SUBST([HEX_VERSION])
 
 #

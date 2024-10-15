@@ -4,7 +4,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = contrib . test
-dist_doc_DATA = LICENSE LICENSE.Sendmail README.md RELEASE_NOTES
+dist_doc_DATA = LICENSE LICENSE.Sendmail README.md CHANGELOG.md
 dist_noinst_SCRIPTS = libtool
 
 DISTCLEANFILES = openarc-@VERSION@.tar.gz libopenarc/symbols.map *.gcno *.gcda
@@ -94,29 +94,17 @@ openarc_openarc_LDFLAGS = $(LIBCRYPTO_LIBDIRS) $(LIBMILTER_LIBDIRS) $(PTHREAD_CF
 openarc_openarc_LDADD = libopenarc/libopenarc.la $(LIBMILTER_LIBS) $(LIBCRYPTO_LIBS) $(PTHREAD_LIBS) $(LIBJANSSON_LIBS) $(LIBRESOLV)
 endif
 
-$(DIST_ARCHIVES): distcheck
-
-$(DIST_ARCHIVES).md5: $(DIST_ARCHIVES)
-	md5 $? > $@ || md5sum $? > $@
-
 $(DIST_ARCHIVES).sha1: $(DIST_ARCHIVES)
-	sha1 $? > $@ || sha1sum $? > $@
+	sha1sum $? > $@
 
-$(DIST_ARCHIVES).asc: $(DIST_ARCHIVES)
-	gpg -a -u security@trusteddomain.org --detach-sign $?
+$(DIST_ARCHIVES).sha256: $(DIST_ARCHIVES)
+	sha256sum $? > $@
 
-push: $(DIST_ARCHIVES) $(DIST_ARCHIVES).sha1 $(DIST_ARCHIVES).md5 $(DIST_ARCHIVES).asc
-	@echo "Are you sure you want to tag and release $(DIST_ARCHIVES)? (y/n)"
-	@read confirm && [ $$confirm = 'y' ]
-	git tag rel-openarc-`echo $(VERSION) | sed 's/\./-/g'`
-	git push --tags
+release: dist $(DIST_ARCHIVES) $(DIST_ARCHIVES).sha1 $(DIST_ARCHIVES).sha256
 
 dist-hook:
 	[ -f $(distdir)/libopenarc/arc.h ] && rm -f $(distdir)/libopenarc/arc.h
 	sed -e '/OPENARC_LIB_VERSION/s/0x[0-9]*/0x@HEX_VERSION@/' < $(srcdir)/libopenarc/arc.h > $(distdir)/libopenarc/arc.h
-	echo "looking to see if @VERSION@ is in the RELEASE_NOTES"
-	fgrep @VERSION@ $(srcdir)/RELEASE_NOTES
-	sed -e 's|\(@VERSION@[ \t]*\)[0-9?]\{4\}\(/[0-9?]\{2\}\)\{2\}|\1'`date +%Y/%m/%d`'|' < $(srcdir)/RELEASE_NOTES > $(distdir)/RELEASE_NOTES
 
 rpm: dist-gzip
 	rpmbuild -ta $(distdir).tar.gz
