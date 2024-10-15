@@ -805,7 +805,7 @@ config_dump(struct config *cfg, FILE *out, const char *name)
 		}
 		else
 		{
-			fprintf(out, "%p: \"%s\" ", cur, cur->cfg_name);
+			fprintf(out, "%p: \"%s\" ", (void *) cur, cur->cfg_name);
 		}
 
 		switch (cur->cfg_type)
