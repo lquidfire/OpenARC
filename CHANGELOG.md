@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Added
+
+### Changed
+
+### Fixed
+
 ## 1.0.0rc0 - 2024-10-15
 
 Changes since the last Trusted Domain Project release.
