@@ -608,8 +608,8 @@ arc_mail_parse_multi(unsigned char *line, unsigned char ***users_out,
 			uout[n] = u;
 			dout[n++] = d;
 
-			uout[n] = '\0';
-			dout[n] = '\0';
+			uout[n] = NULL;
+			dout[n] = NULL;
 
 			addr = p + 1;
 
