@@ -34,9 +34,7 @@ AC_INIT([OpenARC],
         [bugs@trusteddomain.org])
 
 AC_CONFIG_AUX_DIR([build-aux])
-AM_INIT_AUTOMAKE(
-  1.11.1
-)
+AM_INIT_AUTOMAKE([1.11.1 foreign subdir-objects])
 AC_CONFIG_HEADERS([build-config.h])
 
 AC_CONFIG_MACRO_DIR([m4])
@@ -941,8 +939,6 @@ AC_CONFIG_FILES([
     contrib/systemd/Makefile
     contrib/systemd/openarc.service
     libopenarc/openarc.pc
-    libopenarc/Makefile
-    openarc/Makefile
     openarc/openarc.8
     openarc/openarc.conf.5
     test/Makefile
