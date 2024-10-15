@@ -49,7 +49,7 @@ If you are building from a git checkout instead of a release tarball,
 you will also need:
 
 * [Autoconf](https://www.gnu.org/software/autoconf/) >= 2.61
-* [Automake](https://www.gnu.org/software/automake/) >= 1.7
+* [Automake](https://www.gnu.org/software/automake/) >= 1.11.1
 * [libtool](https://www.gnu.org/software/libtool/) >= 2.2.6
 
 ## Testing
