@@ -63,9 +63,7 @@ Tests can be run with `make check`. OpenARC's test suite requires:
 ## Additional Documentation
 
 The man page for the openarc filter is present in the openarc
-directory of this source distribution. There is additional information
-in the `INSTALL` and `FEATURES` files, and in the `README` file in the
-openarc directory. Changes are documented in the `RELEASE_NOTES` file.
+directory of this source distribution.
 
 ## Warning
 
