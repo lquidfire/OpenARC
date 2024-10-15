@@ -2473,7 +2473,7 @@ arc_parse_header_field(ARC_MESSAGE *msg, const unsigned char *hdr, size_t hlen,
 	assert(hdr != NULL);
 	assert(hlen != 0);
 
-	/* enforce RFC 5322, Section 2.2 */
+	/* enforce RFC 5322, Section 2.2 as extended by RFC 6532, Section 3.2 */
 	colon = NULL;
 	for (c = 0; c < hlen; c++)
 	{
@@ -2493,12 +2493,15 @@ arc_parse_header_field(ARC_MESSAGE *msg, const unsigned char *hdr, size_t hlen,
 		}
 		else
 		{
-			/* field bodies are printable ASCII, SP, HT, CR, LF */
-			if (!(hdr[c] != 9 ||  /* HT */
-			      hdr[c] != 10 || /* LF */
-			      hdr[c] != 13 || /* CR */
-			      (hdr[c] >= 32 && hdr[c] <= 126) /* SP, print */ ))
+			/* field bodies are printable ASCII, SP, HT, CR, LF, or UTF-8 */
+			if (!(hdr[c] == 9 ||  /* HT */
+			      hdr[c] == 10 || /* LF */
+			      hdr[c] == 13 || /* CR */
+			      (hdr[c] >= 32 && hdr[c] <= 126) || /* SP, print */
+			      (hdr[c] > 127))) /* UTF-8 */
+			{
 				return ARC_STAT_SYNTAX;
+			}
 		}
 	}
 
