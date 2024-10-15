@@ -75,21 +75,21 @@ struct result
 	ares_method	result_method;
 	ares_result	result_result;
 	ares_ptype	result_ptype[MAXPROPS];
-	unsigned char	result_reason[MAXAVALUE + 1];
-	unsigned char	result_property[MAXPROPS][MAXAVALUE + 1];
-	unsigned char	result_value[MAXPROPS][MAXAVALUE + 1];
+	char		result_reason[MAXAVALUE + 1];
+	char		result_property[MAXPROPS][MAXAVALUE + 1];
+	char		result_value[MAXPROPS][MAXAVALUE + 1];
 };
 
 /* AUTHRES structure -- the entire header parsed */
 struct authres
 {
 	int		ares_count;
-	unsigned char	ares_host[ARC_MAXHOSTNAMELEN + 1];
-	unsigned char	ares_version[MAXAVALUE + 1];
+	char		ares_host[ARC_MAXHOSTNAMELEN + 1];
+	char		ares_version[MAXAVALUE + 1];
 	struct result	ares_result[MAXARESULTS];
 };
 
-extern int ares_parse __P((u_char *, struct authres *, const char *));
+extern int ares_parse __P((const char *, struct authres *, const char *));
 extern _Bool ares_istoken __P((const char *));
 
 extern const char *ares_getmethod __P((ares_method));

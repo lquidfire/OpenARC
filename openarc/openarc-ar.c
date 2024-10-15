@@ -132,17 +132,16 @@ enum ar_parser_state {
 */
 
 static int
-ares_tokenize(u_char *input, u_char *outbuf, size_t outbuflen,
-              u_char **tokens, int ntokens)
+ares_tokenize(const char *input, char *outbuf, size_t outbuflen,
+              char **tokens, int ntokens)
 {
 	_Bool quoted = FALSE;
 	_Bool escaped = FALSE;
 	_Bool intok = FALSE;
 	int n = 0;
 	int parens = 0;
-	u_char *p;
-	u_char *q;
-	u_char *end;
+	char *q;
+	char *end;
 
 	assert(input != NULL);
 	assert(outbuf != NULL);
@@ -153,7 +152,7 @@ ares_tokenize(u_char *input, u_char *outbuf, size_t outbuflen,
 	q = outbuf;
 	end = outbuf + outbuflen - 1;
 
-	for (p = input; *p != '\0' && q <= end; p++)
+	for (const char *p = input; *p != '\0' && q <= end; p++)
 	{
 		if (escaped)				/* escape */
 		{
@@ -430,15 +429,15 @@ ares_method_add(struct authres *ar, struct result *r)
 */
 
 int
-ares_parse(u_char *hdr, struct authres *ar, const char *authserv)
+ares_parse(const char *hdr, struct authres *ar, const char *authserv)
 {
 	int ntoks;
 	enum ar_parser_state state;
 	enum ar_parser_state prevstate;
 	ares_method m;
-	u_char tmp[ARC_MAXHEADER + 2];
-	u_char *tokens[ARES_MAXTOKENS];
-	u_char ares_host[ARC_MAXHOSTNAMELEN + 1];
+	char tmp[ARC_MAXHEADER + 2];
+	char *tokens[ARES_MAXTOKENS];
+	char ares_host[ARC_MAXHOSTNAMELEN + 1];
 	struct result cur;
 	int initial_ares_count;
 

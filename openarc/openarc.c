@@ -97,7 +97,7 @@
 
 struct configvalue
 {
-	u_char *		value;
+	char *			value;
 	LIST_ENTRY(configvalue)	entries;
 };
 LIST_HEAD(conflist, configvalue);
@@ -1190,7 +1190,7 @@ arcf_list_load(struct conflist *list, char *path, char **err)
 			}
 		}
 
-		v = (struct configvalue *) malloc(sizeof(struct configvalue));
+		v = malloc(sizeof(struct configvalue));
 		if (v == NULL)
 		{
 			*err = strerror(errno);
@@ -3498,7 +3498,7 @@ mlfi_eom(SMFICTX *ctx)
 	struct sockaddr *ip;
 	Header hdr;
 	struct authres ar;
-	u_char arcchainbuf[ARC_MAXHEADER + 1];
+	unsigned char arcchainbuf[ARC_MAXHEADER + 1];
 	char ipbuf[ARC_MAXHOSTNAMELEN + 1];
 
 	assert(ctx != NULL);
@@ -3695,7 +3695,7 @@ mlfi_eom(SMFICTX *ctx)
 		                     conf->conf_keydata,
 		                     conf->conf_keylen,
 		                     arc_dstring_len(afc->mctx_tmpstr) > 0
-		                     ? arc_dstring_get(afc->mctx_tmpstr)
+		                     ? (unsigned char *) arc_dstring_get(afc->mctx_tmpstr)
 		                     : NULL);
 		if (status != ARC_STAT_OK)
 		{
@@ -3714,12 +3714,12 @@ mlfi_eom(SMFICTX *ctx)
 		     sealhdr = arc_hdr_next(sealhdr))
 		{
 			size_t len;
-			u_char *hfvdest;
-			u_char hfname[BUFRSZ + 1];
-			u_char hfvalue[ARC_MAXHEADER + 1];
+			char *hfvdest;
+			char hfname[BUFRSZ + 1];
+			char hfvalue[ARC_MAXHEADER + 1];
 
 			memset(hfname, '\0', sizeof hfname);
-			strlcpy(hfname, arc_hdr_name(sealhdr, &len),
+			strlcpy(hfname, (char *) arc_hdr_name(sealhdr, &len),
 			        sizeof hfname);
 			hfname[len] = '\0';
 
@@ -3730,7 +3730,7 @@ mlfi_eom(SMFICTX *ctx)
 				hfvalue[0] = ' ';
 				hfvdest++;
 			}
-			strlcat(hfvalue, arc_hdr_value(sealhdr),
+			strlcat(hfvalue, (char *) arc_hdr_value(sealhdr),
 			        sizeof hfvalue);
 
 			status = arcf_insheader(ctx, 0, hfname, hfvalue);
@@ -3790,7 +3790,7 @@ mlfi_eom(SMFICTX *ctx)
 
 		if (conf->conf_finalreceiver && arcchainlen > 0)
 		{
-			_Bool quote = !ares_istoken(arcchainbuf);
+			_Bool quote = !ares_istoken((char *) arcchainbuf);
 
 			arc_dstring_printf(afc->mctx_tmpstr,
 			                   " arc.chain=%s%s%s",
