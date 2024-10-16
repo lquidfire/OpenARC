@@ -415,3 +415,11 @@ def test_milter_peerlist(run_miltertest):
     """Connections from peers just get `accept` back immediately"""
     with pytest.raises(miltertest.MilterError, match='unexpected response: a'):
         run_miltertest()
+
+
+def test_milter_softwareheader(run_miltertest):
+    """Advertise software name, version"""
+    res = run_miltertest()
+
+    assert res['headers'][0][0] == 'ARC-Filter'
+    assert res['headers'][0][1].startswith('OpenARC Filter v')
