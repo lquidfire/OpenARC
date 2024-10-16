@@ -19,9 +19,11 @@ m4_define([VERSION_MINOR_REV], 0)
 m4_define([VERSION_PRE], [rc0post0])
 
 #
-# Library version
-# 	- bump "current" and reset "revision" with API changes
-# 	- bump "revision" with internal source code changes
+# Library version, only update at release time
+#       - bump "revision" with internal source code changes
+#       - bump "current" and reset "revision" with API changes
+#       - bump age with backwards compatible API additions, reset age with
+#         removal or modification
 #
 m4_define([LIBVERSION_CURRENT], 0)
 m4_define([LIBVERSION_REVISION], 1)
