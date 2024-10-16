@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import copy
 import socket
 
 import miltertest
@@ -9,7 +10,7 @@ import pytest
 @pytest.fixture
 def run_miltertest(request, milter, milter_config):
     def _run_miltertest(headers=None, standard_headers=True, body='test body\r\n'):
-        headers = headers or []
+        headers = copy.copy(headers) or []
         if standard_headers:
             headers.extend(
                 [
