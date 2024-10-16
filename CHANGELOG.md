@@ -26,7 +26,7 @@ Changes since the last Trusted Domain Project release.
 
 - OpenSSL < 1.0.0 is no longer supported. OpenSSL 3 with deprecated interfaces
   disabled is.
-- libopenarc - The RFC 8601 limit of 50 ARC sets is respected.
+- libopenarc - The RFC 8617 limit of 50 ARC sets is respected.
 - milter - Trace headers are inserted at index 0 instead of index 1.
 - milter - Verify mode can be used without configuring signing-specific options.
 - milter - The current ARC validation state is always added to
