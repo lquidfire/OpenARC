@@ -7,7 +7,7 @@ includedir=@includedir@/openarc
 
 Name: OpenARC Library
 Description: Library for performing ARC signing and verification
-URL: http://trusteddomain.org/openarc
+URL: https://github.com/flowerysong/OpenARC
 Version: @VERSION@
 Libs: -L${libdir} @PTHREAD_CFLAGS@ -lopenarc
 Libs.private: @LIBOPENARC_LIBS_PKG@ @PTHREAD_LIBS@

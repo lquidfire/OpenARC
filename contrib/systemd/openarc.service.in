@@ -2,7 +2,7 @@
 
 [Unit]
 Description=Authenticated Resource Chain (ARC) Milter
-Documentation=man:openarc(8) man:openarc.conf(5) http://www.trusteddomain.org/openarc
+Documentation=man:openarc(8) man:openarc.conf(5)
 After=network.target nss-lookup.target syslog.target
 
 [Service]

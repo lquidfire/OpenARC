@@ -7,7 +7,7 @@ Name: openarc
 Version: @VERSION@
 Release: 1%{?dist}
 License: BSD and Sendmail
-URL: https://github.com/trusteddomainproject/OpenARC
+URL: https://github.com/flowerysong/OpenARC
 Source0: openarc-%{version}.tar.gz
 
 BuildRequires: gcc
@@ -107,7 +107,7 @@ install -d -m 0755 %{buildroot}%{_unitdir}
 cat > %{buildroot}%{_unitdir}/%{name}.service <<EOF
 [Unit]
 Description=Authenticated Receive Chain (ARC) Milter
-Documentation=man:%{name}(8) man:%{name}.conf(5) http://www.trusteddomain.org/%{name}/
+Documentation=man:%{name}(8) man:%{name}.conf(5)
 After=network.target nss-lookup.target syslog.target
 
 [Service]

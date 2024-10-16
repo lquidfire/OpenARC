@@ -34,7 +34,7 @@ m4_define([LIBVERSION_AGE], 0)
 #
 AC_INIT([OpenARC],
         [m4_join([], VERSION_RELEASE.VERSION_MAJOR_REV.VERSION_MINOR_REV, VERSION_PRE)],
-        [bugs@trusteddomain.org])
+        [simta@umich.edu])
 
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([1.11.1 foreign subdir-objects])
