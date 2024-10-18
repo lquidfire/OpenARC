@@ -153,6 +153,11 @@ def test_milter_mode_s(run_miltertest):
     assert res['headers'][1][0] == 'ARC-Message-Signature'
     assert res['headers'][2] == ['ARC-Authentication-Results', ' i=1; example.com; arc=none smtp.remote-ip=127.0.0.1']
 
+    res = run_miltertest(res['headers'])
+    assert len(res['headers']) == 3
+    assert 'cv=pass' in res['headers'][0][1]
+    assert res['headers'][2] == ['ARC-Authentication-Results', ' i=2; example.com; arc=pass smtp.remote-ip=127.0.0.1']
+
 
 def test_milter_mode_v(run_miltertest):
     """Verify mode"""
