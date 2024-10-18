@@ -44,6 +44,8 @@ If you are building the filter, you will also need:
 
 * [sendmail](https://sendmail.org) >= 8.13.0, or
   [Postfix](https://www.postfix.org/) >= 2.3 and libmilter.
+* (optional) [jansson](https://github.com/akheron/jansson) for full
+  `SealHeaderChecks` support.
 
 If you are building from a git checkout instead of a release tarball,
 you will also need:
@@ -51,6 +53,37 @@ you will also need:
 * [Autoconf](https://www.gnu.org/software/autoconf/) >= 2.61
 * [Automake](https://www.gnu.org/software/automake/) >= 1.11.1
 * [libtool](https://www.gnu.org/software/libtool/) >= 2.2.6
+
+### DNF-based systems
+
+```
+$ dnf install autoconf automake gcc jansson-devel libbsd-devel libtool openssl-devel sendmail-milter-devel
+```
+
+### Ubuntu
+
+```
+$ apt install build-essential libbsd-dev libjansson-dev libmilter-dev libssl-dev
+```
+
+## Installation
+
+Installation follows the standard Autotools process.
+
+If you're building from a git checkout, you first need to generate the
+build system:
+
+```
+$ autoreconf -fiv
+```
+
+Once that's done (or if you're building from a release tarball):
+
+```
+$ ./configure
+$ make
+$ make install
+```
 
 ## Testing
 
