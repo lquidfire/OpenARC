@@ -2,13 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 1.0.0 - 2024-10-18
 
-### Added
-
-### Changed
-
-### Fixed
+No notable changes.
 
 ## 1.0.0rc0 - 2024-10-15
 
