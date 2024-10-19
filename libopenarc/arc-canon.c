@@ -662,7 +662,7 @@ arc_add_canon(ARC_MESSAGE *msg, int type, arc_canon_t canon, int hashtype,
 		}
 	}
 
-	new = (ARC_CANON *) ARC_MALLOC(sizeof *new);
+	new = ARC_MALLOC(sizeof *new);
 	if (new == NULL)
 	{
 		arc_error(msg, "unable to allocate %d byte(s)", sizeof *new);

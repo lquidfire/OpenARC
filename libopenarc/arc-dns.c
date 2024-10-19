@@ -191,7 +191,7 @@ arc_res_query(void *srv, int type, const unsigned char *query,
 	if (ret == -1)
 		return ARC_DNS_ERROR;
 
-	rq = (struct arc_res_qh *) ARC_MALLOC(sizeof *rq);
+	rq = ARC_MALLOC(sizeof *rq);
 	if (rq == NULL)
 		return ARC_DNS_ERROR;
 

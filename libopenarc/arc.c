@@ -838,7 +838,7 @@ arc_init(void)
 {
 	ARC_LIB *lib;
 
-	lib = (ARC_LIB *) ARC_MALLOC(sizeof *lib);
+	lib = ARC_MALLOC(sizeof *lib);
 	if (lib == NULL)
 		return lib;
 
@@ -851,7 +851,7 @@ arc_init(void)
 #define FEATURE_ADD(lib,x)	(lib)->arcl_flist[FEATURE_INDEX((x))] |= (1 << FEATURE_OFFSET(x))
 
 	lib->arcl_flsize = (FEATURE_INDEX(ARC_FEATURE_MAX)) + 1;
-	lib->arcl_flist = (u_int *) ARC_MALLOC(sizeof(u_int) * lib->arcl_flsize);
+	lib->arcl_flist = ARC_MALLOC(sizeof(u_int) * lib->arcl_flsize);
 	if (lib->arcl_flist == NULL)
 	{
 		ARC_FREE(lib);
@@ -1408,7 +1408,7 @@ arc_add_plist(ARC_MESSAGE *msg, ARC_KVSET *set, char *param, char *value,
 	{
 		int n;
 
-		plist = (ARC_PLIST *) ARC_MALLOC(sizeof(ARC_PLIST));
+		plist = ARC_MALLOC(sizeof(ARC_PLIST));
 		if (plist == NULL)
 		{
 			arc_error(msg, "unable to allocate %d byte(s)",
@@ -1481,7 +1481,7 @@ arc_process_set(ARC_MESSAGE *msg, arc_kvsettype_t type, char *str,
 	}
 	strlcpy((char *) hcopy, (char *) str, len + 1);
 
-	set = (ARC_KVSET *) ARC_MALLOC(sizeof(ARC_KVSET));
+	set = ARC_MALLOC(sizeof(ARC_KVSET));
 	if (set == NULL)
 	{
 		ARC_FREE(hcopy);
