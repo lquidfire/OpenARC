@@ -750,7 +750,7 @@ arc_canon_selecthdrs(ARC_MESSAGE *msg, const char *hdrlist,
 	char *colon;
 	struct arc_hdrfield *hdr;
 	struct arc_hdrfield **lhdrs;
-	u_char **hdrs;
+	unsigned char **hdrs;
 
 	assert(msg != NULL);
 	assert(ptrs != NULL);
@@ -806,7 +806,7 @@ arc_canon_selecthdrs(ARC_MESSAGE *msg, const char *hdrlist,
 		if (*colon == ':')
 			shcnt++;
 	}
-	n = sizeof(u_char *) * shcnt;
+	n = sizeof(unsigned char *) * shcnt;
 	hdrs = ARC_MALLOC(n);
 	if (hdrs == NULL)
 	{
@@ -822,7 +822,7 @@ arc_canon_selecthdrs(ARC_MESSAGE *msg, const char *hdrlist,
 	     bar != NULL;
 	     bar = strtok_r(NULL, ":", &ctx))
 	{
-		hdrs[n] = (u_char *) bar;
+		hdrs[n] = (unsigned char *) bar;
 		n++;
 	}
 
@@ -1004,8 +1004,8 @@ ARC_STAT
 arc_canon_runheaders_seal(ARC_MESSAGE *msg)
 {
 	ARC_STAT status;
-	u_int m;
-	u_int n;
+	unsigned int m;
+	unsigned int n;
 	ARC_CANON *cur;
 
 	assert(msg != NULL);
@@ -1111,7 +1111,7 @@ ARC_STAT
 arc_canon_runheaders(ARC_MESSAGE *msg)
 {
 	bool signing;
-	u_char savechar;
+	unsigned char savechar;
 	int c;
 	int n;
 	int nhdrs = 0;
@@ -1454,10 +1454,10 @@ arc_canon_signature(ARC_MESSAGE *msg, struct arc_hdrfield *hdr, int type)
 **  	other -- bytes required to satisfy all canonicalizations
 */
 
-u_long
+unsigned long
 arc_canon_minbody(ARC_MESSAGE *msg)
 {
-	u_long minbody = 0;
+	unsigned long minbody = 0;
 	ARC_CANON *cur;
 
 	assert(msg != NULL);
@@ -1473,7 +1473,7 @@ arc_canon_minbody(ARC_MESSAGE *msg)
 			return ULONG_MAX;
 
 		/* compare to current minimum */
-		minbody = MAX(minbody, (u_long) cur->canon_remain);
+		minbody = MAX(minbody, (unsigned long) cur->canon_remain);
 	}
 
 	return minbody;
@@ -1497,7 +1497,7 @@ arc_canon_bodychunk(ARC_MESSAGE *msg, const char *buf, size_t buflen)
 {
 	bool fixcrlf;
 	ARC_STAT status;
-	u_int wlen;
+	unsigned int wlen;
 	ARC_CANON *cur;
 	size_t plen;
 	const char *p;
@@ -1821,7 +1821,7 @@ arc_canon_closebody(ARC_MESSAGE *msg)
 */
 
 ARC_STAT
-arc_canon_getfinal(ARC_CANON *canon, u_char **digest, size_t *dlen)
+arc_canon_getfinal(ARC_CANON *canon, unsigned char **digest, size_t *dlen)
 {
 	assert(canon != NULL);
 	assert(digest != NULL);
@@ -1855,7 +1855,7 @@ arc_canon_getsealhash(ARC_MESSAGE *msg, int setnum, void **sh, size_t *shlen)
 {
 	ARC_STAT status;
 	struct arc_canon *sdc;
-	u_char *sd;
+	unsigned char *sd;
 	size_t sdlen;
 
 	assert(msg != NULL);
@@ -1894,8 +1894,8 @@ arc_canon_gethashes(ARC_MESSAGE *msg, void **hh, size_t *hhlen,
 	ARC_STAT status;
 	struct arc_canon *hdc;
 	struct arc_canon *bdc;
-	u_char *hd;
-	u_char *bd;
+	unsigned char *hd;
+	unsigned char *bd;
 	size_t hdlen;
 	size_t bdlen;
 

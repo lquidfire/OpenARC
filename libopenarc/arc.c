@@ -380,9 +380,9 @@ arc_genamshdr(ARC_MESSAGE *msg, struct arc_dstring *dstr, char *delim,
 	int delimlen;
 	size_t hashlen;
 	char *format;
-	u_char *hash;
+	unsigned char *hash;
 	struct arc_hdrfield *hdr;
-	u_char b64hash[ARC_MAXHEADER + 1];
+	unsigned char b64hash[ARC_MAXHEADER + 1];
 
 	assert(msg != NULL);
 	assert(dstr != NULL);
@@ -501,7 +501,7 @@ arc_genamshdr(ARC_MESSAGE *msg, struct arc_dstring *dstr, char *delim,
 		if (msg->arc_partial)
 		{
 			arc_dstring_printf(dstr, ";%sl=%lu", delim,
-					   (u_long) msg->arc_sign_bodycanon->canon_wrote);
+					   (unsigned long) msg->arc_sign_bodycanon->canon_wrote);
 		}
 
 		/* h= */
@@ -684,7 +684,7 @@ arc_getamshdr_d(ARC_MESSAGE *msg, size_t initial, char **buf, size_t *buflen,
 			forcewrap = false;
 			if (msg->arc_keytype == ARC_KEYTYPE_RSA)
 			{
-				u_int siglen;
+				unsigned int siglen;
 
 				siglen = BASE64SIZE(msg->arc_keybits / 8);
 				if (strcmp(which, "b") == 0 &&
@@ -846,18 +846,18 @@ arc_init(void)
 	lib->arcl_minkeysize = ARC_DEFAULT_MINKEYSIZE;
 	lib->arcl_flags = ARC_LIBFLAGS_DEFAULT;
 
-#define FEATURE_INDEX(x)	((x) / (8 * sizeof(u_int)))
-#define FEATURE_OFFSET(x)	((x) % (8 * sizeof(u_int)))
+#define FEATURE_INDEX(x)	((x) / (8 * sizeof(unsigned int)))
+#define FEATURE_OFFSET(x)	((x) % (8 * sizeof(unsigned int)))
 #define FEATURE_ADD(lib,x)	(lib)->arcl_flist[FEATURE_INDEX((x))] |= (1 << FEATURE_OFFSET(x))
 
 	lib->arcl_flsize = (FEATURE_INDEX(ARC_FEATURE_MAX)) + 1;
-	lib->arcl_flist = ARC_MALLOC(sizeof(u_int) * lib->arcl_flsize);
+	lib->arcl_flist = ARC_MALLOC(sizeof(unsigned int) * lib->arcl_flsize);
 	if (lib->arcl_flist == NULL)
 	{
 		ARC_FREE(lib);
 		return NULL;
 	}
-	memset(lib->arcl_flist, '\0', sizeof(u_int) * lib->arcl_flsize);
+	memset(lib->arcl_flist, '\0', sizeof(unsigned int) * lib->arcl_flsize);
 
 	lib->arcl_dns_callback = NULL;
 	lib->arcl_dns_service = NULL;
@@ -1027,7 +1027,7 @@ arc_options(ARC_LIB *lib, int op, int arg, void *val, size_t valsz)
 		else
 		{
 			int status;
-			u_char **hdrs;
+			unsigned char **hdrs;
 			char buf[BUFRSZ + 1];
 
 			if (lib->arcl_signre)
@@ -1037,9 +1037,9 @@ arc_options(ARC_LIB *lib, int op, int arg, void *val, size_t valsz)
 			}
 			memset(buf, '\0', sizeof buf);
 
-			hdrs = (u_char **) val;
+			hdrs = (unsigned char **) val;
 			(void) strlcpy(buf, "^(", sizeof buf);
-			if (!arc_hdrlist((u_char *) buf, sizeof buf,
+			if (!arc_hdrlist((unsigned char *) buf, sizeof buf,
 			                  hdrs, true))
 				return ARC_STAT_INVALID;
 
@@ -1980,7 +1980,7 @@ arc_get_key(ARC_MESSAGE *msg, bool test)
 	p = arc_param_get(set, "t");
 	if (p != NULL)
 	{
-		u_int flag;
+		unsigned int flag;
 		char *t;
 		char *last;
 		char tmp[BUFRSZ + 1];
@@ -1991,8 +1991,8 @@ arc_get_key(ARC_MESSAGE *msg, bool test)
 		     t != NULL;
 		     t = strtok_r(NULL, ":", &last))
 		{
-			flag = (u_int) arc_name_to_code(keyflags, t);
-			if (flag != (u_int) -1)
+			flag = (unsigned int) arc_name_to_code(keyflags, t);
+			if (flag != (unsigned int) -1)
 				msg->arc_flags |= flag;
 		}
 	}
@@ -2144,7 +2144,7 @@ error:
 */
 
 static ARC_STAT
-arc_validate_msg(ARC_MESSAGE *msg, u_int setnum)
+arc_validate_msg(ARC_MESSAGE *msg, unsigned int setnum)
 {
 	size_t elen;
 	size_t hhlen;
@@ -2252,7 +2252,7 @@ arc_validate_msg(ARC_MESSAGE *msg, u_int setnum)
 */
 
 static ARC_STAT
-arc_validate_seal(ARC_MESSAGE *msg, u_int setnum)
+arc_validate_seal(ARC_MESSAGE *msg, unsigned int setnum)
 {
 	ARC_STAT status;
 	size_t shlen;
@@ -2535,7 +2535,7 @@ arc_parse_header_field(ARC_MESSAGE *msg, const unsigned char *hdr, size_t hlen,
 
 	if ((msg->arc_library->arcl_flags & ARC_LIBFLAGS_FIXCRLF) != 0)
 	{
-		u_char prev = '\0';
+		unsigned char prev = '\0';
 		struct arc_dstring *tmphdr;
 
 		tmphdr = arc_dstring_new(BUFRSZ, MAXBUFRSZ, msg, &arc_error_cb);
@@ -2654,8 +2654,8 @@ arc_header_field(ARC_MESSAGE *msg, const unsigned char *hdr, size_t hlen)
 ARC_STAT
 arc_eoh_verify(ARC_MESSAGE *msg)
 {
-	u_int n;
-	u_int hashtype;
+	unsigned int n;
+	unsigned int hashtype;
 	ARC_STAT status;
 	struct arc_hdrfield *h;
 	char *htag;
@@ -2839,9 +2839,9 @@ ARC_STAT
 arc_eoh(ARC_MESSAGE *msg)
 {
 	bool keep;
-	u_int c;
-	u_int n;
-	u_int nsets = 0;
+	unsigned int c;
+	unsigned int n;
+	unsigned int nsets = 0;
 	arc_kvsettype_t type;
 	ARC_STAT status;
 	char *inst;
@@ -3106,7 +3106,7 @@ arc_eom(ARC_MESSAGE *msg)
 		}
 		else
 		{
-			u_int set;
+			unsigned int set;
 			char *inst;
 			char *cv;
 			ARC_KVSET *kvset;
@@ -3210,8 +3210,8 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, const char *authservid,
 	size_t len;
 	size_t b64siglen;
 	char *sighdr = NULL;
-	u_char *digest = NULL;
-	u_char *sigout = NULL;
+	unsigned char *digest = NULL;
+	unsigned char *sigout = NULL;
 	unsigned char *b64sig = NULL;
 	ARC_HDRFIELD *h;
 	ARC_HDRFIELD hdr;
@@ -3718,10 +3718,10 @@ arc_ssl_version(void)
 */
 
 bool
-arc_libfeature(ARC_LIB *lib, u_int fc)
+arc_libfeature(ARC_LIB *lib, unsigned int fc)
 {
-	u_int idx;
-	u_int offset;
+	unsigned int idx;
+	unsigned int offset;
 
 	idx = fc / (8 * sizeof(int));
 	offset = fc % (8 * sizeof(int));
@@ -3787,7 +3787,7 @@ arc_chain_status_str(ARC_MESSAGE *msg)
 */
 
 int
-arc_chain_custody_str(ARC_MESSAGE *msg, u_char *buf, size_t buflen)
+arc_chain_custody_str(ARC_MESSAGE *msg, unsigned char *buf, size_t buflen)
 {
 	int set;
 	ARC_KVSET *kvset;

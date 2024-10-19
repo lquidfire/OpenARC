@@ -111,8 +111,9 @@ arc_mail_unescape(char *s)
 **  	everything is balanced.
 */
 
-static u_char *
-arc_mail_matching_paren(u_char *s, u_char *e, int open_paren, int close_paren)
+static unsigned char *
+arc_mail_matching_paren(unsigned char *s, unsigned char *e, int open_paren,
+                        int close_paren)
 {
 	int 		paren = 1;
 
@@ -150,11 +151,12 @@ arc_mail_matching_paren(u_char *s, u_char *e, int open_paren, int close_paren)
 */
 
 static int
-arc_mail_first_special(u_char *p, u_char *e, u_char **special_out)
+arc_mail_first_special(unsigned char *p, unsigned char *e,
+                       unsigned char **special_out)
 {
 	size_t		i;
 	cmap_elem_type	is_special[CMAP_NELEMS] = { 0 };
-	u_char		*at_ptr = NULL;
+	unsigned char	*at_ptr = NULL;
 
 	/* set up special finder */
 	for (i = 0; SPECIALS[i] != '\0'; i++)
@@ -249,15 +251,16 @@ arc_mail_first_special(u_char *p, u_char *e, u_char **special_out)
 */
 
 static int
-arc_mail_token(u_char *s, u_char *e, int *type_out, u_char **start_out,
-               u_char **end_out, int *uncommented_whitespace)
+arc_mail_token(unsigned char *s, unsigned char *e, int *type_out,
+               unsigned char **start_out, unsigned char **end_out,
+               int *uncommented_whitespace)
 {
-	u_char *p;
+	unsigned char *p;
 	int err = 0;
 	size_t i;
 	int token_type;
 	cmap_elem_type is_special[CMAP_NELEMS] = { 0 };
-	u_char *token_start, *token_end;
+	unsigned char *token_start, *token_end;
 
 	*start_out = NULL;
 	*end_out   = NULL;
@@ -362,9 +365,9 @@ arc_mail_parse(unsigned char *line, unsigned char **user_out,
 	int type;
 	int ws;
 	int err;
-	u_char *e, *special;
-	u_char *tok_s, *tok_e;
-	u_char *w;
+	unsigned char *e, *special;
+	unsigned char *tok_s, *tok_e;
+	unsigned char *w;
 
 	*user_out = NULL;
 	*domain_out = NULL;

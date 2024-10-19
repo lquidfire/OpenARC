@@ -341,7 +341,7 @@ arc_check_dns_reply(unsigned char *ansbuf, size_t anslen,
 		/* skip CNAME if found; assume it was resolved */
 		if (type == T_CNAME)
 		{
-			if ((n = dn_expand((u_char *) ansbuf, eom, cp,
+			if ((n = dn_expand((unsigned char *) ansbuf, eom, cp,
 			                   (RES_UNC_T) name, sizeof name)) < 0)
 				return 2;
 
