@@ -87,26 +87,32 @@ def test_milter_v2(run_miltertest):
 
 def test_milter_staticmsg(run_miltertest):
     headers = [
-        ['ARC-Seal', (
-            ' i=1; cv=none; a=rsa-sha256; d=dkimpy.example.com; s=sel;\r\n'
-            ' t=1728713840;\r\n'
-            ' b=jmHJmDXHe4eFAurv+yXz1RTRLj+XNaHedD4GYWPt0XntR94pMNSFlU2TxT0rzkMcE4Nkt\r\n'
-            ' xFrz0OYVfexpgNJ393tO8czBH4OwEwV2E5h+U/8N1vM+KHKfcg2n02SOxUa991Z1+CXUrO6\r\n'
-            ' lUnIx7gN+iz3x2muWG6hm6d1J0h4+yaQCuVlNImf3PM/M7l57GbfHvQpbYI9m4hf6IMncRS\r\n'
-            ' sOuXyTaH8NrWpqqM0KctxR4x+kC/Y3dKNYcL5VwbajlXletkmHO79sbuGD0HsK8HUdzfE1Z\r\n'
-            ' gGinobwxRu7skmTPq0TSlBQQ/1fuxpSOpocjnY+E/g3FH3ZsAtbOG2jVYd9w=='
-        )],
-        ['ARC-Message-Signature', (
-            ' i=1; a=rsa-sha256; c=relaxed/relaxed;\r\n'
-            ' d=dkimpy.example.com; s=sel; t=1728713840; h=content-type :\r\n'
-            ' mime-version : content-transfer-encoding : subject : from : to : from;\r\n'
-            ' bh=Pb6s/Xlf4u1eDlYyO0NCaMRMrCg6xDNkK5byz8RDY1s=;\r\n'
-            ' b=dmFKbeiAEsaA/gnLQyuRBcX72pvARuJMrZIptplgCGp9vqudMP2ngI/g8eo63nQYMB0md\r\n'
-            ' AaofYsl5lD8qE/B20FDgn66jTHQIGsPi0Fv06Mf45NaTFpeaEyexjZunYXSLao3RY5Cqtac\r\n'
-            ' m0BcCS/MaaiMBoDmcRa5GOzBi02coJG5IsDt+ZWT6P7nHQHrDNsuLBeJBX7+vJ0bM9QHbCE\r\n'
-            ' Q+eZZxcT7W2MWaByV2Jjz4B+sh0IzfX2wPNsGOsNpD+MvpehQsa9ig7eEndNWw7V1qpaMN+\r\n'
-            ' vtOnb5H80nu0K4H7fvrNUI4h4b+UTumqR/HhiNTFRobUGiwuvrP4CWHj3dtQ==\r\n'
-        )],
+        [
+            'ARC-Seal',
+            (
+                ' i=1; cv=none; a=rsa-sha256; d=dkimpy.example.com; s=sel;\r\n'
+                ' t=1728713840;\r\n'
+                ' b=jmHJmDXHe4eFAurv+yXz1RTRLj+XNaHedD4GYWPt0XntR94pMNSFlU2TxT0rzkMcE4Nkt\r\n'
+                ' xFrz0OYVfexpgNJ393tO8czBH4OwEwV2E5h+U/8N1vM+KHKfcg2n02SOxUa991Z1+CXUrO6\r\n'
+                ' lUnIx7gN+iz3x2muWG6hm6d1J0h4+yaQCuVlNImf3PM/M7l57GbfHvQpbYI9m4hf6IMncRS\r\n'
+                ' sOuXyTaH8NrWpqqM0KctxR4x+kC/Y3dKNYcL5VwbajlXletkmHO79sbuGD0HsK8HUdzfE1Z\r\n'
+                ' gGinobwxRu7skmTPq0TSlBQQ/1fuxpSOpocjnY+E/g3FH3ZsAtbOG2jVYd9w=='
+            ),
+        ],
+        [
+            'ARC-Message-Signature',
+            (
+                ' i=1; a=rsa-sha256; c=relaxed/relaxed;\r\n'
+                ' d=dkimpy.example.com; s=sel; t=1728713840; h=content-type :\r\n'
+                ' mime-version : content-transfer-encoding : subject : from : to : from;\r\n'
+                ' bh=Pb6s/Xlf4u1eDlYyO0NCaMRMrCg6xDNkK5byz8RDY1s=;\r\n'
+                ' b=dmFKbeiAEsaA/gnLQyuRBcX72pvARuJMrZIptplgCGp9vqudMP2ngI/g8eo63nQYMB0md\r\n'
+                ' AaofYsl5lD8qE/B20FDgn66jTHQIGsPi0Fv06Mf45NaTFpeaEyexjZunYXSLao3RY5Cqtac\r\n'
+                ' m0BcCS/MaaiMBoDmcRa5GOzBi02coJG5IsDt+ZWT6P7nHQHrDNsuLBeJBX7+vJ0bM9QHbCE\r\n'
+                ' Q+eZZxcT7W2MWaByV2Jjz4B+sh0IzfX2wPNsGOsNpD+MvpehQsa9ig7eEndNWw7V1qpaMN+\r\n'
+                ' vtOnb5H80nu0K4H7fvrNUI4h4b+UTumqR/HhiNTFRobUGiwuvrP4CWHj3dtQ==\r\n'
+            ),
+        ],
         ['ARC-Authentication-Results', ' i=1; dkimpy.example.com'],
         ['Content-Type', ' text/plain; charset="us-ascii"'],
         ['MIME-Version', ' 1.0'],
@@ -151,7 +157,7 @@ def test_milter_resign(run_miltertest):
             # quick and dirty parsing
             ams = {x[0].strip(): x[1].strip() for x in [y.split('=', 1) for y in ''.join(res['headers'][2][1].splitlines()).split(';')]}
             ams_h = [x.strip() for x in ams['h'].lower().split(':')]
-            assert not any([x in ams_h for x in ['authentication-results', 'arc-seal', 'arc-message-signature', 'arc-authentication-results']])
+            assert not any(x in ams_h for x in ['authentication-results', 'arc-seal', 'arc-message-signature', 'arc-authentication-results'])
         else:
             assert len(res['headers']) == 1
 
@@ -202,12 +208,14 @@ def test_milter_mode_none_sign(run_miltertest):
     [
         # Single header
         [
-            [(
-                'example.com;'
-                ' iprev=pass\n\tpolicy.iprev=192.0.2.1 (mail.example.com);'
-                '\n\tspf=pass (domain of foo@example.com\n\t designates 192.0.2.1 as permitted sender);'
-                ' dkim=pass header.i=@example.com header.s=foo'
-            )],
+            [
+                (
+                    'example.com;'
+                    ' iprev=pass\n\tpolicy.iprev=192.0.2.1 (mail.example.com);'
+                    '\n\tspf=pass (domain of foo@example.com\n\t designates 192.0.2.1 as permitted sender);'
+                    ' dkim=pass header.i=@example.com header.s=foo'
+                )
+            ],
             (
                 'iprev=pass policy.iprev=192.0.2.1 (mail.example.com);'
                 '\n\tspf=pass (domain of foo@example.com designates 192.0.2.1 as permitted sender);'
@@ -245,28 +253,30 @@ def test_milter_mode_none_sign(run_miltertest):
         ],
         # Header with more results than we're willing to store
         [
-            [(
-                'example.com;'
-                ' dkim=pass header.i=@example.com header.s=foo;'
-                ' dkim=pass header.i=@example.com header.s=bar;'
-                ' dkim=pass header.i=@example.com header.s=baz;'
-                ' dkim=pass header.i=@example.com header.s=qux;'
-                ' dkim=pass header.i=@example.com header.s=quux;'
-                ' dkim=pass header.i=@example.com header.s=quuux;'
-                ' dkim=fail header.i=@example.com header.s=foo;'
-                ' dkim=fail header.i=@example.com header.s=bar;'
-                ' dkim=fail header.i=@example.com header.s=baz;'
-                ' dkim=fail header.i=@example.com header.s=qux;'
-                ' dkim=fail header.i=@example.com header.s=quux;'
-                ' dkim=fail header.i=@example.com header.s=quuux;'
-                ' dkim=policy header.i=@example.com header.s=foo;'
-                ' dkim=policy header.i=@example.com header.s=bar;'
-                ' dkim=policy header.i=@example.com header.s=baz;'
-                ' dkim=policy header.i=@example.com header.s=qux;'
-                ' dkim=policy header.i=@example.com header.s=quux;'
-                ' dkim=policy header.i=@example.com header.s=quuux;'
-                ' spf=pass'
-            )],
+            [
+                (
+                    'example.com;'
+                    ' dkim=pass header.i=@example.com header.s=foo;'
+                    ' dkim=pass header.i=@example.com header.s=bar;'
+                    ' dkim=pass header.i=@example.com header.s=baz;'
+                    ' dkim=pass header.i=@example.com header.s=qux;'
+                    ' dkim=pass header.i=@example.com header.s=quux;'
+                    ' dkim=pass header.i=@example.com header.s=quuux;'
+                    ' dkim=fail header.i=@example.com header.s=foo;'
+                    ' dkim=fail header.i=@example.com header.s=bar;'
+                    ' dkim=fail header.i=@example.com header.s=baz;'
+                    ' dkim=fail header.i=@example.com header.s=qux;'
+                    ' dkim=fail header.i=@example.com header.s=quux;'
+                    ' dkim=fail header.i=@example.com header.s=quuux;'
+                    ' dkim=policy header.i=@example.com header.s=foo;'
+                    ' dkim=policy header.i=@example.com header.s=bar;'
+                    ' dkim=policy header.i=@example.com header.s=baz;'
+                    ' dkim=policy header.i=@example.com header.s=qux;'
+                    ' dkim=policy header.i=@example.com header.s=quux;'
+                    ' dkim=policy header.i=@example.com header.s=quuux;'
+                    ' spf=pass'
+                )
+            ],
             (
                 'dkim=pass header.i=@example.com header.s=foo;'
                 '\n\tdkim=pass header.i=@example.com header.s=bar;'
@@ -285,7 +295,7 @@ def test_milter_mode_none_sign(run_miltertest):
                 '\n\tdkim=policy header.i=@example.com header.s=baz;'
                 '\n\tdkim=policy header.i=@example.com header.s=qux;'
                 '\n\tarc=none smtp.remote-ip=127.0.0.1'
-            )
+            ),
         ],
         # Non-matching authserv-id
         [
@@ -387,7 +397,7 @@ def test_milter_mode_none_sign(run_miltertest):
             ],
             'arc=none smtp.remote-ip=127.0.0.1',
         ],
-    ]
+    ],
 )
 def test_milter_ar(run_miltertest, data):
     """Test Authentication-Results parsing"""
