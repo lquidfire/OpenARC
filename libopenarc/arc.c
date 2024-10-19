@@ -2328,31 +2328,39 @@ arc_validate_seal(ARC_MESSAGE *msg, u_int setnum)
 
 ARC_MESSAGE *
 arc_message(ARC_LIB *lib, arc_canon_t canonhdr, arc_canon_t canonbody,
-            arc_alg_t signalg, arc_mode_t mode, const u_char **err)
+            arc_alg_t signalg, arc_mode_t mode, const unsigned char **err)
 {
 	ARC_MESSAGE *msg;
 
 	if (mode == 0)
 	{
 		if (err != NULL)
+		{
 			*err = (unsigned char *) "no mode(s) selected";
+		}
 		return NULL;
 	}
 
-	msg = (ARC_MESSAGE *) ARC_MALLOC(sizeof *msg);
+	msg = ARC_MALLOC(sizeof *msg);
 	if (msg == NULL)
 	{
-		*err = (unsigned char *) strerror(errno);
+		if (err != NULL)
+		{
+			*err = (unsigned char *) strerror(errno);
+		}
+		return NULL;
+	}
+
+	memset(msg, '\0', sizeof *msg);
+
+	msg->arc_library = lib;
+	if (lib->arcl_fixedtime != 0)
+	{
+		msg->arc_timestamp = lib->arcl_fixedtime;
 	}
 	else
 	{
-		memset(msg, '\0', sizeof *msg);
-
-		msg->arc_library = lib;
-		if (lib->arcl_fixedtime != 0)
-			msg->arc_timestamp = lib->arcl_fixedtime;
-		else
-			(void) time(&msg->arc_timestamp);
+		time(&msg->arc_timestamp);
 	}
 
 	msg->arc_canonhdr = canonhdr;
