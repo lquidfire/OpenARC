@@ -11,9 +11,7 @@
 #include <arpa/inet.h>
 #include <arpa/nameser.h>
 #include <netinet/in.h>
-#ifdef HAVE_STDBOOL_H
-# include <stdbool.h>
-#endif /* HAVE_STDBOOL_H */
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <assert.h>
@@ -52,18 +50,18 @@
 **  	first -- first call
 **
 **  Return value:
-**  	TRUE iff everything fit.
+**  	true iff everything fit.
 */
 
-_Bool
-arc_hdrlist(u_char *buf, size_t buflen, u_char **hdrlist, _Bool first)
+bool
+arc_hdrlist(unsigned char *buf, size_t buflen, unsigned char **hdrlist, bool first)
 {
-	_Bool escape = FALSE;
+	bool escape = false;
 	int c;
 	int len;
-	u_char *p;
-	u_char *q;
-	u_char *end;
+	unsigned char *p;
+	unsigned char *q;
+	unsigned char *end;
 
 	assert(buf != NULL);
 	assert(hdrlist != NULL);
@@ -77,14 +75,14 @@ arc_hdrlist(u_char *buf, size_t buflen, u_char **hdrlist, _Bool first)
 		{
 			len = strlcat((char *) buf, "|", buflen);
 			if (len >= buflen)
-				return FALSE;
+				return false;
 		}
 		else
 		{
 			len = strlen((char *) buf);
 		}
 
-		first = FALSE;
+		first = false;
 
 		q = &buf[len];
 		end = &buf[buflen - 1];
@@ -92,13 +90,13 @@ arc_hdrlist(u_char *buf, size_t buflen, u_char **hdrlist, _Bool first)
 		for (p = hdrlist[c]; *p != '\0'; p++)
 		{
 			if (q >= end)
-				return FALSE;
+				return false;
 
 			if (escape)
 			{
 				*q = *p;
 				q++;
-				escape = FALSE;
+				escape = false;
 			}
 
 			switch (*p)
@@ -107,7 +105,7 @@ arc_hdrlist(u_char *buf, size_t buflen, u_char **hdrlist, _Bool first)
 				*q = '.';
 				q++;
 				if (q >= end)
-					return FALSE;
+					return false;
 				*q = '*';
 				q++;
 				break;
@@ -116,13 +114,13 @@ arc_hdrlist(u_char *buf, size_t buflen, u_char **hdrlist, _Bool first)
 				*q = '\\';
 				q++;
 				if (q >= end)
-					return FALSE;
+					return false;
 				*q = '.';
 				q++;
 				break;
 
 			  case '\\':
-				escape = TRUE;
+				escape = true;
 				break;
 
 			  default:
@@ -133,7 +131,7 @@ arc_hdrlist(u_char *buf, size_t buflen, u_char **hdrlist, _Bool first)
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 /*
@@ -142,14 +140,14 @@ arc_hdrlist(u_char *buf, size_t buflen, u_char **hdrlist, _Bool first)
 **  Parameters:
 **  	msg -- ARC_MESSAGE handle
 **  	fp -- descriptor (returned)
-**  	keep -- if FALSE, unlink() the file once created
+**  	keep -- if false, unlink() the file once created
 **
 **  Return value:
 **  	An ARC_STAT_* constant.
 */
 
 ARC_STAT
-arc_tmpfile(ARC_MESSAGE *msg, int *fp, _Bool keep)
+arc_tmpfile(ARC_MESSAGE *msg, int *fp, bool keep)
 {
 	int fd;
 	char *p;
@@ -262,7 +260,7 @@ int
 arc_check_dns_reply(unsigned char *ansbuf, size_t anslen,
                     int xclass, int xtype)
 {
-	_Bool trunc = FALSE;
+	bool trunc = false;
 	int qdcount;
 	int ancount;
 	int n;
@@ -311,7 +309,7 @@ arc_check_dns_reply(unsigned char *ansbuf, size_t anslen,
 
 	/* if truncated, we can't do it */
 	if (hdr.tc)
-		trunc = TRUE;
+		trunc = true;
 
 	/* get the answer count */
 	ancount = ntohs((unsigned short) hdr.ancount);

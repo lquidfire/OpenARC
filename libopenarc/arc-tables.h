@@ -6,18 +6,8 @@
 **    All rights reserved.
 */
 
-#ifndef _ARC_TABLES_H_
-#define _ARC_TABLES_H_
-
-#ifdef __STDC__
-# ifndef __P
-#  define __P(x)  x
-# endif /* ! __P */
-#else /* __STDC__ */
-# ifndef __P
-#  define __P(x)  ()
-# endif /* ! __P */
-#endif /* __STDC__ */
+#ifndef ARC_ARC_TABLES_H_
+#define ARC_ARC_TABLES_H_
 
 /* structures */
 struct nametable
@@ -38,9 +28,7 @@ extern struct nametable *settypes;
 extern struct nametable *sigerrors;
 
 /* prototypes */
-extern const char *arc_code_to_name __P((struct nametable *tbl,
-                                         const int code));
-extern const int arc_name_to_code __P((struct nametable *tbl,
-                                       const char *name));
+extern const char *arc_code_to_name(struct nametable *tbl, const int code);
+extern const int arc_name_to_code(struct nametable *tbl, const char *name);
 
-#endif /* _ARC_TABLES_H_ */
+#endif /* ARC_ARC_TABLES_H_ */

@@ -3,22 +3,12 @@
 **  	All rights reserved.
 */
 
-#ifndef _ARC_INTERNAL_H_
-#define _ARC_INTERNAL_H_
+#ifndef ARC_ARC_INTERNAL_H_
+#define ARC_ARC_INTERNAL_H_
 
 /* libopenarc includes */
 #include "arc.h"
 
-/* the basics */
-#ifndef NULL
-# define NULL	0
-#endif /* ! NULL */
-#ifndef FALSE
-# define FALSE	0
-#endif /* ! FALSE */
-#ifndef TRUE
-# define TRUE	1
-#endif /* ! TRUE */
 #ifndef MAXPATHLEN
 # define MAXPATHLEN		256
 #endif /* ! MAXPATHLEN */
@@ -36,16 +26,6 @@
 #ifndef MAX
 # define MAX(x,y)		((x) > (y) ? (x) : (y))
 #endif /* ! MAX */
-
-#ifdef __STDC__
-# ifndef __P
-#  define __P(x)  x
-# endif /* ! __P */
-#else /* __STDC__ */
-# ifndef __P
-#  define __P(x)  ()
-# endif /* ! __P */
-#endif /* __STDC__ */
 
 /* limits, macros, etc. */
 #define	BUFRSZ			2048	/* base temp buffer size */
@@ -136,4 +116,4 @@ typedef struct arc_canon ARC_CANON;
 */
 extern void arc_error_cb(void *, const char *, ...);
 
-#endif /* ! _ARC_INTERNAL_H_ */
+#endif /* ! ARC_ARC_INTERNAL_H_ */

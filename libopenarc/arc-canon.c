@@ -15,9 +15,7 @@
 /* system includes */
 #include <sys/param.h>
 #include <sys/types.h>
-#ifdef HAVE_STDBOOL_H
-# include <stdbool.h>
-#endif /* HAVE_STDBOOL_H */
+#include <stdbool.h>
 #include <assert.h>
 #include <string.h>
 #include <ctype.h>
@@ -53,7 +51,7 @@
 #define	ARC_ISLWSP(x)	((x) == 011 || (x) == 012 || (x) == 015 || (x) == 040)
 
 /* prototypes */
-extern void arc_error __P((ARC_MESSAGE *, const char *, ...));
+extern void arc_error(ARC_MESSAGE *, const char *, ...);
 
 /* ========================= PRIVATE SECTION ========================= */
 
@@ -106,7 +104,7 @@ arc_canon_free(ARC_MESSAGE *msg, ARC_CANON *canon)
 */
 
 static void
-arc_canon_write(ARC_CANON *canon, char *buf, size_t buflen)
+arc_canon_write(ARC_CANON *canon, const char *buf, size_t buflen)
 {
 	assert(canon != NULL);
 
@@ -143,7 +141,7 @@ arc_canon_write(ARC_CANON *canon, char *buf, size_t buflen)
 */
 
 static void
-arc_canon_buffer(ARC_CANON *canon, char *buf, size_t buflen)
+arc_canon_buffer(ARC_CANON *canon, const char *buf, size_t buflen)
 {
 	assert(canon != NULL);
 
@@ -200,10 +198,10 @@ arc_canon_buffer(ARC_CANON *canon, char *buf, size_t buflen)
 
 ARC_STAT
 arc_canon_header_string(struct arc_dstring *dstr, arc_canon_t canon,
-                        char *hdr, size_t hdrlen, _Bool crlf)
+                        const char *hdr, size_t hdrlen, bool crlf)
 {
-	_Bool space;
-	char *p;
+	bool space;
+	const char *p;
 	char *tmp;
 	char *end;
 	char tmpbuf[BUFRSZ];
@@ -270,14 +268,14 @@ arc_canon_header_string(struct arc_dstring *dstr, arc_canon_t canon,
 		while (*p != '\0' && ARC_ISLWSP(*p))
 			p++;
 
-		space = FALSE;				/* just saw a space */
+		space = false;				/* just saw a space */
 
 		for ( ; *p != '\0'; p++)
 		{
 			if (isascii(*p) && isspace(*p))
 			{
 				/* mark that there was a space and continue */
-				space = TRUE;
+				space = true;
 
 				continue;
 			}
@@ -304,7 +302,7 @@ arc_canon_header_string(struct arc_dstring *dstr, arc_canon_t canon,
 					tmp = tmpbuf;
 				}
 
-				space = FALSE;
+				space = false;
 			}
 
 			/* copy the byte */
@@ -357,7 +355,7 @@ arc_canon_header_string(struct arc_dstring *dstr, arc_canon_t canon,
 
 static ARC_STAT
 arc_canon_header(ARC_MESSAGE *msg, ARC_CANON *canon, struct arc_hdrfield *hdr,
-                 _Bool crlf)
+                 bool crlf)
 {
 	ARC_STAT status;
 
@@ -499,7 +497,7 @@ arc_canon_fixcrlf(ARC_MESSAGE *msg, ARC_CANON *canon,
 */
 
 ARC_STAT
-arc_canon_init(ARC_MESSAGE *msg, _Bool tmp, _Bool keep)
+arc_canon_init(ARC_MESSAGE *msg, bool tmp, bool keep)
 {
 	int fd;
 	int rc;
@@ -671,7 +669,7 @@ arc_add_canon(ARC_MESSAGE *msg, int type, arc_canon_t canon, int hashtype,
 		return ARC_STAT_NORESOURCE;
 	}
 
-	new->canon_done = FALSE;
+	new->canon_done = false;
 	new->canon_type = type;
 	new->canon_hashtype = hashtype;
 	new->canon_hash = NULL;
@@ -691,7 +689,7 @@ arc_add_canon(ARC_MESSAGE *msg, int type, arc_canon_t canon, int hashtype,
 	new->canon_hdrlist = hdrlist;
 	new->canon_buf = NULL;
 	new->canon_next = NULL;
-	new->canon_blankline = TRUE;
+	new->canon_blankline = true;
 	new->canon_blanks = 0;
 	new->canon_bodystate = 0;
 	new->canon_hashbuflen = 0;
@@ -1024,13 +1022,13 @@ arc_canon_runheaders_seal(ARC_MESSAGE *msg)
 		{
 			status = arc_canon_header(msg, cur,
 			                          msg->arc_sets[m].arcset_aar,
-			                          TRUE);
+			                          true);
 			if (status != ARC_STAT_OK)
 				return status;
 
 			status = arc_canon_header(msg, cur,
 			                          msg->arc_sets[m].arcset_ams,
-			                          TRUE);
+			                          true);
 			if (status != ARC_STAT_OK)
 				return status;
 
@@ -1038,7 +1036,7 @@ arc_canon_runheaders_seal(ARC_MESSAGE *msg)
 			{
 				status = arc_canon_header(msg, cur,
 				                          msg->arc_sets[m].arcset_as,
-				                          TRUE);
+				                          true);
 			}
 			else
 			{
@@ -1054,7 +1052,7 @@ arc_canon_runheaders_seal(ARC_MESSAGE *msg)
 
 				/* XXX -- void? */
 				(void) arc_canon_header(msg, cur, &tmphdr,
-				                        FALSE);
+				                        false);
 				arc_canon_buffer(cur, NULL, 0);
 			}
 
@@ -1063,7 +1061,7 @@ arc_canon_runheaders_seal(ARC_MESSAGE *msg)
 		}
 
 		arc_canon_finalize(cur);
-		cur->canon_done = TRUE;
+		cur->canon_done = true;
 
 		cur = msg->arc_sealcanon;
 
@@ -1073,19 +1071,19 @@ arc_canon_runheaders_seal(ARC_MESSAGE *msg)
 		/* write all the ARC sets once more for re-sealing */
 		status = arc_canon_header(msg, cur,
 		                          msg->arc_sets[n].arcset_aar,
-		                          TRUE);
+		                          true);
 		if (status != ARC_STAT_OK)
 			return status;
 
 		status = arc_canon_header(msg, cur,
 		                          msg->arc_sets[n].arcset_ams,
-		                          TRUE);
+		                          true);
 		if (status != ARC_STAT_OK)
 			return status;
 
 		status = arc_canon_header(msg, cur,
 		                          msg->arc_sets[n].arcset_as,
-		                          TRUE);
+		                          true);
 		if (status != ARC_STAT_OK)
 			return status;
 	}
@@ -1112,7 +1110,7 @@ arc_canon_runheaders_seal(ARC_MESSAGE *msg)
 ARC_STAT
 arc_canon_runheaders(ARC_MESSAGE *msg)
 {
-	_Bool signing;
+	bool signing;
 	u_char savechar;
 	int c;
 	int n;
@@ -1325,7 +1323,7 @@ arc_canon_runheaders(ARC_MESSAGE *msg)
 			    (hdrset[c]->hdr_flags & ARC_HDR_SIGNED) != 0)
 			{
 				status = arc_canon_header(msg, cur,
-				                          hdrset[c], TRUE);
+				                          hdrset[c], true);
 				if (status != ARC_STAT_OK)
 				{
 					ARC_FREE(hdrset);
@@ -1359,13 +1357,13 @@ arc_canon_runheaders(ARC_MESSAGE *msg)
 		tmphdr.hdr_flags = 0;
 		tmphdr.hdr_next = NULL;
 
-		(void) arc_canon_header(msg, cur, &tmphdr, FALSE);
+		(void) arc_canon_header(msg, cur, &tmphdr, false);
 		arc_canon_buffer(cur, NULL, 0);
 
 		/* finalize */
 		arc_canon_finalize(cur);
 
-		cur->canon_done = TRUE;
+		cur->canon_done = true;
 	}
 
 	ARC_FREE(hdrset);
@@ -1429,7 +1427,7 @@ arc_canon_signature(ARC_MESSAGE *msg, struct arc_hdrfield *hdr, int type)
 		tmphdr.hdr_next = NULL;
 
 		/* canonicalize the signature */
-		status = arc_canon_header(msg, cur, &tmphdr, FALSE);
+		status = arc_canon_header(msg, cur, &tmphdr, false);
 		if (status != ARC_STAT_OK)
 			return status;
 		arc_canon_buffer(cur, NULL, 0);
@@ -1437,7 +1435,7 @@ arc_canon_signature(ARC_MESSAGE *msg, struct arc_hdrfield *hdr, int type)
 		/* now close it */
 		arc_canon_finalize(cur);
 
-		cur->canon_done = TRUE;
+		cur->canon_done = true;
 	}
 
 	return ARC_STAT_OK;
@@ -1495,17 +1493,17 @@ arc_canon_minbody(ARC_MESSAGE *msg)
 */
 
 ARC_STAT
-arc_canon_bodychunk(ARC_MESSAGE *msg, char *buf, size_t buflen)
+arc_canon_bodychunk(ARC_MESSAGE *msg, const char *buf, size_t buflen)
 {
-	_Bool fixcrlf;
+	bool fixcrlf;
 	ARC_STAT status;
 	u_int wlen;
 	ARC_CANON *cur;
 	size_t plen;
-	char *p;
-	char *wrote;
-	char *eob;
-	char *start;
+	const char *p;
+	const char *wrote;
+	const char *eob;
+	const char *start;
 
 	assert(msg != NULL);
 
@@ -1565,7 +1563,7 @@ arc_canon_bodychunk(ARC_MESSAGE *msg, char *buf, size_t buflen)
 
 						wrote = p + 1;
 						wlen = 0;
-						cur->canon_blankline = TRUE;
+						cur->canon_blankline = true;
 					}
 				}
 				else
@@ -1579,7 +1577,7 @@ arc_canon_bodychunk(ARC_MESSAGE *msg, char *buf, size_t buflen)
 							                 CRLF,
 							                 2);
 							cur->canon_lastchar = '\n';
-							cur->canon_blankline = TRUE;
+							cur->canon_blankline = true;
 						}
 						else
 						{
@@ -1593,7 +1591,7 @@ arc_canon_bodychunk(ARC_MESSAGE *msg, char *buf, size_t buflen)
 					{
 						if (cur->canon_blanks > 0)
 							arc_canon_flushblanks(cur);
-						cur->canon_blankline = FALSE;
+						cur->canon_blankline = false;
 					}
 
 					wlen++;
@@ -1625,7 +1623,7 @@ arc_canon_bodychunk(ARC_MESSAGE *msg, char *buf, size_t buflen)
 					}
 					else
 					{
-						cur->canon_blankline = FALSE;
+						cur->canon_blankline = false;
 						arc_dstring_cat1(cur->canon_buf,
 						                 *p);
 						cur->canon_bodystate = 3;
@@ -1645,7 +1643,7 @@ arc_canon_bodychunk(ARC_MESSAGE *msg, char *buf, size_t buflen)
 					{
 						arc_canon_flushblanks(cur);
 						arc_canon_buffer(cur, SP, 1);
-						cur->canon_blankline = FALSE;
+						cur->canon_blankline = false;
 						arc_dstring_cat1(cur->canon_buf,
 						                 *p);
 						cur->canon_bodystate = 3;
@@ -1673,12 +1671,12 @@ arc_canon_bodychunk(ARC_MESSAGE *msg, char *buf, size_t buflen)
 
 							if (*p == '\n')
 							{
-								cur->canon_blankline = TRUE;
+								cur->canon_blankline = true;
 								cur->canon_bodystate = 0;
 							}
 							else if (*p == '\r')
 							{
-								cur->canon_blankline = TRUE;
+								cur->canon_blankline = true;
 							}
 							else
 							{
@@ -1697,7 +1695,7 @@ arc_canon_bodychunk(ARC_MESSAGE *msg, char *buf, size_t buflen)
 					}
 					else if (*p == '\r')
 					{
-						cur->canon_blankline = FALSE;
+						cur->canon_blankline = false;
 						arc_dstring_cat1(cur->canon_buf,
 						                 *p);
 					}
@@ -1712,7 +1710,7 @@ arc_canon_bodychunk(ARC_MESSAGE *msg, char *buf, size_t buflen)
 					}
 					else
 					{
-						cur->canon_blankline = FALSE;
+						cur->canon_blankline = false;
 						arc_dstring_cat1(cur->canon_buf,
 						                 *p);
 						cur->canon_bodystate = 3;
@@ -1804,7 +1802,7 @@ arc_canon_closebody(ARC_MESSAGE *msg)
 		/* finalize */
 		arc_canon_finalize(cur);
 
-		cur->canon_done = TRUE;
+		cur->canon_done = true;
 	}
 
 	return ARC_STAT_OK;
@@ -1937,7 +1935,7 @@ arc_canon_add_to_seal(ARC_MESSAGE *msg)
 
 	for (hdr = msg->arc_sealhead; hdr != NULL; hdr = hdr->hdr_next)
 	{
-		status = arc_canon_header(msg, msg->arc_sealcanon, hdr, TRUE);
+		status = arc_canon_header(msg, msg->arc_sealcanon, hdr, true);
 		if (status != ARC_STAT_OK)
 			return status;
 	}

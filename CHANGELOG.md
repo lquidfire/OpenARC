@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - libopenarc - `ARC-Message-Signature` and `ARC-Authentication-Results` headers
   are excluded from the AMS, as required by RFC 8617.
 - libopenarc - ARC headers are returned with a space before the header value.
+- libopenarc - String arguments are marked as `const` where applicable.
 
 ### Fixed
 - libopenarc - seals on failed chains only cover the latest ARC header set,

@@ -2,8 +2,8 @@
 **  Copyright (c) 2016, 2017, The Trusted Domain Project.  All rights reserved.
 */
 
-#ifndef _ARC_H_
-#define _ARC_H_
+#ifndef ARC_ARC_H_
+#define ARC_ARC_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,9 +13,7 @@ extern "C" {
 #include <sys/types.h>
 #include <sys/param.h>
 #include <sys/time.h>
-#ifdef HAVE_STDBOOL_H
-# include <stdbool.h>
-#endif /* HAVE_STDBOOL_H */
+#include <stdbool.h>
 #include <inttypes.h>
 #ifdef HAVE_LIMITS_H
 # include <limits.h>
@@ -31,16 +29,6 @@ extern "C" {
 */
 
 #define	OPENARC_LIB_VERSION	0x00010000
-
-#ifdef __STDC__
-# ifndef __P
-#  define __P(x)  x
-# endif /* ! __P */
-#else /* __STDC__ */
-# ifndef __P
-#  define __P(x)  ()
-# endif /* ! __P */
-#endif /* __STDC__ */
 
 /* definitions */
 #define ARC_HDRMARGIN		75	/* "standard" header margin */
@@ -258,7 +246,7 @@ typedef int arc_opts_t;
 **  ARC_MODE -- operating modes
 */
 
-typedef u_int arc_mode_t;
+typedef unsigned int arc_mode_t;
 
 #define	ARC_MODE_SIGN		0x01
 #define	ARC_MODE_VERIFY		0x02
@@ -275,7 +263,7 @@ typedef struct arc_lib ARC_LIB;
 
 #define	ARC_FEATURE_MAX		1
 
-extern _Bool arc_libfeature __P((ARC_LIB *lib, u_int fc));
+extern bool arc_libfeature(ARC_LIB *lib, unsigned int fc);
 
 /*
 **  ARC_MESSAGE -- ARC message context
@@ -319,7 +307,7 @@ extern void arc_error(ARC_MESSAGE *, const char *, ...);
 **  	A new library instance.
 */
 
-extern ARC_LIB *arc_init __P((void));
+extern ARC_LIB *arc_init(void);
 
 /*
 **  ARC_CLOSE -- terminate a library instance
@@ -331,7 +319,7 @@ extern ARC_LIB *arc_init __P((void));
 **  	None.
 */
 
-extern void arc_close __P((ARC_LIB *));
+extern void arc_close(ARC_LIB *);
 
 /*
 **  ARC_GETERROR -- return any stored error string from within the DKIM
@@ -344,7 +332,7 @@ extern void arc_close __P((ARC_LIB *));
 **  	A pointer to the stored string, or NULL if none was stored.
 */
 
-extern const char *arc_geterror __P((ARC_MESSAGE *));
+extern const char *arc_geterror(ARC_MESSAGE *);
 
 /*
 **
@@ -354,27 +342,29 @@ extern const char *arc_geterror __P((ARC_MESSAGE *));
 **  	lib -- library instance of interest
 **  	opt -- ARC_OP_GETOPT or ARC_OP_SETOPT
 **  	arg -- ARC_OPTS_* constant
-**  	val -- pointer to the new new value (or NULL)
+**  	val -- pointer to the new value (or NULL)
 **  	valsz -- size of the thing at val
 **
 **  Return value:
 **  	An ARC_STAT_* constant.
 */
 
-extern ARC_STAT arc_options __P((ARC_LIB *, int, int, void *, size_t));
+extern ARC_STAT arc_options(ARC_LIB *, int, int, void *, size_t);
 
 /*
 **  ARC_SET_DNS -- override DNS resolver
 */
 
-extern ARC_STAT arc_set_dns __P((ARC_LIB *,
-                                 int (*) (void **),
-                                 void (*)(const void *),
-                                 int,
-                                 void (*)(void *),
-                                 int (*)(void *, int, unsigned char *, unsigned char *, size_t, void **),
-                                 int (*) (void *, void *),
-                                 int (*) (void *, void *, struct timeval *, size_t *, int *, int *)));
+extern ARC_STAT arc_set_dns(ARC_LIB *,
+                            int (*) (void **),
+                            void (*)(const void *),
+                            int,
+                            void (*)(void *),
+                            int (*)(void *, int, const unsigned char *,
+			            unsigned char *, size_t, void **),
+                            int (*) (void *, void *),
+                            int (*) (void *, void *, struct timeval *, size_t *,
+			             int *, int *));
 
 /*
 **  ARC_GETSSLBUF -- retrieve SSL error buffer
@@ -386,7 +376,7 @@ extern ARC_STAT arc_set_dns __P((ARC_LIB *,
 **  	Pointer to the SSL buffer in the library handle.
 */
 
-extern const char *arc_getsslbuf __P((ARC_LIB *));
+extern const char *arc_getsslbuf(ARC_LIB *);
 
 /*
 **  ARC_MESSAGE -- create a new message handle
@@ -403,8 +393,8 @@ extern const char *arc_getsslbuf __P((ARC_LIB *));
 **  	A new message instance, or NULL on failure (and "err" is updated).
 */
 
-extern ARC_MESSAGE *arc_message __P((ARC_LIB *, arc_canon_t, arc_canon_t,
-				     arc_alg_t, arc_mode_t, const u_char **));
+extern ARC_MESSAGE *arc_message(ARC_LIB *, arc_canon_t, arc_canon_t,
+                                arc_alg_t, arc_mode_t, const unsigned char **);
 
 /*
 **  ARC_FREE -- deallocate a message object
@@ -416,7 +406,7 @@ extern ARC_MESSAGE *arc_message __P((ARC_LIB *, arc_canon_t, arc_canon_t,
 **  	None.
 */
 
-extern void arc_free __P((ARC_MESSAGE *));
+extern void arc_free(ARC_MESSAGE *);
 
 /*
 **  ARC_HEADER_FIELD -- consume a header field
@@ -430,7 +420,7 @@ extern void arc_free __P((ARC_MESSAGE *));
 **  	An ARC_STAT_* constant.
 */
 
-extern ARC_STAT arc_header_field __P((ARC_MESSAGE *, u_char *, size_t));
+extern ARC_STAT arc_header_field(ARC_MESSAGE *, const unsigned char *, size_t);
 
 /*
 **  ARC_EOH -- declare no more headers are coming
@@ -445,7 +435,7 @@ extern ARC_STAT arc_header_field __P((ARC_MESSAGE *, u_char *, size_t));
 **  	This can probably be merged with arc_eom().
 */
 
-extern ARC_STAT arc_eoh __P((ARC_MESSAGE *));
+extern ARC_STAT arc_eoh(ARC_MESSAGE *);
 
 /*
 **  ARC_BODY -- process a body chunk
@@ -459,7 +449,7 @@ extern ARC_STAT arc_eoh __P((ARC_MESSAGE *));
 **  	A ARC_STAT_* constant.
 */
 
-extern ARC_STAT arc_body __P((ARC_MESSAGE *msg, u_char *buf, size_t len));
+extern ARC_STAT arc_body(ARC_MESSAGE *msg, const unsigned char *buf, size_t len);
 
 /*
 **  ARC_EOM -- declare end of message
@@ -471,7 +461,7 @@ extern ARC_STAT arc_body __P((ARC_MESSAGE *msg, u_char *buf, size_t len));
 **  	An ARC_STAT_* constant.
 */
 
-extern ARC_STAT arc_eom __P((ARC_MESSAGE *));
+extern ARC_STAT arc_eom(ARC_MESSAGE *);
 
 /*
 **  ARC_SET_CV -- force the chain state
@@ -484,7 +474,7 @@ extern ARC_STAT arc_eom __P((ARC_MESSAGE *));
 **  	None.
 */
 
-extern void arc_set_cv __P((ARC_MESSAGE *, ARC_CHAIN));
+extern void arc_set_cv(ARC_MESSAGE *, ARC_CHAIN);
 
 /*
 **  ARC_GETSEAL -- get the "seal" to apply to this message
@@ -507,8 +497,9 @@ extern void arc_set_cv __P((ARC_MESSAGE *, ARC_CHAIN));
 **  	prepended to the message in the presented order.
 */
 
-extern ARC_STAT arc_getseal __P((ARC_MESSAGE *, ARC_HDRFIELD **, char *,
-                                 char *, char *, u_char *, size_t, u_char *));
+extern ARC_STAT arc_getseal(ARC_MESSAGE *, ARC_HDRFIELD **, const char *,
+                            const char *, const char *, const unsigned char *,
+                            size_t, const unsigned char *);
 
 /*
 **  ARC_HDR_NAME -- extract name from an ARC_HDRFIELD
@@ -521,7 +512,7 @@ extern ARC_STAT arc_getseal __P((ARC_MESSAGE *, ARC_HDRFIELD **, char *,
 **  	Header field name stored in the object.
 */
 
-extern unsigned char *arc_hdr_name __P((ARC_HDRFIELD *, size_t *));
+extern unsigned char *arc_hdr_name(ARC_HDRFIELD *, size_t *);
 
 /*
 **  ARC_HDR_VALUE -- extract value from an ARC_HDRFIELD
@@ -533,7 +524,7 @@ extern unsigned char *arc_hdr_name __P((ARC_HDRFIELD *, size_t *));
 **  	Header field value stored in the object.
 */
 
-extern unsigned char *arc_hdr_value __P((ARC_HDRFIELD *));
+extern unsigned char *arc_hdr_value(ARC_HDRFIELD *);
 
 /*
 **  ARC_HDR_NEXT -- return pointer to next ARC_HDRFIELD
@@ -545,7 +536,7 @@ extern unsigned char *arc_hdr_value __P((ARC_HDRFIELD *));
 **  	Pointer to the next ARC_HDRFIELD in the sequence.
 */
 
-extern ARC_HDRFIELD *arc_hdr_next __P((ARC_HDRFIELD *hdr));
+extern ARC_HDRFIELD *arc_hdr_next(ARC_HDRFIELD *hdr);
 
 /*
 **  ARC_SSL_VERSION -- report the version of the crypto library against which
@@ -558,7 +549,7 @@ extern ARC_HDRFIELD *arc_hdr_next __P((ARC_HDRFIELD *hdr));
 **  	SSL library version, expressed as a uint64_t.
 */
 
-extern uint64_t arc_ssl_version __P((void));
+extern uint64_t arc_ssl_version(void);
 
 /*
 **  ARC_GET_DOMAIN -- retrieve stored domain for this message
@@ -570,14 +561,14 @@ extern uint64_t arc_ssl_version __P((void));
 **      Pointer to string containing the domain stored for this message
 */
 
-extern char *arc_get_domain __P((ARC_MESSAGE *msg));
+extern const char *arc_get_domain(ARC_MESSAGE *msg);
 
 
 /*
 **  ARC_CHAIN_STATUS -- retrieve chain status as an int
 */
 
-extern ARC_CHAIN arc_chain_status __P((ARC_MESSAGE *msg));
+extern ARC_CHAIN arc_chain_status(ARC_MESSAGE *msg);
 
 /*
 **  ARC_CHAIN_STATUS_STR -- retrieve chain status, as a string
@@ -589,7 +580,7 @@ extern ARC_CHAIN arc_chain_status __P((ARC_MESSAGE *msg));
 **      Pointer to string containing the current chain status.
 */
 
-extern const char *arc_chain_status_str __P((ARC_MESSAGE *msg));
+extern const char *arc_chain_status_str(ARC_MESSAGE *msg);
 
 /*
 **  ARC_CHAIN_CUSTODY_STR -- retrieve domain chain, as a string
@@ -604,8 +595,8 @@ extern const char *arc_chain_status_str __P((ARC_MESSAGE *msg));
 **	argument, then buffer was too small and output was truncated.
 */
 
-extern int arc_chain_custody_str __P((ARC_MESSAGE *msg, u_char *buf,
-                                      size_t buflen));
+extern int arc_chain_custody_str(ARC_MESSAGE *msg, unsigned char *buf,
+                                 size_t buflen);
 
 /*
 **  ARC_MAIL_PARSE -- extract the local-part and domain-name from a structured
@@ -620,10 +611,11 @@ extern int arc_chain_custody_str __P((ARC_MESSAGE *msg, u_char *buf,
 **  	0 on success; other on error (see source)
 */
 
-extern int arc_mail_parse __P((u_char *addr, u_char **user, u_char **domain));
+extern int arc_mail_parse(unsigned char *addr, unsigned char **user,
+                          unsigned char **domain);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* _ARC_H_ */
+#endif /* ARC_ARC_H_ */

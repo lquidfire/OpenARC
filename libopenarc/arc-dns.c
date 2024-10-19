@@ -161,8 +161,8 @@ arc_res_cancel(void *srv, void *qh)
 */
 
 int
-arc_res_query(void *srv, int type, unsigned char *query, unsigned char *buf,
-               size_t buflen, void **qh)
+arc_res_query(void *srv, int type, const unsigned char *query,
+              unsigned char *buf, size_t buflen, void **qh)
 {
 	int n;
 	int ret;
@@ -174,11 +174,11 @@ arc_res_query(void *srv, int type, unsigned char *query, unsigned char *buf,
 
 #ifdef HAVE_RES_NINIT
 	statp = srv;
-	n = res_nmkquery(statp, QUERY, (char *) query, C_IN, type, NULL, 0,
-	                 NULL, qbuf, sizeof qbuf);
+	n = res_nmkquery(statp, QUERY, (const char *) query, C_IN, type, NULL,
+	                 0, NULL, qbuf, sizeof qbuf);
 #else /* HAVE_RES_NINIT */
-	n = res_mkquery(QUERY, (char *) query, C_IN, type, NULL, 0, NULL, qbuf,
-	                sizeof qbuf);
+	n = res_mkquery(QUERY, (const char *) query, C_IN, type, NULL, 0, NULL,
+	                qbuf, sizeof qbuf);
 #endif /* HAVE_RES_NINIT */
 	if (n == (size_t) -1)
 		return ARC_DNS_ERROR;

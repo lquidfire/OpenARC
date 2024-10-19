@@ -49,12 +49,12 @@ static int decoder[256] =
 */
 
 int
-arc_base64_decode(u_char *str, u_char *buf, size_t buflen)
+arc_base64_decode(const unsigned char *str, unsigned char *buf, size_t buflen)
 {
 	int n = 0;
 	int bits = 0;
 	int char_count = 0;
-	u_char *c;
+	const unsigned char *c;
 
 	assert(str != NULL);
 	assert(buf != NULL);
@@ -136,7 +136,7 @@ arc_base64_decode(u_char *str, u_char *buf, size_t buflen)
 */
 
 int
-arc_base64_encode(u_char *data, size_t datalen, u_char *buf, size_t buflen)
+arc_base64_encode(const unsigned char *data, size_t datalen, unsigned char *buf, size_t buflen)
 {
 	int bits;
 	int c;

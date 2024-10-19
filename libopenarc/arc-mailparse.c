@@ -11,6 +11,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -35,13 +36,6 @@ typedef unsigned long cmap_elem_type;
 #define	CMAP_SET(ar, c)    	((ar)[CMAP_INDEX(c)] |= CMAP_BIT(c))
 
 static unsigned char const SPECIALS[] = "<>@,;:\\\"/[]?=";
-
-#ifndef FALSE
-# define FALSE	0
-#endif /* ! FALSE */
-#ifndef TRUE
-# define TRUE	1
-#endif /* ! TRUE */
 
 #ifdef ARC_MAILPARSE_TEST
 /*
@@ -247,7 +241,7 @@ arc_mail_first_special(u_char *p, u_char *e, u_char **special_out)
 **  	type_out -- type of token (returned)
 **  	start_out -- start of token (returned)
 **  	end_out -- start of token (returned)
-**  	uncommented_whitespace -- set to TRUE if uncommented whitespace is
+**  	uncommented_whitespace -- set to true if uncommented whitespace is
 **  	                          discovered (returned)
 **
 **  Return value:
@@ -495,9 +489,9 @@ int
 arc_mail_parse_multi(unsigned char *line, unsigned char ***users_out,
                      unsigned char ***domains_out)
 {
-	_Bool escaped = FALSE;
-	_Bool quoted = FALSE;
-	_Bool done = FALSE;
+	bool escaped = false;
+	bool quoted = false;
+	bool done = false;
 	int a = 0;
 	int n = 0;
 	int status;
@@ -515,14 +509,14 @@ arc_mail_parse_multi(unsigned char *line, unsigned char ***users_out,
 	{
 		if (escaped)
 		{
-			escaped = FALSE;
+			escaped = false;
 			continue;
 		}
 
 		switch (*p)
 		{
 		  case '\\':
-			escaped = TRUE;
+			escaped = true;
 			continue;
 
 		  case ':':
@@ -543,7 +537,7 @@ arc_mail_parse_multi(unsigned char *line, unsigned char ***users_out,
 				continue;
 
 			if (*p == '\0')
-				done = TRUE;
+				done = true;
 			else
 				*p = '\0';
 

@@ -39,7 +39,7 @@
 #endif /* USE_STRL_H */
 
 /* prototypes */
-extern void arc_error __P((ARC_MESSAGE *, const char *, ...));
+extern void arc_error(ARC_MESSAGE *, const char *, ...);
 
 /* local definitions needed for DNS queries */
 #define MAXPACKET		8192

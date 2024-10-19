@@ -2,16 +2,14 @@
 **  Copyright (c) 2016, 2017, The Trusted Domain Project.  All rights reserved.
 */
 
-#ifndef _ARC_TYPES_H_
-#define _ARC_TYPES_H_
+#ifndef ARC_ARC_TYPES_H_
+#define ARC_ARC_TYPES_H_
 
 #include "build-config.h"
 
 /* system includes */
 #include <sys/types.h>
-#ifdef HAVE_STDBOOL_H
-# include <stdbool.h>
-#endif /* HAVE_STDBOOL_H */
+#include <stdbool.h>
 #include <regex.h>
 
 /* OpenSSL includes */
@@ -31,7 +29,7 @@ struct arc_hash
 	int			hash_tmpfd;
 	BIO *			hash_tmpbio;
 	EVP_MD_CTX *            hash_ctx;
-	u_char			hash_out[EVP_MAX_MD_SIZE];
+	unsigned char		hash_out[EVP_MAX_MD_SIZE];
 	unsigned int		hash_outlen;
 };
 
@@ -84,7 +82,7 @@ struct arc_plist
 /* struct arc_kvset -- a set of parameter/value pairs */
 struct arc_kvset
 {
-	_Bool			set_bad;
+	bool			set_bad;
 	arc_kvsettype_t		set_type;
 	char *			set_data;
 	void *			set_udata;
@@ -95,13 +93,13 @@ struct arc_kvset
 /* struct arc_canon -- a canonicalization status handle */
 struct arc_canon
 {
-	_Bool			canon_done;
-	_Bool			canon_blankline;
+	bool			canon_done;
+	bool			canon_blankline;
 	int			canon_type;
 	int			canon_lastchar;
 	int			canon_bodystate;
-	u_int			canon_hashtype;
-	u_int			canon_blanks;
+	unsigned int		canon_hashtype;
+	unsigned int		canon_blanks;
 	size_t			canon_hashbuflen;
 	size_t			canon_hashbufsize;
 	ssize_t			canon_remain;
@@ -119,20 +117,20 @@ struct arc_canon
 /* struct arc_msghandle -- a complete ARC transaction context */
 struct arc_msghandle
 {
-	_Bool			arc_partial;
-	_Bool			arc_infail;
+	bool			arc_partial;
+	bool			arc_infail;
 	int			arc_dnssec_key;
 	int			arc_signalg;
-	u_int			arc_mode;
-	u_int			arc_nsets;
-	u_int			arc_margin;
-	u_int			arc_state;
-	u_int			arc_hdrcnt;
-	u_int			arc_timeout;
-	u_int			arc_keybits;
-	u_int			arc_keytype;
-	u_int			arc_hashtype;
-	u_long			arc_flags;
+	unsigned int		arc_mode;
+	unsigned int		arc_nsets;
+	unsigned int		arc_margin;
+	unsigned int		arc_state;
+	unsigned int		arc_hdrcnt;
+	unsigned int		arc_timeout;
+	unsigned int		arc_keybits;
+	unsigned int		arc_keytype;
+	unsigned int		arc_hashtype;
+	unsigned long		arc_flags;
 	arc_query_t		arc_query;
 	time_t			arc_timestamp;
 	time_t			arc_sigttl;
@@ -148,9 +146,9 @@ struct arc_msghandle
 	unsigned char *		arc_key;
 	char *			arc_error;
 	char *			arc_hdrlist;
-	char *			arc_domain;
-	char *			arc_selector;
-	char *			arc_authservid;
+	const char *		arc_domain;
+	const char *		arc_selector;
+	const char *		arc_authservid;
 	char *			arc_b64sig;
 	char *			arc_b64key;
 	void *			arc_signature;
@@ -180,14 +178,14 @@ struct arc_msghandle
 /* struct arc_lib -- a ARC library context */
 struct arc_lib
 {
-	_Bool			arcl_signre;
-	_Bool			arcl_dnsinit_done;
-	u_int			arcl_flsize;
+	bool			arcl_signre;
+	bool			arcl_dnsinit_done;
+	unsigned int		arcl_flsize;
 	uint32_t		arcl_flags;
 	time_t			arcl_fixedtime;
-	u_int			arcl_callback_int;
-	u_int			arcl_minkeysize;
-	u_int *			arcl_flist;
+	unsigned int		arcl_callback_int;
+	unsigned int		arcl_minkeysize;
+	unsigned int *		arcl_flist;
 	struct arc_dstring *	arcl_sslerrbuf;
 	char **			arcl_oversignhdrs;
 	void			(*arcl_dns_callback) (const void *context);
@@ -195,7 +193,7 @@ struct arc_lib
 	int			(*arcl_dns_init) (void **srv);
 	void			(*arcl_dns_close) (void *srv);
 	int			(*arcl_dns_start) (void *srv, int type,
-				                   unsigned char *query,
+				                   const unsigned char *query,
 				                   unsigned char *buf,
 				                   size_t buflen,
 				                   void **qh);
@@ -211,4 +209,4 @@ struct arc_lib
 	char			arcl_queryinfo[MAXPATHLEN + 1];
 };
 
-#endif /* _ARC_TYPES_H_ */
+#endif /* ARC_ARC_TYPES_H_ */
