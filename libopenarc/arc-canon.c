@@ -649,11 +649,10 @@ arc_add_canon(ARC_MESSAGE *msg, int type, arc_canon_t canon, int hashtype,
 		     cur = cur->canon_next)
 		{
 			if (cur->canon_type != ARC_CANONTYPE_HEADER ||
-			    cur->canon_hashtype != hashtype)
+			    cur->canon_hashtype != hashtype ||
+			    cur->canon_length != length) {
 				continue;
-
-			if (length != cur->canon_length)
-				continue;
+			}
 
 			if (cout != NULL)
 				*cout = cur;
