@@ -1450,6 +1450,7 @@ arc_process_set(ARC_MESSAGE *msg, arc_kvsettype_t type, char *str,
                 size_t len, void *data, ARC_KVSET **out)
 {
 	bool spaced;
+	bool first = true;
 	bool stop = false;
 	int state;
 	int status;
@@ -1574,6 +1575,15 @@ arc_process_set(ARC_MESSAGE *msg, arc_kvsettype_t type, char *str,
 				/* collapse the parameter */
 				arc_collapse(param);
 
+				if (first && type != ARC_KVSETTYPE_KEY)
+				{
+					/* definitely invalid */
+					set->set_bad = true;
+					arc_error(msg, "syntax error in %s data: blank %s instead of valid instance",
+					          settype, param);
+					return ARC_STAT_SYNTAX;
+				}
+
 				/* create the ARC_PLIST entry */
 				status = arc_add_plist(msg, set, param,
 				                       value, true, false);
@@ -1604,6 +1614,15 @@ arc_process_set(ARC_MESSAGE *msg, arc_kvsettype_t type, char *str,
 				arc_collapse(param);
 				arc_collapse(value);
 
+				if (first && type != ARC_KVSETTYPE_KEY &&
+				    strcmp(param, "i") != 0)
+				{
+					set->set_bad = true;
+					arc_error(msg, "syntax error in %s data: %s=%s instead of instance",
+					          settype, param, value);
+					return ARC_STAT_SYNTAX;
+				}
+
 				/* create the ARC_PLIST entry */
 				status = arc_add_plist(msg, set, param,
 				                       value, true, false);
@@ -1612,6 +1631,8 @@ arc_process_set(ARC_MESSAGE *msg, arc_kvsettype_t type, char *str,
 					set->set_bad = true;
 					return ARC_STAT_INTERNAL;
 				}
+
+				first = false;
 
 				/*
 				**  Short-circuit ARC-Authentication-Results
