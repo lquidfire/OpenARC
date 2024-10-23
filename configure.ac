@@ -351,16 +351,6 @@ AC_DEFUN([LIB_FFR_FEATURE],
 # openarc
 #
 
-FEATURE([poll], [use poll() instead of select()])
-
-# sendmail command
-
-AC_PATH_PROG([SENDMAIL_PATH], [sendmail], [/usr/sbin/sendmail],
-             [/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/usr/lib:$PATH])
-AC_DEFINE_UNQUOTED([SENDMAIL_PATH], "$ac_cv_path_SENDMAIL_PATH",
-                   [The path the the sendmail executable for report sending])
-AC_SUBST([SENDMAIL_PATH])
-
 #
 # use rpath at load time?
 #
@@ -524,9 +514,6 @@ AC_ARG_ENABLE([allsymbols],
               AS_HELP_STRING([--enable-allsymbols],
                              [export internal-use symbols for better test coverage]))
 AM_CONDITIONAL(ALL_SYMBOLS, [test x"$enable_allsymbols" = x"yes"])
-
-# the AM_CONDITIONAL and AC_DEFINE for USE_ARLIB are farther below,
-# after the Darwin checks
 
 AC_ARG_ENABLE([debug],
               AS_HELP_STRING([--enable-debug],
@@ -879,41 +866,6 @@ AC_SUBST(LIBOPENARC_INC)
 
 AC_DEFINE_UNQUOTED([LIBOPENARC_FEATURE_STRING], "$LIBOPENARC_FEATURE_STRING",
                    [Feature string for printing])
-
-#
-# Platform Specific Configuration
-#
-AC_CANONICAL_HOST
-case "$host" in
-	*-darwin*)
-		CPPFLAGS="$CPPFLAGS -DBIND_8_COMPAT -DDARWIN"
-		if test x"$unboundpath" = x"no"
-		then
-			AC_MSG_ERROR("unbound required on Darwin")
-		fi
-		;;
-esac
-
-#
-# Determine domainname for sample configs
-#
-AC_ARG_WITH([domain],
-            AS_HELP_STRING([--with-domain],
-                           [name of the domain for signing - sets this in sample configuration files]),
-            [
-                 DOMAIN="$withval"
-	    ],[
-                 AC_PATH_PROG(domainname, domainname)
-	         AS_IF([test x"$domainname" != x""],
-	         	[DOMAIN=`$domainname`],
-		 )
-		 AS_IF([test x"$DOMAIN" = x"" -o x"$DOMAIN" = x"(none)" ],
-	         		[DOMAIN=example.com]
-		 )
-	    ]
-	    )
-
-AC_SUBST([DOMAIN])
 
 #
 # final command line tweaks
