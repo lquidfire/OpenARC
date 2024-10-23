@@ -1255,6 +1255,7 @@ arc_canon_runheaders(ARC_MESSAGE *msg)
 						if (!arc_dstring_cat1(msg->arc_hdrbuf,
 						                      ':'))
 						{
+							ARC_FREE(hdrset);
 							return ARC_STAT_NORESOURCE;
 						}
 
@@ -1262,6 +1263,7 @@ arc_canon_runheaders(ARC_MESSAGE *msg)
 					                      hdr->hdr_text,
 					                      hdr->hdr_namelen))
 					{
+						ARC_FREE(hdrset);
 						return ARC_STAT_NORESOURCE;
 					}
 					continue;
@@ -1290,6 +1292,7 @@ arc_canon_runheaders(ARC_MESSAGE *msg)
 						if (!arc_dstring_cat1(msg->arc_hdrbuf,
 						                      ':'))
 						{
+							ARC_FREE(hdrset);
 							return ARC_STAT_NORESOURCE;
 						}
 
@@ -1297,6 +1300,7 @@ arc_canon_runheaders(ARC_MESSAGE *msg)
 					                      hdr->hdr_text,
 					                      hdr->hdr_namelen))
 					{
+						ARC_FREE(hdrset);
 						return ARC_STAT_NORESOURCE;
 					}
 				}

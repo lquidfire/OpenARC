@@ -3632,6 +3632,7 @@ arc_getseal(ARC_MESSAGE *msg, ARC_HDRFIELD **seal, const char *authservid,
 	if (h->hdr_text == NULL)
 	{
 		arc_error(msg, "can't allocate %d bytes", sizeof hdr);
+		ARC_FREE(h);
 		status = ARC_STAT_INTERNAL;
 		goto error;
 	}
