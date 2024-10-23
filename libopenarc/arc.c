@@ -493,8 +493,7 @@ arc_genamshdr(ARC_MESSAGE *msg, struct arc_dstring *dstr, char *delim,
 			return (size_t) -1;
 		}
 
-		status = arc_base64_encode(hash, hashlen,
-		                           b64hash, sizeof b64hash);
+		arc_base64_encode(hash, hashlen, b64hash, sizeof b64hash);
 		arc_dstring_printf(dstr, ";%sbh=%s", delim, b64hash);
 
 		/* l= */
@@ -666,8 +665,7 @@ arc_getamshdr_d(ARC_MESSAGE *msg, size_t initial, char **buf, size_t *buflen,
 		len = initial;
 		end = which + MAXTAGNAME;
 
-		for (pv = strtok_r((char *) arc_dstring_get(tmpbuf),
-		                   DELIMITER, &ctx);
+		for (pv = strtok_r(arc_dstring_get(tmpbuf), DELIMITER, &ctx);
 		     pv != NULL;
 		     pv = strtok_r(NULL, DELIMITER, &ctx))
 		{
@@ -702,7 +700,6 @@ arc_getamshdr_d(ARC_MESSAGE *msg, size_t initial, char **buf, size_t *buflen,
 			}
 			else if (forcewrap || len + pvlen > msg->arc_margin)
 			{
-				forcewrap = false;
 				arc_dstring_cat(msg->arc_hdrbuf, "\r\n\t");
 				len = 8;
 
@@ -731,7 +728,6 @@ arc_getamshdr_d(ARC_MESSAGE *msg, size_t initial, char **buf, size_t *buflen,
 						{
 							arc_dstring_cat1(msg->arc_hdrbuf,
 							                 ':');
-							len += 1;
 							arc_dstring_cat(msg->arc_hdrbuf,
 							                "\r\n\t ");
 							len = 9;

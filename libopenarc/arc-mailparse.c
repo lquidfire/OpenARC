@@ -312,7 +312,7 @@ arc_mail_token(unsigned char *s, unsigned char *e, int *type_out,
 	}
 	else if (*p == '[')
 	{
-		token_end = p = arc_mail_matching_paren(p + 1, e, '\0', ']');
+		token_end = arc_mail_matching_paren(p + 1, e, '\0', ']');
 		token_type = '[';
 		if (*token_end != '\0')
 			token_end++;
@@ -372,7 +372,6 @@ arc_mail_parse(unsigned char *line, unsigned char **user_out,
 	*user_out = NULL;
 	*domain_out = NULL;
 
-	err = 0;
 	w = line;
 	e = line + strlen((char *) line);
 	ws = 0;

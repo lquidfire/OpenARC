@@ -1208,7 +1208,6 @@ arc_canon_runheaders(ARC_MESSAGE *msg)
 			hdrtest = &lib->arcl_hdrre;
 
 			memset(hdrset, '\0', sizeof *hdrset);
-			nhdrs = 0;
 
 			/* tag all header fields to be signed */
 			for (hdr = msg->arc_hhead;
