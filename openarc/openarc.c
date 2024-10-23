@@ -1279,7 +1279,10 @@ arcf_list_destroy(struct conflist *list)
 static void
 arcf_config_free(struct arcf_config *conf)
 {
-	assert(conf != NULL);
+	if (conf == NULL)
+	{
+		return;
+	}
 
 	if (conf->conf_libopenarc != NULL)
 		arc_close(conf->conf_libopenarc);
@@ -1977,22 +1980,17 @@ arcf_config_reload(void)
 				       "%s: configuration error at line %u: %s",
 				        path, line, config_error());
 			}
-			arcf_config_free(new);
 			err = TRUE;
 		}
 
 		if (deprecated != NULL)
 		{
-			char *action = "aborting";
-
 			if (curconf->conf_dolog)
 			{
 				syslog(LOG_WARNING,
-				       "%s: settings found for deprecated value(s): %s; %s",
-				        path, deprecated, action);
+				       "%s: settings found for deprecated value(s): %s; aborting",
+				        path, deprecated);
 			}
-
-			arcf_config_free(new);
 			err = TRUE;
 		}
 
@@ -2007,8 +2005,6 @@ arcf_config_reload(void)
 					        "%s: required parameter \"%s\" missing",
 					        conffile, missing);
 				}
-				config_free(cfg);
-				arcf_config_free(new);
 				err = TRUE;
 			}
 		}
@@ -2018,8 +2014,6 @@ arcf_config_reload(void)
 		{
 			if (curconf->conf_dolog)
 				syslog(LOG_ERR, "%s: %s", conffile, errbuf);
-			config_free(cfg);
-			arcf_config_free(new);
 			err = TRUE;
 		}
 
@@ -2031,12 +2025,15 @@ arcf_config_reload(void)
 				       "can't configure ARC library: %s; continuing",
 				       errstr);
 			}
-			config_free(cfg);
-			arcf_config_free(new);
 			err = TRUE;
 		}
 
-		if (!err)
+		if (err)
+		{
+			config_free(cfg);
+			arcf_config_free(new);
+		}
+		else
 		{
 			if (curconf->conf_refcnt == 0)
 				arcf_config_free(curconf);
