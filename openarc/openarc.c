@@ -1394,6 +1394,8 @@ arcf_config_load(struct config *data, struct arcf_config *conf,
 				conf->conf_canonbody = ARC_CANON_SIMPLE;
 			}
 
+			free(copy);
+
 			if (conf->conf_canonhdr == -1 || conf->conf_canonbody == -1)
 			{
 				strlcpy(err, "unknown canonicalization", errlen);

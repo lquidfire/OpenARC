@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - libopenarc - unlikely memory leak after memory allocation failures.
 - openarc - use after free.
 - openarc - unlikely division by zero.
+- openarc - small memory leak during config loading.
 
 ## 1.0.0 - 2024-10-18
 
