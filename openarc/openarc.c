@@ -1611,7 +1611,7 @@ arcf_config_load(struct config *data, struct arcf_config *conf,
 		int status;
 		int fd;
 		ssize_t rlen;
-		ino_t ino;
+		ino_t ino = -1;
 		uid_t asuser = (uid_t) -1;
 		u_char *s33krit;
 		struct stat s;
