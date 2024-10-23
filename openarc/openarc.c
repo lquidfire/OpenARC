@@ -583,47 +583,45 @@ arcf_init_syslog(char *facility)
 static _Bool
 arcf_restart_check(int n, time_t t)
 {
-	static int idx;				/* last filled slot */
-	static int alen;			/* allocated length */
-	static time_t *list;
+	static int idx = 0;		/* last filled slot */
+	static int alen = 0;		/* allocated length */
+	static time_t *list = NULL;
 
 	if (t == 0)
 	{
-		alen = n * sizeof(time_t);
-
-		list = (time_t *) malloc(alen);
+		list = calloc(n, sizeof(time_t));
 
 		if (list == NULL)
+		{
 			return FALSE;
+		}
 
-		memset(list, '\0', alen);
-
-		idx = 0;
 		alen = n;
-
 		return TRUE;
 	}
-	else
+
+	if (alen == 0 || list == NULL)
 	{
-		int which;
-
-		time_t now;
-
-		(void) time(&now);
-
-		which = (idx - 1) % alen;
-		if (which == -1)
-			which = alen - 1;
-
-		if (list[which] != 0 &&
-		    list[which] + t > now)
-			return FALSE;
-
-		list[which] = now;
-		idx++;
-
-		return TRUE;
+		return FALSE;
 	}
+
+	int which;
+	time_t now;
+
+	(void) time(&now);
+
+	which = (idx - 1) % alen;
+	if (which == -1)
+		which = alen - 1;
+
+	if (list[which] != 0 &&
+	    list[which] + t > now)
+		return FALSE;
+
+	list[which] = now;
+	idx++;
+
+	return TRUE;
 }
 
 /*

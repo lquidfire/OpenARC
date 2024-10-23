@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - libopenarc - ARC headers with a misplaced instance tag are rejected.
 - libopenarc - unlikely memory leak after memory allocation failures.
 - openarc - use after free.
+- openarc - unlikely division by zero.
 
 ## 1.0.0 - 2024-10-18
 
