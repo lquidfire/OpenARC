@@ -22,7 +22,7 @@ jobs:
       - name: Build dist tarball
         run: |
           autoreconf -fiv
-          ./configure
+          ./configure --without-libjansson
           make release
         working-directory: ${{ github.workspace }}/openarc
 

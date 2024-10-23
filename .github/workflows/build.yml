@@ -26,7 +26,7 @@ jobs:
         run: sudo apt update
 
       - name: Install dependencies
-        run: sudo apt install libbsd-dev libmilter-dev libssl-dev
+        run: sudo apt install libbsd-dev libjansson-dev libmilter-dev libssl-dev
 
       - name: Install Python dependencies
         run: sudo pip install pytest miltertest
@@ -46,6 +46,12 @@ jobs:
           make distclean
           CC=clang ./configure
           make -j4 CFLAGS='-Wall -Werror'
+
+      - name: Build OpenARC without Jansson
+        run: |
+          make distclean
+          CC=clang ./configure --without-jansson
+          make -j4
 
       - name: Build OpenARC without milter
         run: |

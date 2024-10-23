@@ -44,7 +44,7 @@ If you are building the filter, you will also need:
 
 * [sendmail](https://sendmail.org) >= 8.13.0, or
   [Postfix](https://www.postfix.org/) >= 2.3 and libmilter.
-* (optional) [jansson](https://github.com/akheron/jansson) for full
+* (optional) [Jansson](https://github.com/akheron/jansson) >= 2.2.1 for full
   `SealHeaderChecks` support.
 
 If you are building from a git checkout instead of a release tarball,

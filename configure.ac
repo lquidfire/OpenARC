@@ -229,6 +229,8 @@ then
 	AC_MSG_ERROR(no strlcpy/strlcat found)
 fi
 
+AC_SUBST(STRL_LIBS)
+
 AC_CHECK_HEADERS([strl.h], [strl_h_found="yes"])
 if test x"$strl_h_found" != x"yes"
 then
@@ -259,13 +261,13 @@ fi
 if test x"$strl_h_found" = x"yes" -a x"$bsdstrl_h_found" = x"no"
 then
 	AC_DEFINE([USE_STRL_H], 1,
-	          [Define to 1 if you need to include <strl.h> to get the `strlcat()' and `strlcpy()' functions.])
+	          [Define to 1 if you need to include <strl.h> to get the strlcat() and strlcpy() functions.])
 fi
 
 if test x"$bsdstrl_h_found" = x"yes"
 then
 	AC_DEFINE([USE_BSD_H], 1,
-	          [Define to 1 if you need to include <bsd/string.h> to get the `strlcat()' and `strlcpy()' functions.])
+	          [Define to 1 if you need to include <bsd/string.h> to get the strlcat() and strlcpy() functions.])
 fi
 
 #
@@ -531,125 +533,9 @@ AM_CONDITIONAL([DEBUG], [test x"$enable_debug" = x"yes"])
 # OpenSSL
 #
 
-AC_ARG_WITH([openssl],
-            AS_HELP_STRING([--with-openssl],
-                           [location of OpenSSL includes and library]),
-                           [sslpath="$withval"], [sslpath="auto"])
-
-openssl_found="no"
-
-if test \( "$sslpath" = "auto" -o x"$sslpath" = x"yes" \) -a x"$PKG_CONFIG" != x""
-then
-	PKG_CHECK_MODULES([LIBCRYPTO], [openssl >= 1.0.0],
-	                  [openssl_found="yes"],
-	                  [openssl_found="no"
-	                   AC_MSG_WARN([pkg-config for openssl not found, trying manual search...])
-	                  ])
-elif test "$sslpath" != "auto" -a x"$sslpath" != x"yes"
-then
-	AC_MSG_CHECKING([for OpenSSL includes])
-	if test -f $sslpath/include/openssl/opensslv.h
-	then
-		LIBCRYPTO_CPPFLAGS="-I$sslpath/include"
-		LIBCRYPTO_CFLAGS=""
-		LIBCRYPTO_LIBDIRS="-L$sslpath/lib"
-		LIBCRYPTO_LIBS="-lssl -lcrypto"
-		openssl_found=yes
-		AC_MSG_RESULT([$sslpath])
-	else
-		AC_MSG_RESULT([no])
-	fi
-fi
-
-if test x"$openssl_found" = x"no"
-then
-	AC_MSG_CHECKING([for OpenSSL library and includes])
-	ssldirs="/usr/local/ssl /usr/local /usr/sfw /opt/local /usr"
-	if test "$sslpath" = "auto" -o "$sslpath" = "yes"
-	then
-		for d in $ssldirs
-		do
-			if test -f $d/include/openssl/opensslv.h
-			then
-				sslpath=$d
-				openssl_found=yes
-				break
-			fi
-		done
-	fi
-	case "$sslpath" in
-		no)
-			AC_MSG_ERROR([OpenSSL is required])
-			;;
-		auto)
-			AC_MSG_ERROR([OpenSSL not found])
-			;;
-		*/*)
-			AC_MSG_RESULT([$sslpath])
-			;;
-		*)
-			AC_MSG_ERROR([OpenSSL not found])
-			;;
-	esac
-        LIBCRYPTO_CPPFLAGS="-I$sslpath/include"
-        LIBCRYPTO_CFLAGS=""
-        LIBCRYPTO_LIBDIRS="-L$sslpath/lib"
-        LIBCRYPTO_LIBS="-lssl -lcrypto"
-fi
-
-if test x"$openssl_found" = x"yes"
-then
-	saved_CFLAGS="$CFLAGS"
-	saved_CPPFLAGS="$CPPFLAGS"
-	saved_LDFLAGS="$LDFLAGS"
-	saved_LIBS="$LIBS"
-
-	LIBS="$outer_LIBS $LIBCRYPTO_LIBS $saved_LIBS"
-	CPPFLAGS="$LIBCRYPTO_CPPFLAGS $saved_CPPFLAGS"
-	CFLAGS="$LIBCRYPTO_CFLAGS $saved_CFLAGS"
-	LDFLAGS="$outer_LDFLAGS $LIBCRYPTO_LIBDIRS $saved_LDFLAGS"
-
-	AC_CHECK_HEADERS([openssl/bio.h openssl/conf.h openssl/crypto.h openssl/err.h openssl/evp.h openssl/md5.h openssl/opensslv.h openssl/pem.h openssl/rsa.h openssl/sha.h openssl/ssl.h], ,
-                 	AC_MSG_ERROR([required OpenSSL header not found]))
-
-	# -ldl is needed to assist with compilation of static openssl libraries.
-	# It appears to need dl for opening engine plugins. It fails at load
-	# time It also fails to build on FreeBSD if enabled by default.
-	AC_SEARCH_LIBS([ERR_peek_error], [crypto], ,
-	               AC_MSG_ERROR([libcrypto not found]))
-
-	AC_SEARCH_LIBS([SSL_new], [ssl], ,
-		[
-			if test x"$enable_shared" = x"yes"
-			then
-				AC_MSG_ERROR([Cannot build shared openarc
-				              against static openssl libraries.
-				              Configure with --disable-shared
-				              to get this working or obtain a
-				              shared libssl library for
-				              openarc to use.])
-			fi
-
-			# avoid caching issue - last result of SSL_new
-			# shouldn't be cached for this next check
-			unset ac_cv_search_SSL_new
-			LIBCRYPTO_LIBS="$LIBCRYPTO_LIBS -ldl"
-			AC_SEARCH_LIBS([SSL_new], [ssl], ,
-			               AC_MSG_ERROR([libssl not found]), [-ldl])
-		]
-	)
-
-	CFLAGS="$saved_CFLAGS"
-	CPPFLAGS="$saved_CPPFLAGS"
-	LDFLAGS="$saved_LDFLAGS"
-	LIBS="$saved_LIBS"
-
-fi
-
-AC_SUBST(LIBCRYPTO_CFLAGS)
-AC_SUBST(LIBCRYPTO_CPPFLAGS)
-AC_SUBST(LIBCRYPTO_LIBDIRS)
-AC_SUBST(LIBCRYPTO_LIBS)
+PKG_CHECK_MODULES([OPENSSL], [openssl >= 1.0.0])
+AC_SUBST(OPENSSL_CFLAGS)
+AC_SUBST(OPENSSL_LIBS)
 
 #
 # libmilter
@@ -777,92 +663,22 @@ AC_SUBST(LIBMILTER_LIBS)
 # header filtering requires libjansson
 #
 
-AC_ARG_WITH([libjansson],
-            AS_HELP_STRING([--with-libjansson],
-                           [location of jansson includes and library]),
-            [janssonpath="$withval"], [janssonpath="auto"])
+AC_ARG_WITH([libjansson], AS_HELP_STRING([--with-libjansson], [use Jansson for header field checks]))
 
-LIBJANSSON_CPPFLAGS=""
-LIBJANSSON_LDFLAGS=""
-LIBJANSSON_LIBS=""
+AS_IF(
+    [test "x$enable_filter" != xno -a "x$with_libjansson" != xno],
+    [
+        PKG_CHECK_MODULES(
+            [LIBJANSSON],
+            [jansson >= 2.2.1],
+            [AC_DEFINE([USE_JANSSON], [1], [use Jansson for header field checks])]
+        )
+    ]
+)
 
-jansson_found="no"
-if test \( x"$janssonpath" = x"auto" -o x"$janssonpath" = x"yes" \) -a \
-	x"$PKG_CONFIG" != x""
-then
-        PKG_CHECK_MODULES([LIBJANSSON], [jansson >= 2.2.1],
-	[
-		jansson_found="yes"
-		LIBJANSSON_CPPFLAGS="$LIBJANSSON_CFLAGS"
-		LIBJANSSON_LIBS="$LIBJANSSON_LIBS"
-	],
-	[
-	        jansson_found="no"
-        	AC_MSG_WARN([pkg-config for libjansson not found, trying manual
-		            search...])
-        ])
-fi
-
-if test x"$janssonpath" != x"no" -a x"$jansson_found" = x"no"
-then
-	AC_MSG_CHECKING([for libjansson])
-	if test x"$janssonpath" != x"auto" -a x"$janssonpath" != x"yes"
-	then
-		if test -f $janssonpath/include/jansson.h
-		then
-			AC_MSG_RESULT($janssonpath)
-		        jansson_found="yes"
-			LIBJANSSON_CPPFLAGS="-I$janssonpath/include"
-			LIBJANSSON_LDFLAGS="-L$janssonpath/lib"
-			LIBJANSSON_LIBS="-ljansson"
-		else
-			AC_MSG_ERROR(not found at $janssonpath)
-		fi
-	else
-		janssondirs="/usr /usr/local"
-		for d in $janssondirs
-		do
-			if test -f $d/include/jansson.h
-			then
-				janssonpath=$d
-				AC_MSG_RESULT($d)
-		        	jansson_found="yes"
-				LIBJANSSON_CPPFLAGS="-I$janssonpath/include"
-				LIBJANSSON_LDFLAGS="-L$janssonpath/lib"
-				LIBJANSSON_LIBS="-ljansson"
-				break
-			fi
-		done
-	fi
-	if test x"$jansson_found" != x"yes"
-	then
-		AC_MSG_RESULT([no])
-	fi
-fi
-AC_SUBST(LIBJANSSON_CPPFLAGS)
-AC_SUBST(LIBJANSSON_LDFLAGS)
+AC_SUBST(LIBJANSSON_CFLAGS)
 AC_SUBST(LIBJANSSON_LIBS)
-AM_CONDITIONAL(JANSSON, test x"$LIBJANSSON_LIBS" != x"")
 
-if test x"$jansson_found" == x"yes"
-then
-	AC_DEFINE(USE_JANSSON, 1, [use libjansson to provide header field checks])
-fi
-
-# This (below) is just for the pkg-config file openarc.pc.in
-LIBOPENARC_LIBS_PKG="$LIBOPENARC_LIBS"
-LIBOPENARC_INC="$LIBCRYPTO_CPPFLAGS $LIBCRYPTO_CFLAGS $LIBTRE_CPPFLAGS"
-
-if test x"$USE_DB_LIBOPENARC_TRUE" = x""
-then
-	LIBOPENARC_INC="$LIBOPENARC_INC $LIBDB_INCDIRS"
-	LIBOPENARC_LIBS_PKG="$LIBOPENARC_LIBS_PKG $LIBDB_LIBS"
-	LIBOPENARC_LIBS="$LIBOPENARC_LIBS $LIBDB_LIBS"
-fi
-
-AC_SUBST(LIBOPENARC_LIBS)
-AC_SUBST(LIBOPENARC_LIBS_PKG)
-AC_SUBST(LIBOPENARC_INC)
 
 AC_DEFINE_UNQUOTED([LIBOPENARC_FEATURE_STRING], "$LIBOPENARC_FEATURE_STRING",
                    [Feature string for printing])

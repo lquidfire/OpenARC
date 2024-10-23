@@ -24,7 +24,6 @@
 #include <string.h>
 #include <limits.h>
 #include <unistd.h>
-#include <pthread.h>
 #include <resolv.h>
 
 #ifdef __STDC__

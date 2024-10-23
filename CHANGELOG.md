@@ -9,6 +9,14 @@ All notable changes to this project will be documented in this file.
 - milter - `RequireSafeKeys` configuration option.
 
 ### Changed
+- Custom OpenSSL locations must be configured using `OPENSSL_CFLAGS`
+  and `OPENSSL_LIBS` environment variables instead of passing
+  `--with-openssl=/path` to `configure`.
+- Custom Jansson locations must be configured using `LIBJANSSON_CFLAGS`
+  and `LIBJANSSON_LIBS` environment variables instead of passing
+  `--with-libjansson=/path` to `configure`.
+- Building the milter defaults to requiring Jansson. You can explicitly
+  disable it by passing `--without-libjansson` to `configure`.
 - libopenarc - `ARC-Message-Signature` and `ARC-Authentication-Results` headers
   are excluded from the AMS, as required by RFC 8617.
 - libopenarc - ARC headers are returned with a space before the header value.
@@ -20,6 +28,7 @@ All notable changes to this project will be documented in this file.
 - libopenarc - signing with simple header canonicalization works.
 - libopenarc - ARC headers with a misplaced instance tag are rejected.
 - libopenarc - unlikely memory leak after memory allocation failures.
+- libopenarc - The installed pkg-config file is more correct.
 - openarc - use after free.
 - openarc - unlikely division by zero.
 - openarc - small memory leak during config loading.

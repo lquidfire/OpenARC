@@ -1,5 +1,3 @@
-# Process this file with autoconf to produce a pkg-config metadata file.
-
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 libdir=@libdir@
@@ -9,7 +7,7 @@ Name: OpenARC Library
 Description: Library for performing ARC signing and verification
 URL: https://github.com/flowerysong/OpenARC
 Version: @VERSION@
-Libs: -L${libdir} @PTHREAD_CFLAGS@ -lopenarc
-Libs.private: @LIBOPENARC_LIBS_PKG@ @PTHREAD_LIBS@
-Cflags: -I${includedir} @PTHREAD_CFLAGS@
-
+Libs: -L${libdir} -lopenarc
+Libs.private: @STRL_LIBS@
+Requires.private: openssl >= 1.0.0
+Cflags: -I${includedir}

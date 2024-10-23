@@ -43,10 +43,9 @@ libopenarc_libopenarc_la_SOURCES = \
 	libopenarc/arc-util.h \
 	util/arc-dstring.c \
 	util/arc-dstring.h
-libopenarc_libopenarc_la_CPPFLAGS = -I$(srcdir)/util $(LIBCRYPTO_CPPFLAGS)
-libopenarc_libopenarc_la_CFLAGS = $(LIBCRYPTO_INCDIRS) $(LIBOPENARC_INC)
-libopenarc_libopenarc_la_LDFLAGS = -no-undefined  $(LIBCRYPTO_LIBDIRS) -version-info $(LIBOPENARC_VERSION_INFO)
-libopenarc_libopenarc_la_LIBADD = $(LIBOPENARC_LIBS) $(LIBCRYPTO_LDADD)
+libopenarc_libopenarc_la_CPPFLAGS = -I$(srcdir)/util $(OPENSSL_CFLAGS)
+libopenarc_libopenarc_la_LDFLAGS = -no-undefined -version-info $(LIBOPENARC_VERSION_INFO)
+libopenarc_libopenarc_la_LIBADD = $(OPENSSL_LIBS)
 if !ALL_SYMBOLS
 libopenarc_libopenarc_la_DEPENDENCIES = libopenarc/symbols.map
 libopenarc_libopenarc_la_LDFLAGS += -export-symbols libopenarc/symbols.map
@@ -88,10 +87,10 @@ openarc_openarc_SOURCES = \
 	util/arc-dstring.c \
 	util/arc-dstring.h
 openarc_openarc_CC = $(PTHREAD_CC)
-openarc_openarc_CFLAGS = $(PTHREAD_CFLAGS) $(LIBCRYPTO_CFLAGS)
-openarc_openarc_CPPFLAGS = -I$(srcdir)/libopenarc -I$(srcdir)/util $(LIBCRYPTO_CPPFLAGS) $(LIBMILTER_INCDIRS) $(LIBJANSSON_CPPFLAGS)
-openarc_openarc_LDFLAGS = $(LIBCRYPTO_LIBDIRS) $(LIBMILTER_LIBDIRS) $(PTHREAD_CFLAGS) $(LIBJANSSON_LDFLAGS)
-openarc_openarc_LDADD = libopenarc/libopenarc.la $(LIBMILTER_LIBS) $(LIBCRYPTO_LIBS) $(PTHREAD_LIBS) $(LIBJANSSON_LIBS) $(LIBRESOLV)
+openarc_openarc_CFLAGS = $(PTHREAD_CFLAGS)
+openarc_openarc_CPPFLAGS = -I$(srcdir)/libopenarc -I$(srcdir)/util $(OPENSSL_CFLAGS) $(LIBMILTER_INCDIRS) $(LIBJANSSON_CFLAGS)
+openarc_openarc_LDFLAGS = $(LIBMILTER_LIBDIRS) $(PTHREAD_CFLAGS)
+openarc_openarc_LDADD = libopenarc/libopenarc.la $(LIBMILTER_LIBS) $(OPENSSL_LIBS) $(PTHREAD_LIBS) $(LIBJANSSON_LIBS) $(LIBRESOLV)
 endif
 
 $(DIST_ARCHIVES).sha1: $(DIST_ARCHIVES)
