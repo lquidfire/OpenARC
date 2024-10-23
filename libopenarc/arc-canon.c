@@ -900,8 +900,8 @@ arc_canon_selecthdrs(ARC_MESSAGE *msg, const char *hdrlist,
 static ARC_STAT
 arc_canon_strip_b(ARC_MESSAGE *msg, char *text)
 {
-	char in;
-	char last;
+	char in = '\0';
+	char last = '\0';
 	char *p;
 	char *tmp;
 	char *end;
@@ -915,20 +915,29 @@ arc_canon_strip_b(ARC_MESSAGE *msg, char *text)
 	tmp = tmpbuf;
 	end = tmpbuf + sizeof tmpbuf - 1;
 
-	in = '\0';
+	/* FIXME: this looks overly simplistic. tag-lists are allowed to
+	 * contain FWS, and headers are allowed to contain CFWS.
+	 */
 	for (p = text; *p != '\0'; p++)
 	{
+		/* if we've found a separator, we're not in a tag */
 		if (*p == ';')
+		{
 			in = '\0';
+		}
 
+		/* if we're in the b tag, don't save this character */
 		if (in == 'b')
 		{
-			last = *p;
 			continue;
 		}
 
+		/* if we've found an = and don't already know what tag we're in,
+		 * the previous character is the tag name */
 		if (in == '\0' && *p == '=')
+		{
 			in = last;
+		}
 
 		*tmp++ = *p;
 
