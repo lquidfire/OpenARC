@@ -320,7 +320,7 @@ config_load_level(char *file, struct configdef *def,
 						{
 							new[oldlen] = ',';
 							new[oldlen + 1] = '\0';
-							strlcat(*deprecated,
+							strlcat(new,
 							        def[n].cd_name,
 							        newlen);
 							*deprecated = new;

@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
   as required by RFC 8617 section 5.1.2.
 - libopenarc - signing with simple header canonicalization works.
 - libopenarc - ARC headers with a misplaced instance tag are rejected.
+- openarc - use after free.
 
 ## 1.0.0 - 2024-10-18
 
