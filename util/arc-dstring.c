@@ -115,7 +115,9 @@ arc_dstring_resize(struct arc_dstring *dstr, int len)
 */
 
 struct arc_dstring *
-arc_dstring_new(int len, int maxlen, void *ctx,
+arc_dstring_new(int   len,
+                int   maxlen,
+                void *ctx,
                 void (*callback)(void *, const char *, ...))
 {
     struct arc_dstring *new;
@@ -445,8 +447,8 @@ arc_dstring_blank(struct arc_dstring *dstr)
 size_t
 arc_dstring_printf(struct arc_dstring *dstr, char *fmt, ...)
 {
-    size_t len;
-    size_t rem;
+    size_t  len;
+    size_t  rem;
     va_list ap;
     va_list ap2;
 
@@ -556,7 +558,7 @@ arc_copy_array(char **in)
 {
     unsigned int c;
     unsigned int n;
-    char **out;
+    char       **out;
 
     assert(in != NULL);
 

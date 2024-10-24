@@ -1,0 +1,30 @@
+AlignAfterOpenBracket: Align
+AlignArrayOfStructures: Left
+AlignConsecutiveDeclarations: AcrossEmptyLines
+AlignConsecutiveMacros: AcrossEmptyLinesAndComments
+AllowShortBlocksOnASingleLine: false
+AllowShortFunctionsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterReturnType: AllDefinitions
+BinPackArguments: true
+BinPackParameters: false
+BraceWrapping:
+    AfterCaseLabel: true
+    AfterControlStatement: Always
+    AfterEnum: true
+    AfterFunction: true
+    AfterStruct: true
+    AfterExternBlock: false
+    BeforeElse: true
+    BeforeWhile: true
+BreakBeforeBraces: Custom
+BreakStringLiterals: false
+ColumnLimit: 80
+IndentExternBlock: NoIndent
+IndentWidth: 4
+PenaltyBreakAssignment: 100
+PenaltyReturnTypeOnItsOwnLine: 150
+SpaceAfterCStyleCast: true
+TabWidth: 4
+UseTab: Never

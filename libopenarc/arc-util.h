@@ -8,20 +8,24 @@
 #include "build-config.h"
 
 /* system includes */
-#include <sys/types.h>
-#include <sys/param.h>
 #include <stdbool.h>
+#include <sys/param.h>
+#include <sys/types.h>
 
 /* libopenarc includes */
 #include "arc.h"
 
-extern int arc_check_dns_reply(unsigned char *ansbuf, size_t anslen,
-                               int xclass, int xtype);
+extern int      arc_check_dns_reply(unsigned char *ansbuf,
+                                    size_t         anslen,
+                                    int            xclass,
+                                    int            xtype);
 
-extern bool arc_hdrlist(unsigned char *, size_t, unsigned char **, bool);
+extern bool     arc_hdrlist(unsigned char *, size_t, unsigned char **, bool);
 
-extern void arc_min_timeval(struct timeval *, struct timeval *,
-                            struct timeval *, struct timeval **);
+extern void     arc_min_timeval(struct timeval *,
+                                struct timeval *,
+                                struct timeval *,
+                                struct timeval **);
 
 extern ARC_STAT arc_tmpfile(ARC_MESSAGE *, int *, bool);
 

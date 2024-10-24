@@ -10,12 +10,13 @@
 #include "arc.h"
 
 /* prototypes */
-extern int arc_res_cancel(void *, void *);
+extern int  arc_res_cancel(void *, void *);
 extern void arc_res_close(void *);
-extern int arc_res_init(void **);
-extern int arc_res_nslist(void *, const char *);
-extern int arc_res_query(void *, int, const unsigned char *, unsigned char *,
-                         size_t, void **);
-extern int arc_res_waitreply(void *, void *, struct timeval *, size_t *, int *, int *);
+extern int  arc_res_init(void **);
+extern int  arc_res_nslist(void *, const char *);
+extern int  arc_res_query(
+     void *, int, const unsigned char *, unsigned char *, size_t, void **);
+extern int arc_res_waitreply(
+    void *, void *, struct timeval *, size_t *, int *, int *);
 
 #endif /* ! ARC_ARC_DNS_H_ */

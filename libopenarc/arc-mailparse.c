@@ -7,13 +7,13 @@
 */
 
 /* system inludes */
-#include <sys/types.h>
 #include <ctype.h>
-#include <string.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
 
 /* libopenarc includes */
 #include "arc-mailparse.h"
@@ -22,18 +22,18 @@
 typedef unsigned long cmap_elem_type;
 
 /* symbolic names */
-#define ARC_MAILPARSE_OK 		0 	/* success */
-#define ARC_MAILPARSE_ERR_PUNBALANCED	1	/* unbalanced parentheses */
-#define ARC_MAILPARSE_ERR_QUNBALANCED	2	/* unbalanced quotes */
-#define ARC_MAILPARSE_ERR_SUNBALANCED	3	/* unbalanced sq. brackets */
+#define ARC_MAILPARSE_OK              0 /* success */
+#define ARC_MAILPARSE_ERR_PUNBALANCED 1 /* unbalanced parentheses */
+#define ARC_MAILPARSE_ERR_QUNBALANCED 2 /* unbalanced quotes */
+#define ARC_MAILPARSE_ERR_SUNBALANCED 3 /* unbalanced sq. brackets */
 
 /* a bitmap for the "specials" character class */
-#define	CMAP_NBITS	 	(sizeof(cmap_elem_type) * CHAR_BIT)
-#define	CMAP_NELEMS	  	((1 + UCHAR_MAX) / CMAP_NBITS)
-#define	CMAP_INDEX(i)		((unsigned char)(i) / CMAP_NBITS)
-#define	CMAP_BIT(i)  		(1L << (unsigned char)(i) % CMAP_NBITS)
-#define	CMAP_TST(ar, c)    	((ar)[CMAP_INDEX(c)] &  CMAP_BIT(c))
-#define	CMAP_SET(ar, c)    	((ar)[CMAP_INDEX(c)] |= CMAP_BIT(c))
+#define CMAP_NBITS                    (sizeof(cmap_elem_type) * CHAR_BIT)
+#define CMAP_NELEMS                   ((1 + UCHAR_MAX) / CMAP_NBITS)
+#define CMAP_INDEX(i)                 ((unsigned char) (i) / CMAP_NBITS)
+#define CMAP_BIT(i)                   (1L << (unsigned char) (i) % CMAP_NBITS)
+#define CMAP_TST(ar, c)               ((ar)[CMAP_INDEX(c)] & CMAP_BIT(c))
+#define CMAP_SET(ar, c)               ((ar)[CMAP_INDEX(c)] |= CMAP_BIT(c))
 
 static unsigned char const SPECIALS[] = "<>@,;:\\\"/[]?=";
 
@@ -51,46 +51,50 @@ static unsigned char const SPECIALS[] = "<>@,;:\\\"/[]?=";
 static char *
 arc_mail_unescape(char *s)
 {
-	char 		*w;
-	char const 	*r, *p, *e;
+    char       *w;
+    char const *r, *p, *e;
 
-	if (s == NULL)
-		return NULL;
+    if (s == NULL)
+    {
+        return NULL;
+    }
 
-	r = w = s;
-	e = s + strlen(s);
+    r = w = s;
+    e = s + strlen(s);
 
-	while ((p = memchr(r, '\\', e - s)) != NULL)
-	{
-		if (p > s)
-		{
-			if (r != w)
-				memmove(w, r, p - r);
-			w += p - r;
-		}
+    while ((p = memchr(r, '\\', e - s)) != NULL)
+    {
+        if (p > s)
+        {
+            if (r != w)
+            {
+                memmove(w, r, p - r);
+            }
+            w += p - r;
+        }
 
-		if (p[1] == '\0')
-		{
-			r = p + 1;
-		}
-		else
-		{
-			*w++ = p[1];
-			r = p + 2;
-		}
-	}
+        if (p[1] == '\0')
+        {
+            r = p + 1;
+        }
+        else
+        {
+            *w++ = p[1];
+            r = p + 2;
+        }
+    }
 
-	if (r > w)
-	{
-		if (e > r)
-		{
-			memmove(w, r, e - r);
-			w += e - r;
-		}
-		*w = '\0';
-	}
+    if (r > w)
+    {
+        if (e > r)
+        {
+            memmove(w, r, e - r);
+            w += e - r;
+        }
+        *w = '\0';
+    }
 
-	return s;
+    return s;
 }
 #endif /* ARC_MAILPARSE_TEST */
 
@@ -112,30 +116,36 @@ arc_mail_unescape(char *s)
 */
 
 static unsigned char *
-arc_mail_matching_paren(unsigned char *s, unsigned char *e, int open_paren,
-                        int close_paren)
+arc_mail_matching_paren(unsigned char *s,
+                        unsigned char *e,
+                        int            open_paren,
+                        int            close_paren)
 {
-	int 		paren = 1;
+    int paren = 1;
 
-	for (; s < e; s++)
-	{
-		if (*s == close_paren)
-		{
-			if (--paren == 0)
-				break;
-		}
-		else if (*s == open_paren)
-		{
-			paren++;
-		}
-		else if (*s == '\\')
-		{
-			if (s[1] != '\0')
-				s++;
-		}
-	}
+    for (; s < e; s++)
+    {
+        if (*s == close_paren)
+        {
+            if (--paren == 0)
+            {
+                break;
+            }
+        }
+        else if (*s == open_paren)
+        {
+            paren++;
+        }
+        else if (*s == '\\')
+        {
+            if (s[1] != '\0')
+            {
+                s++;
+            }
+        }
+    }
 
-	return s;
+    return s;
 }
 
 /*
@@ -151,87 +161,101 @@ arc_mail_matching_paren(unsigned char *s, unsigned char *e, int open_paren,
 */
 
 static int
-arc_mail_first_special(unsigned char *p, unsigned char *e,
+arc_mail_first_special(unsigned char  *p,
+                       unsigned char  *e,
                        unsigned char **special_out)
 {
-	size_t		i;
-	cmap_elem_type	is_special[CMAP_NELEMS] = { 0 };
-	unsigned char	*at_ptr = NULL;
+    size_t         i;
+    cmap_elem_type is_special[CMAP_NELEMS] = {0};
+    unsigned char *at_ptr = NULL;
 
-	/* set up special finder */
-	for (i = 0; SPECIALS[i] != '\0'; i++)
-		CMAP_SET(is_special, SPECIALS[i]);
+    /* set up special finder */
+    for (i = 0; SPECIALS[i] != '\0'; i++)
+    {
+        CMAP_SET(is_special, SPECIALS[i]);
+    }
 
-	for (; p < e && *p != '\0'; p++)
-	{
-		/* skip white space between tokens */
-		while (p < e && (*p == '(' ||
-		                 (isascii(*p) && isspace(*p))))
-		{
-			if (*p != '(')
-			{
-				p++;
-			}
-			else
-			{
-				p = arc_mail_matching_paren(p + 1, e,
-				                             '(', ')');
-				if (*p == '\0')
-					return ARC_MAILPARSE_ERR_PUNBALANCED;
-				else
-					p++;
-			}
-		}
+    for (; p < e && *p != '\0'; p++)
+    {
+        /* skip white space between tokens */
+        while (p < e && (*p == '(' || (isascii(*p) && isspace(*p))))
+        {
+            if (*p != '(')
+            {
+                p++;
+            }
+            else
+            {
+                p = arc_mail_matching_paren(p + 1, e, '(', ')');
+                if (*p == '\0')
+                {
+                    return ARC_MAILPARSE_ERR_PUNBALANCED;
+                }
+                else
+                {
+                    p++;
+                }
+            }
+        }
 
-		if (*p == '\0')
-			break;
+        if (*p == '\0')
+        {
+            break;
+        }
 
-		if (*p == '"')
-		{
-			p = arc_mail_matching_paren(p + 1, e, '\0', '"');
-			if (*p == '\0')
-				return ARC_MAILPARSE_ERR_QUNBALANCED;
-		}
-		else if (*p == '[')
-		{
-			p = arc_mail_matching_paren(p + 1, e, '\0', ']');
-			if (*p == '\0')
-				return ARC_MAILPARSE_ERR_SUNBALANCED;
-		}
-		else if (CMAP_TST(is_special, *p))
-		{
-			if (*p == '<')
-			{
-				*special_out = p;
-				return 0;
-			}
-			else if (*p == ':' || *p == ';' || *p == ',')
-			{
-				if (at_ptr != NULL)
-					*special_out = at_ptr;
-				else
-					*special_out = p;
-				return 0;
-			}
-			else if (*p == '@')
-			{
-				at_ptr = p;
-			}
-		}
-		else
-		{
-			while (*p != '\0' &&
-			       !CMAP_TST(is_special, *p) &&
-			       (!isascii(*p) ||
-			        !isspace((unsigned char) *p)) &&
-			       *p != '(')
-				p++;
-			p--;
-		}
-	}
+        if (*p == '"')
+        {
+            p = arc_mail_matching_paren(p + 1, e, '\0', '"');
+            if (*p == '\0')
+            {
+                return ARC_MAILPARSE_ERR_QUNBALANCED;
+            }
+        }
+        else if (*p == '[')
+        {
+            p = arc_mail_matching_paren(p + 1, e, '\0', ']');
+            if (*p == '\0')
+            {
+                return ARC_MAILPARSE_ERR_SUNBALANCED;
+            }
+        }
+        else if (CMAP_TST(is_special, *p))
+        {
+            if (*p == '<')
+            {
+                *special_out = p;
+                return 0;
+            }
+            else if (*p == ':' || *p == ';' || *p == ',')
+            {
+                if (at_ptr != NULL)
+                {
+                    *special_out = at_ptr;
+                }
+                else
+                {
+                    *special_out = p;
+                }
+                return 0;
+            }
+            else if (*p == '@')
+            {
+                at_ptr = p;
+            }
+        }
+        else
+        {
+            while (*p != '\0' && !CMAP_TST(is_special, *p) &&
+                   (!isascii(*p) || !isspace((unsigned char) *p)) && *p != '(')
+            {
+                p++;
+            }
+            p--;
+        }
+    }
 
-	*special_out = p;
-	return 0;
+    *special_out = p;
+    return 0;
 }
 
 /*
@@ -251,95 +275,114 @@ arc_mail_first_special(unsigned char *p, unsigned char *e,
 */
 
 static int
-arc_mail_token(unsigned char *s, unsigned char *e, int *type_out,
-               unsigned char **start_out, unsigned char **end_out,
-               int *uncommented_whitespace)
+arc_mail_token(unsigned char  *s,
+               unsigned char  *e,
+               int            *type_out,
+               unsigned char **start_out,
+               unsigned char **end_out,
+               int            *uncommented_whitespace)
 {
-	unsigned char *p;
-	int err = 0;
-	size_t i;
-	int token_type;
-	cmap_elem_type is_special[CMAP_NELEMS] = { 0 };
-	unsigned char *token_start, *token_end;
+    unsigned char *p;
+    int            err = 0;
+    size_t         i;
+    int            token_type;
+    cmap_elem_type is_special[CMAP_NELEMS] = {0};
+    unsigned char *token_start, *token_end;
 
-	*start_out = NULL;
-	*end_out   = NULL;
-	*type_out  = 0;
+    *start_out = NULL;
+    *end_out = NULL;
+    *type_out = 0;
 
-	err = 0;
+    err = 0;
 
-	/* set up special finder */
-	for (i = 0; SPECIALS[i] != '\0'; i++)
-		CMAP_SET(is_special, SPECIALS[i]);
+    /* set up special finder */
+    for (i = 0; SPECIALS[i] != '\0'; i++)
+    {
+        CMAP_SET(is_special, SPECIALS[i]);
+    }
 
-	p = s;
+    p = s;
 
-	/* skip white space between tokens */
-	while (p < e && (*p == '(' ||
-	                 (isascii((unsigned char) *p) &&
-	                  isspace((unsigned char) *p))))
-	{
-		if (*p != '(')
-		{
-			*uncommented_whitespace = 1;
-			p++;
-		}
-		else
-		{
-			p = arc_mail_matching_paren(p + 1, e, '(', ')');
-			if (*p == '\0')
-				return ARC_MAILPARSE_ERR_PUNBALANCED;
-			else
-				p++;
-		}
-	}
+    /* skip white space between tokens */
+    while (p < e && (*p == '(' || (isascii((unsigned char) *p) &&
+                                   isspace((unsigned char) *p))))
+    {
+        if (*p != '(')
+        {
+            *uncommented_whitespace = 1;
+            p++;
+        }
+        else
+        {
+            p = arc_mail_matching_paren(p + 1, e, '(', ')');
+            if (*p == '\0')
+            {
+                return ARC_MAILPARSE_ERR_PUNBALANCED;
+            }
+            else
+            {
+                p++;
+            }
+        }
+    }
 
-	if (p >= e || *p == '\0')
-		return 0;
+    if (p >= e || *p == '\0')
+    {
+        return 0;
+    }
 
-	/* our new token starts here */
-	token_start = p;
+    /* our new token starts here */
+    token_start = p;
 
-	/* fill in the token contents and type */
-	if (*p == '"')
-	{
-		token_end = arc_mail_matching_paren(p + 1, e, '\0', '"');
-		token_type = '"';
-		if (*token_end != '\0')
-			token_end++;
-		else
-			err = ARC_MAILPARSE_ERR_QUNBALANCED;
-	}
-	else if (*p == '[')
-	{
-		token_end = arc_mail_matching_paren(p + 1, e, '\0', ']');
-		token_type = '[';
-		if (*token_end != '\0')
-			token_end++;
-		else
-			err = ARC_MAILPARSE_ERR_SUNBALANCED;
-	}
-	else if (CMAP_TST(is_special, *p))
-	{
-		token_end  = p + 1;
-		token_type = *p;
-	}
-	else
-	{
-		while (p < e && *p != '\0' && !CMAP_TST(is_special, *p) &&
-		       (!isascii(*p) || !isspace((unsigned char) *p)) &&
-		       *p != '(')
-			p++;
+    /* fill in the token contents and type */
+    if (*p == '"')
+    {
+        token_end = arc_mail_matching_paren(p + 1, e, '\0', '"');
+        token_type = '"';
+        if (*token_end != '\0')
+        {
+            token_end++;
+        }
+        else
+        {
+            err = ARC_MAILPARSE_ERR_QUNBALANCED;
+        }
+    }
+    else if (*p == '[')
+    {
+        token_end = arc_mail_matching_paren(p + 1, e, '\0', ']');
+        token_type = '[';
+        if (*token_end != '\0')
+        {
+            token_end++;
+        }
+        else
+        {
+            err = ARC_MAILPARSE_ERR_SUNBALANCED;
+        }
+    }
+    else if (CMAP_TST(is_special, *p))
+    {
+        token_end = p + 1;
+        token_type = *p;
+    }
+    else
+    {
+        while (p < e && *p != '\0' && !CMAP_TST(is_special, *p) &&
+               (!isascii(*p) || !isspace((unsigned char) *p)) && *p != '(')
+        {
+            p++;
+        }
 
-		token_end = p;
-		token_type = 'x';
-	}
+        token_end = p;
+        token_type = 'x';
+    }
 
-	*start_out = token_start;
-	*end_out   = token_end;
-	*type_out  = token_type;
+    *start_out = token_start;
+    *end_out = token_end;
+    *type_out = token_type;
 
-	return err;
+    return err;
 }
 
 /*
@@ -359,115 +402,126 @@ arc_mail_token(unsigned char *s, unsigned char *e, int *type_out,
 */
 
 int
-arc_mail_parse(unsigned char *line, unsigned char **user_out,
+arc_mail_parse(unsigned char  *line,
+               unsigned char **user_out,
                unsigned char **domain_out)
 {
-	int type;
-	int ws;
-	int err;
-	unsigned char *e, *special;
-	unsigned char *tok_s, *tok_e;
-	unsigned char *w;
+    int            type;
+    int            ws;
+    int            err;
+    unsigned char *e, *special;
+    unsigned char *tok_s, *tok_e;
+    unsigned char *w;
 
-	*user_out = NULL;
-	*domain_out = NULL;
+    *user_out = NULL;
+    *domain_out = NULL;
 
-	w = line;
-	e = line + strlen((char *) line);
-	ws = 0;
+    w = line;
+    e = line + strlen((char *) line);
+    ws = 0;
 
-	for (;;)
-	{
-		err = arc_mail_first_special(line, e, &special);
-		if (err != 0)
-			return err;
+    for (;;)
+    {
+        err = arc_mail_first_special(line, e, &special);
+        if (err != 0)
+        {
+            return err;
+        }
 
-		/* given the construct we're looking at, do the right thing */
-		switch (*special)
-		{
-		  case '<':
-			/* display name <address> */
-			line = special + 1;
-			for (;;)
-			{
-				err = arc_mail_token(line, e, &type, &tok_s,
-				                     &tok_e, &ws);
-				if (err != 0)
-					return err;
+        /* given the construct we're looking at, do the right thing */
+        switch (*special)
+        {
+        case '<':
+            /* display name <address> */
+            line = special + 1;
+            for (;;)
+            {
+                err = arc_mail_token(line, e, &type, &tok_s, &tok_e, &ws);
+                if (err != 0)
+                {
+                    return err;
+                }
 
-				if (type == '>' || type == '\0')
-				{
-					*w = '\0';
-					return 0;
-				}
-				else if (type == '@')
-				{
-					*w++ = '\0';
-					*domain_out = w;
-				}
-				else if (type == ',' || type == ':')
-				{
-					/* source route punctuation */
-					*user_out = NULL;
-					*domain_out = NULL;
-				}
-				else
-				{
-					if (*user_out == NULL)
-						*user_out = w;
-					memmove(w, tok_s, tok_e - tok_s);
-					w += tok_e - tok_s;
-				}
-				line = tok_e;
-			}
+                if (type == '>' || type == '\0')
+                {
+                    *w = '\0';
+                    return 0;
+                }
+                else if (type == '@')
+                {
+                    *w++ = '\0';
+                    *domain_out = w;
+                }
+                else if (type == ',' || type == ':')
+                {
+                    /* source route punctuation */
+                    *user_out = NULL;
+                    *domain_out = NULL;
+                }
+                else
+                {
+                    if (*user_out == NULL)
+                    {
+                        *user_out = w;
+                    }
+                    memmove(w, tok_s, tok_e - tok_s);
+                    w += tok_e - tok_s;
+                }
+                line = tok_e;
+            }
 
-		  case ';':
-		  case ':':
-		  case ',':
-			/* skip a group name or result */
-		  	line = special + 1;
-			break;
+        case ';':
+        case ':':
+        case ',':
+            /* skip a group name or result */
+            line = special + 1;
+            break;
 
-		  default:
-			/* (display name) addr(display name)ess */
-			ws = 0;
-			for (;;)
-			{
-				err = arc_mail_token(line, e, &type, &tok_s,
-				                     &tok_e, &ws);
-				if (err != 0)
-					return err;
+        default:
+            /* (display name) addr(display name)ess */
+            ws = 0;
+            for (;;)
+            {
+                err = arc_mail_token(line, e, &type, &tok_s, &tok_e, &ws);
+                if (err != 0)
+                {
+                    return err;
+                }
 
-				if (type == '\0' ||  type == ',' || type == ';')
-				{
-					*w = '\0';
-					break;
-				}
-				else if (type == '@')
-				{
-					*w++ = '\0';
-					*domain_out = w;
-					ws = 0;
-				}
-				else
-				{
+                if (type == '\0' || type == ',' || type == ';')
+                {
+                    *w = '\0';
+                    break;
+                }
+                else if (type == '@')
+                {
+                    *w++ = '\0';
+                    *domain_out = w;
+                    ws = 0;
+                }
+                else
+                {
 
-					if (*user_out == NULL)
-						*user_out = w;
-					else if (type == 'x' && ws == 1)
-						*w++ = ' ';
+                    if (*user_out == NULL)
+                    {
+                        *user_out = w;
+                    }
+                    else if (type == 'x' && ws == 1)
+                    {
+                        *w++ = ' ';
+                    }
 
-					memmove(w, tok_s, tok_e - tok_s);
-					w += tok_e - tok_s;
+                    memmove(w, tok_s, tok_e - tok_s);
+                    w += tok_e - tok_s;
 
-					ws = 0;
-				}
+                    ws = 0;
+                }
 
-				line = tok_e;
-			}
-			return 0;
-		}
-	}
+                line = tok_e;
+            }
+            return 0;
+        }
+    }
 }
 
 /*
@@ -488,172 +542,180 @@ arc_mail_parse(unsigned char *line, unsigned char **user_out,
 */
 
 int
-arc_mail_parse_multi(unsigned char *line, unsigned char ***users_out,
+arc_mail_parse_multi(unsigned char   *line,
+                     unsigned char ***users_out,
                      unsigned char ***domains_out)
 {
-	bool escaped = false;
-	bool quoted = false;
-	bool done = false;
-	int a = 0;
-	int n = 0;
-	int status;
-	int parens = 0;
-	unsigned char *p;
-	unsigned char *addr;
-	unsigned char **uout = NULL;
-	unsigned char **dout = NULL;
-	unsigned char *u;
-	unsigned char *d;
+    bool            escaped = false;
+    bool            quoted = false;
+    bool            done = false;
+    int             a = 0;
+    int             n = 0;
+    int             status;
+    int             parens = 0;
+    unsigned char  *p;
+    unsigned char  *addr;
+    unsigned char **uout = NULL;
+    unsigned char **dout = NULL;
+    unsigned char  *u;
+    unsigned char  *d;
 
-	/* walk the input string looking for unenclosed commas */
-	addr = line;
-	for (p = line; !done; p++)
-	{
-		if (escaped)
-		{
-			escaped = false;
-			continue;
-		}
+    /* walk the input string looking for unenclosed commas */
+    addr = line;
+    for (p = line; !done; p++)
+    {
+        if (escaped)
+        {
+            escaped = false;
+            continue;
+        }
 
-		switch (*p)
-		{
-		  case '\\':
-			escaped = true;
-			continue;
+        switch (*p)
+        {
+        case '\\':
+            escaped = true;
+            continue;
 
-		  case ':':
-			quoted = !quoted;
-			continue;
+        case ':':
+            quoted = !quoted;
+            continue;
 
-		  case '(':
-			parens++;
-			continue;
+        case '(':
+            parens++;
+            continue;
 
-		  case ')':
-			parens--;
-			continue;
+        case ')':
+            parens--;
+            continue;
 
-		  case ',':
-		  case '\0':
-			if (parens != 0)
-				continue;
+        case ',':
+        case '\0':
+            if (parens != 0)
+            {
+                continue;
+            }
 
-			if (*p == '\0')
-				done = true;
-			else
-				*p = '\0';
+            if (*p == '\0')
+            {
+                done = true;
+            }
+            else
+            {
+                *p = '\0';
+            }
 
-			status = arc_mail_parse(addr, &u, &d);
-			if (status != 0)
-			{
-				if (uout != NULL)
-				{
-					free(uout);
-					free(dout);
-				}
+            status = arc_mail_parse(addr, &u, &d);
+            if (status != 0)
+            {
+                if (uout != NULL)
+                {
+                    free(uout);
+                    free(dout);
+                }
 
-				return status;
-			}
+                return status;
+            }
 
-			if (n == 0)
-			{
-				size_t newsize = 2 * sizeof(unsigned char *);
+            if (n == 0)
+            {
+                size_t newsize = 2 * sizeof(unsigned char *);
 
-				uout = (unsigned char **) malloc(newsize);
-				if (uout == NULL)
-					return -1;
+                uout = (unsigned char **) malloc(newsize);
+                if (uout == NULL)
+                {
+                    return -1;
+                }
 
-				dout = (unsigned char **) malloc(newsize);
-				if (dout == NULL)
-				{
-					free(uout);
-					return -1;
-				}
+                dout = (unsigned char **) malloc(newsize);
+                if (dout == NULL)
+                {
+                    free(uout);
+                    return -1;
+                }
 
-				a = 2;
-			}
-			else if (n + 1 == a)
-			{
-				unsigned char **new;
+                a = 2;
+            }
+            else if (n + 1 == a)
+            {
+                unsigned char **new;
 
-				size_t newsize = a * 2 * sizeof(unsigned char *);
+                size_t newsize = a * 2 * sizeof(unsigned char *);
 
-				new = (unsigned char **) realloc(uout, newsize);
-				if (new == NULL)
-				{
-					free(uout);
-					free(dout);
-					return -1;
-				}
+                new = (unsigned char **) realloc(uout, newsize);
+                if (new == NULL)
+                {
+                    free(uout);
+                    free(dout);
+                    return -1;
+                }
 
-				uout = new;
+                uout = new;
 
-				new = (unsigned char **) realloc(dout, newsize);
-				if (new == NULL)
-				{
-					free(uout);
-					free(dout);
-					return -1;
-				}
+                new = (unsigned char **) realloc(dout, newsize);
+                if (new == NULL)
+                {
+                    free(uout);
+                    free(dout);
+                    return -1;
+                }
 
-				dout = new;
+                dout = new;
 
-				a *= 2;
-			}
+                a *= 2;
+            }
 
-			uout[n] = u;
-			dout[n++] = d;
+            uout[n] = u;
+            dout[n++] = d;
 
-			uout[n] = NULL;
-			dout[n] = NULL;
+            uout[n] = NULL;
+            dout[n] = NULL;
 
-			addr = p + 1;
+            addr = p + 1;
 
-			break;
+            break;
 
-		  default:
-			break;
-		}
-	}
+        default:
+            break;
+        }
+    }
 
-	*users_out = uout;
-	*domains_out = dout;
+    *users_out = uout;
+    *domains_out = dout;
 
-	return 0;
+    return 0;
 }
 
 #ifdef ARC_MAILPARSE_TEST
 int
 main(int argc, char **argv)
 {
-	int err;
-	unsigned char **domains, **users;
+    int             err;
+    unsigned char **domains, **users;
 
-	if (argc != 2)
-	{
-		fprintf(stderr, "Usage: %s mailheader\n", argv[0]);
-		exit(64);
-	}
+    if (argc != 2)
+    {
+        fprintf(stderr, "Usage: %s mailheader\n", argv[0]);
+        exit(64);
+    }
 
-	err = arc_mail_parse_multi(argv[1], &users, &domains);
+    err = arc_mail_parse_multi(argv[1], &users, &domains);
 
-	if (err != 0)
-	{
-		printf("error %d\n", err);
-	}
-	else
-	{
-		int n;
+    if (err != 0)
+    {
+        printf("error %d\n", err);
+    }
+    else
+    {
+        int n;
 
-		for (n = 0; users[n] != NULL || domains[n] != NULL; n++)
-		{
-			printf("user: '%s'\ndomain: '%s'\n",
-				users[n] ? arc_mail_unescape(users[n]) : "null",
-				domains[n] ? arc_mail_unescape(domains[n])
-			                   : "null");
-		}
-	}
+        for (n = 0; users[n] != NULL || domains[n] != NULL; n++)
+        {
+            printf("user: '%s'\ndomain: '%s'\n",
+                   users[n] ? arc_mail_unescape(users[n]) : "null",
+                   domains[n] ? arc_mail_unescape(domains[n]) : "null");
+        }
+    }
 
-	return 0;
+    return 0;
 }
 #endif /* ARC_MAILPARSE_TEST */

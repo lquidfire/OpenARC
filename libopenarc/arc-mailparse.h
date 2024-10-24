@@ -10,8 +10,10 @@
 #define ARC_ARC_MAILPARSE_H_
 
 /* prototypes */
-extern int arc_mail_parse(unsigned char *line, unsigned char **user_out,
+extern int arc_mail_parse(unsigned char  *line,
+                          unsigned char **user_out,
                           unsigned char **domain_out);
-extern int arc_mail_parse_multi(unsigned char *line, unsigned char ***users_out,
+extern int arc_mail_parse_multi(unsigned char   *line,
+                                unsigned char ***users_out,
                                 unsigned char ***domains_out);
 #endif /* ! ARC_ARC_MAILPARSE_H_ */

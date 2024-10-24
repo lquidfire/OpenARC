@@ -12,8 +12,8 @@
 /* structures */
 struct nametable
 {
-	const char *	tbl_name;	/* name */
-	const int	tbl_code;	/* code */
+    const char *tbl_name; /* name */
+    const int   tbl_code; /* code */
 };
 
 /* tables */
@@ -29,6 +29,6 @@ extern struct nametable *sigerrors;
 
 /* prototypes */
 extern const char *arc_code_to_name(struct nametable *tbl, const int code);
-extern const int arc_name_to_code(struct nametable *tbl, const char *name);
+extern const int   arc_name_to_code(struct nametable *tbl, const char *name);
 
 #endif /* ARC_ARC_TABLES_H_ */
