@@ -24,17 +24,17 @@ All notable changes to this project will be documented in this file.
 - libopenarc - String arguments are marked as `const` where applicable.
 
 ### Fixed
-- libopenarc - seals on failed chains only cover the latest ARC header set,
+- libopenarc - Seals on failed chains only cover the latest ARC header set,
   as required by RFC 8617 section 5.1.2.
-- libopenarc - signing with simple header canonicalization works.
+- libopenarc - Signing with simple header canonicalization works.
 - libopenarc - ARC headers with a misplaced instance tag are rejected.
-- libopenarc - unlikely memory leak after memory allocation failures.
+- libopenarc - Unlikely memory leak after memory allocation failures.
 - libopenarc - The installed pkg-config file is more correct.
 - libopenarc - U-labels (domain labels encoded as UTF-8) are allowed in `d=`
   and `s=` tags.
-- openarc - use after free.
-- openarc - unlikely division by zero.
-- openarc - small memory leak during config loading.
+- openarc - Use after free.
+- openarc - Unlikely division by zero.
+- openarc - Small memory leak during config loading.
 
 ## 1.0.0 - 2024-10-18
 
@@ -79,7 +79,7 @@ Changes since the last Trusted Domain Project release.
   as intended.
 - milter - Log messages about the chain validation state use human-readable
   strings for the state.
-- milter - general overhaul of `Authentication-Results` parsing and
+- milter - General overhaul of `Authentication-Results` parsing and
   `ARC-Authentication-Results` generation, fixing multiple issues.
 - milter - Removed incorrect reference count assertion.
 - milter - Large ARC header sets are not truncated.
