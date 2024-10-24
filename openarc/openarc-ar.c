@@ -242,7 +242,7 @@ ares_tokenize(const char *input, char *outbuf, size_t outbuflen,
 					/* turn all whitespace in comments into single spaces */
 					*q = ' ';
 					q++;
-					while isspace(p[1])
+					while (isspace(p[1]))
 					{
 						p++;
 					}
