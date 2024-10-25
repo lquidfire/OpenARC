@@ -21,15 +21,17 @@ All notable changes to this project will be documented in this file.
   disable it by passing `--without-libjansson` to `configure`.
 - Libidn2 is now required to build OpenARC.
 - libopenarc - `ARC-Message-Signature` and `ARC-Authentication-Results` headers
-  are excluded from the AMS, as required by RFC 8617.
+  are excluded from the AMS, as required by [RFC 8617 section 4.1.2](https://datatracker.ietf.org/doc/html/rfc8617#section-4.1.2).
 - libopenarc - ARC headers are returned with a space before the header value.
 - libopenarc - String arguments are marked as `const` where applicable.
+- libopenarc - `ARC-Seal` headers containing `h=` tags cause a validation
+  failure, as required by [RFC 8617 section 4.1.3](https://datatracker.ietf.org/doc/html/rfc8617#section-4.1.3).
 - milter - `Authentication-Results` and `ARC-Authentication-Results` include
   `header.oldest-pass` when appropriate.
 
 ### Fixed
 - libopenarc - Seals on failed chains only cover the latest ARC header set,
-  as required by RFC 8617 section 5.1.2.
+  as required by [RFC 8617 section 5.1.2](https://datatracker.ietf.org/doc/html/rfc8617#section-5.1.2).
 - libopenarc - Signing with simple header canonicalization works.
 - libopenarc - ARC headers with a misplaced instance tag are rejected.
 - libopenarc - Unlikely memory leak after memory allocation failures.

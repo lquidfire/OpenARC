@@ -1874,6 +1874,18 @@ arc_process_set(ARC_MESSAGE    *msg,
             return ARC_STAT_SYNTAX;
         }
 
+        /* RFC 8617 4.1.3 ARC-Seal (AS)
+         *
+         * Note especially that the DKIM "h" tag is NOT allowed and, if found,
+         * MUST result in a cv status of "fail"
+         */
+        if (arc_param_get(set, "h") != NULL)
+        {
+            arc_error(msg, "invalid parameter \"h\" in %s data", settype);
+            set->set_bad = true;
+            return ARC_STAT_SYNTAX;
+        }
+
         break;
 
     case ARC_KVSETTYPE_AR:
