@@ -494,7 +494,7 @@ ares_parse(const char *hdr, struct authres *ar, const char *authserv)
         switch (state)
         {
         case ARP_STATE_AUTHSERVID:
-            if (!isascii(tokens[c][0]) || !isalnum(tokens[c][0]))
+            if (isascii(tokens[c][0]) && !isalnum(tokens[c][0]))
             {
                 ar->ares_count = initial_ares_count;
                 return -1;

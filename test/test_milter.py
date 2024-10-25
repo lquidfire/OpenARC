@@ -479,13 +479,18 @@ def test_milter_seal_failed(run_miltertest):
 
 def test_milter_idna(run_miltertest):
     """U-labels in domains and selectors"""
-    res = run_miltertest()
+    res = run_miltertest(
+        [
+            ['Authentication-Results', ' 시험.example.com; spf=pass smtp.mailfrom=привіт@시험.example.com'],
+        ]
+    )
 
     assert res['headers'][1][1].startswith(' i=1; a=rsa-sha256; d=시험.example.com; s=예;')
+    assert res['headers'][2][1] == ' i=1; 시험.example.com; spf=pass smtp.mailfrom=привіт@시험.example.com;\n\tarc=none smtp.remote-ip=127.0.0.1'
 
     res = run_miltertest(res['headers'])
     assert 'cv=pass' in res['headers'][0][1]
-    assert res['headers'][2] == ['ARC-Authentication-Results', ' i=2; example.com; arc=pass smtp.remote-ip=127.0.0.1']
+    assert res['headers'][2] == ['ARC-Authentication-Results', ' i=2; 시험.example.com; arc=pass smtp.remote-ip=127.0.0.1']
 
 
 def test_milter_authresip(run_miltertest):

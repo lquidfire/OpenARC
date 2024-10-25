@@ -32,9 +32,10 @@ All notable changes to this project will be documented in this file.
 - libopenarc - The installed pkg-config file is more correct.
 - libopenarc - U-labels (domain labels encoded as UTF-8) are allowed in `d=`
   and `s=` tags.
-- openarc - Use after free.
-- openarc - Unlikely division by zero.
-- openarc - Small memory leak during config loading.
+- milter - Use after free.
+- milter - Unlikely division by zero.
+- milter - Small memory leak during config loading.
+- milter - The `Authentication-Results` authserv-id can contain UTF-8.
 
 ## 1.0.0 - 2024-10-18
 
