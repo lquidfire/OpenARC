@@ -1,2 +1,6 @@
 # mass clang-format
 bf12a3a0dadc766bc224a07b9075b666c525aca5
+
+# boolean and __P() cleanup
+de5c412716c3fd22355336349c6d2952ce9964df
+116f0540498259e204e3eab3ac0cb37bcc8af137
