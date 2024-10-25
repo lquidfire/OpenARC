@@ -477,6 +477,17 @@ def test_milter_seal_failed(run_miltertest):
     assert res1['headers'] == res2['headers']
 
 
+def test_milter_duplicate_header(run_miltertest):
+    """A set consists of exactly three headers with a given instance value"""
+    res = run_miltertest()
+
+    headers = [x for x in res['headers'] if x[0] != 'Authentication-Results']
+    headers.append(headers[0])
+
+    res = run_miltertest(headers)
+    assert 'cv=fail' in res['headers'][1][1]
+
+
 def test_milter_idna(run_miltertest):
     """U-labels in domains and selectors"""
     res = run_miltertest(
