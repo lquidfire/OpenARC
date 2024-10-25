@@ -15,10 +15,8 @@
 #include "build-config.h"
 
 /* system includes */
-#include <sys/types.h>
-#ifdef HAVE_STDBOOL_H
 #include <stdbool.h>
-#endif /* HAVE_STDBOOL_H */
+#include <sys/types.h>
 
 /* libmilter */
 #ifdef ARCF_MILTER_PROTOTYPES
@@ -32,14 +30,6 @@
 #ifdef USE_JANSSON
 #include <jansson.h>
 #endif /* USE_JANSSON */
-
-/* make sure we have TRUE and FALSE */
-#ifndef FALSE
-#define FALSE 0
-#endif /* !FALSE */
-#ifndef TRUE
-#define TRUE 1
-#endif /* !TRUE */
 
 /* defaults, limits, etc. */
 #define BUFRSZ         2048
@@ -78,22 +68,22 @@ struct Header
 };
 
 /* externs */
-extern _Bool dolog;
+extern bool  dolog;
 extern char *progname;
 
 /* prototypes, exported for test.c */
-extern ARC_MESSAGE *arcf_getarc __P((void *) );
+extern ARC_MESSAGE *arcf_getarc(void *);
 
 #ifdef ARCF_MILTER_PROTOTYPES
-extern sfsistat mlfi_connect __P((SMFICTX *, char *, _SOCK_ADDR *) );
-extern sfsistat mlfi_envfrom __P((SMFICTX *, char **) );
-extern sfsistat mlfi_envrcpt __P((SMFICTX *, char **) );
-extern sfsistat mlfi_header  __P((SMFICTX *, char *, char *) );
-extern sfsistat mlfi_eoh     __P((SMFICTX *) );
-extern sfsistat mlfi_body    __P((SMFICTX *, u_char *, size_t));
-extern sfsistat mlfi_eom     __P((SMFICTX *) );
-extern sfsistat mlfi_abort   __P((SMFICTX *) );
-extern sfsistat mlfi_close   __P((SMFICTX *) );
+extern sfsistat mlfi_connect(SMFICTX *, char *, _SOCK_ADDR *);
+extern sfsistat mlfi_envfrom(SMFICTX *, char **);
+extern sfsistat mlfi_envrcpt(SMFICTX *, char **);
+extern sfsistat mlfi_header(SMFICTX *, char *, char *);
+extern sfsistat mlfi_eoh(SMFICTX *);
+extern sfsistat mlfi_body(SMFICTX *, u_char *, size_t);
+extern sfsistat mlfi_eom(SMFICTX *);
+extern sfsistat mlfi_abort(SMFICTX *);
+extern sfsistat mlfi_close(SMFICTX *);
 #endif /* ARCF_MILTER_PROTOTYPES */
 
 #endif /* _OPENARC_H_ */

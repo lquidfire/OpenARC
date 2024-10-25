@@ -13,11 +13,9 @@
 #include "build-config.h"
 
 /* system includes */
-#include <sys/types.h>
-#ifdef HAVE_STDBOOL_H
 #include <stdbool.h>
-#endif /* HAVE_STDBOOL_H */
 #include <stdio.h>
+#include <sys/types.h>
 
 /* types and things */
 #define CONFIG_TYPE_STRING     0
@@ -28,7 +26,7 @@
 
 struct config
 {
-    _Bool          cfg_bool;
+    bool           cfg_bool;
     u_int          cfg_type;
     int            cfg_int;
     char          *cfg_name;
@@ -40,17 +38,17 @@ struct configdef
 {
     char *cd_name;
     u_int cd_type;
-    _Bool cd_req;
+    bool  cd_req;
 };
 
 /* prototypes */
-extern char *config_check       __P((struct config *, struct configdef *) );
-extern unsigned int config_dump __P((struct config *, FILE *, const char *) );
-extern char *config_error       __P((void) );
-extern void config_free         __P((struct config *) );
-extern int config_get __P((struct config *, const char *, void *, size_t));
-extern struct config *config_load
-    __P((char *, struct configdef *, unsigned int *, char *, size_t, char **) );
-extern _Bool config_validname __P((struct configdef *, const char *) );
+extern char          *config_check(struct config *, struct configdef *);
+extern unsigned int   config_dump(struct config *, FILE *, const char *);
+extern char          *config_error(void);
+extern void           config_free(struct config *);
+extern int            config_get(struct config *, const char *, void *, size_t);
+extern struct config *config_load(
+    char *, struct configdef *, unsigned int *, char *, size_t, char **);
+extern bool config_validname(struct configdef *, const char *);
 
 #endif /* _CONFIG_H_ */

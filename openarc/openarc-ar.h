@@ -10,7 +10,6 @@
 #define _OPENARC_AR_H_
 
 /* system includes */
-/* system includes */
 #include <sys/types.h>
 
 /* openarc includes */
@@ -92,11 +91,11 @@ struct authres
     struct result ares_result[MAXARESULTS];
 };
 
-extern int ares_parse     __P((const char *, struct authres *, const char *) );
-extern _Bool ares_istoken __P((const char *) );
+extern int         ares_parse(const char *, struct authres *, const char *);
+extern bool        ares_istoken(const char *);
 
-extern const char *ares_getmethod __P((ares_method));
-extern const char *ares_getresult __P((ares_result));
-extern const char *ares_getptype  __P((ares_ptype));
+extern const char *ares_getmethod(ares_method);
+extern const char *ares_getresult(ares_result);
+extern const char *ares_getptype(ares_ptype);
 
 #endif /* _OPENARC_AR_H_ */

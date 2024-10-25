@@ -15,6 +15,7 @@
 
 /* system includes */
 #include <assert.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,15 +41,8 @@
 #define BUFRSZ   2048 /* generic buffer size */
 #define MAXLEVEL 5    /* max. include recursion */
 
-#ifndef FALSE
-#define FALSE 0
-#endif /* ! FALSE */
-#ifndef TRUE
-#define TRUE 1
-#endif /* ! TRUE */
-
 /* prototypes */
-static void config_attach __P((struct config *, struct config **) );
+static void config_attach(struct config *, struct config **);
 
 /* errors */
 #define CONF_UNKNOWN (-1) /* unknown status */
@@ -477,7 +471,7 @@ config_load_level(char             *file,
             break;
 
         case CONFIG_TYPE_BOOLEAN:
-            new->cfg_bool = (_Bool) value;
+            new->cfg_bool = (bool) value;
             break;
 
         case CONFIG_TYPE_INTEGER:
@@ -508,7 +502,7 @@ config_load_level(char             *file,
         cur = (struct config *) malloc(sizeof *cur);
         if (cur != NULL)
         {
-            cur->cfg_bool = FALSE;
+            cur->cfg_bool = false;
             cur->cfg_type = CONFIG_TYPE_STRING;
             cur->cfg_int = 0;
             cur->cfg_name = "";
@@ -739,7 +733,7 @@ config_get(struct config *head, const char *name, void *value, size_t size)
             switch (cur->cfg_type)
             {
             case CONFIG_TYPE_BOOLEAN:
-                if (size != sizeof(_Bool))
+                if (size != sizeof(bool))
                 {
                     conf_error = CONF_ILLEGAL;
                     return -1;
@@ -790,7 +784,7 @@ config_get(struct config *head, const char *name, void *value, size_t size)
 **  	True IFF "name" was defined inside "cd"
 */
 
-_Bool
+bool
 config_validname(struct configdef *def, const char *name)
 {
     unsigned int n;
@@ -802,13 +796,13 @@ config_validname(struct configdef *def, const char *name)
     {
         if (def[n].cd_name == NULL)
         {
-            return FALSE;
+            return false;
         }
 
         if (strcasecmp(name, def[n].cd_name) == 0 &&
             def[n].cd_type != CONFIG_TYPE_DEPRECATED)
         {
-            return TRUE;
+            return true;
         }
     }
 

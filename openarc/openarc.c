@@ -31,9 +31,6 @@
 #ifdef AF_INET6
 #include <arpa/inet.h>
 #endif /* AF_INET6 */
-#ifdef HAVE_STDBOOL_H
-#include <stdbool.h>
-#endif /* HAVE_STDBOOL_H */
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
@@ -45,6 +42,7 @@
 #include <pwd.h>
 #include <regex.h>
 #include <signal.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -108,17 +106,17 @@ LIST_HEAD(conflist, configvalue);
 
 struct arcf_config
 {
-    _Bool           conf_dolog;             /* syslog interesting stuff? */
-    _Bool           conf_milterv2;          /* using milter v2? */
-    _Bool           conf_disablecryptoinit; /* disable crypto lib init */
-    _Bool           conf_enablecores;       /* enable coredumps */
-    _Bool           conf_reqhdrs;           /* enforce RFC5322 */
-    _Bool           conf_addswhdr;          /* add software header field */
-    _Bool           conf_safekeys;          /* require safe keys */
-    _Bool           conf_keeptmpfiles;      /* keep temp files */
-    _Bool           conf_finalreceiver;     /* act as final receiver */
-    _Bool           conf_overridecv;        /* allow A-R to override CV */
-    _Bool           conf_authresip;         /* include remote IP in A-R */
+    bool            conf_dolog;             /* syslog interesting stuff? */
+    bool            conf_milterv2;          /* using milter v2? */
+    bool            conf_disablecryptoinit; /* disable crypto lib init */
+    bool            conf_enablecores;       /* enable coredumps */
+    bool            conf_reqhdrs;           /* enforce RFC5322 */
+    bool            conf_addswhdr;          /* add software header field */
+    bool            conf_safekeys;          /* require safe keys */
+    bool            conf_keeptmpfiles;      /* keep temp files */
+    bool            conf_finalreceiver;     /* act as final receiver */
+    bool            conf_overridecv;        /* allow A-R to override CV */
+    bool            conf_authresip;         /* include remote IP in A-R */
     u_int           conf_refcnt;            /* reference count */
     u_int           conf_mode;              /* mode flags */
     arc_canon_t     conf_canonhdr;          /* canonicalization for header */
@@ -153,7 +151,7 @@ struct arcf_config
 typedef struct msgctx *msgctx;
 struct msgctx
 {
-    _Bool               mctx_peer;     /* peer source? */
+    bool                mctx_peer;     /* peer source? */
     ssize_t             mctx_hdrbytes; /* count of header bytes */
     u_char             *mctx_jobid;    /* job ID */
     struct Header      *mctx_hqhead;   /* header queue head */
@@ -169,8 +167,8 @@ struct msgctx
 typedef struct connctx *connctx;
 struct connctx
 {
-    _Bool        cctx_milterv2;  /* milter v2 available */
-    _Bool        cctx_noleadspc; /* no leading spaces */
+    bool         cctx_milterv2;  /* milter v2 available */
+    bool         cctx_noleadspc; /* no leading spaces */
     unsigned int cctx_mode;      /* operating mode */
     char         cctx_host[ARC_MAXHOSTNAMELEN + 1];
     /* hostname */
@@ -232,15 +230,15 @@ struct lookup arcf_chainstates[] = {
 };
 
 /* PROTOTYPES */
-sfsistat mlfi_abort           __P((SMFICTX *) );
-sfsistat mlfi_close           __P((SMFICTX *) );
-sfsistat mlfi_connect         __P((SMFICTX *, char *, _SOCK_ADDR *) );
-sfsistat mlfi_envfrom         __P((SMFICTX *, char **) );
-sfsistat mlfi_eoh             __P((SMFICTX *) );
-sfsistat mlfi_body            __P((SMFICTX *, u_char *, size_t));
-sfsistat mlfi_eom             __P((SMFICTX *) );
-sfsistat mlfi_header          __P((SMFICTX *, char *, char *) );
-sfsistat mlfi_negotiate       __P((SMFICTX *,
+sfsistat      mlfi_abort(SMFICTX *);
+sfsistat      mlfi_close(SMFICTX *);
+sfsistat      mlfi_connect(SMFICTX *, char *, _SOCK_ADDR *);
+sfsistat      mlfi_envfrom(SMFICTX *, char **);
+sfsistat      mlfi_eoh(SMFICTX *);
+sfsistat      mlfi_body(SMFICTX *, u_char *, size_t);
+sfsistat      mlfi_eom(SMFICTX *);
+sfsistat      mlfi_header(SMFICTX *, char *, char *);
+sfsistat      mlfi_negotiate(SMFICTX *,
                              unsigned long,
                              unsigned long,
                              unsigned long,
@@ -248,16 +246,16 @@ sfsistat mlfi_negotiate       __P((SMFICTX *,
                              unsigned long *,
                              unsigned long *,
                              unsigned long *,
-                             unsigned long *) );
+                             unsigned long *);
 
-static Header arcf_findheader __P((msgctx, char *, int) );
+static Header arcf_findheader(msgctx, char *, int);
 
 /* GLOBALS */
-_Bool               dolog;      /* logging? (exported) */
-_Bool               reload;     /* reload requested */
-_Bool               no_i_whine; /* noted ${i} is undefined */
-_Bool               die;        /* global "die" flag */
-_Bool               testmode;   /* test mode */
+bool                dolog;      /* logging? (exported) */
+bool                reload;     /* reload requested */
+bool                no_i_whine; /* noted ${i} is undefined */
+bool                die;        /* global "die" flag */
+bool                testmode;   /* test mode */
 int                 diesig;     /* signal to distribute */
 char               *progname;   /* program name */
 char               *sock;       /* listening socket */
@@ -615,11 +613,11 @@ arcf_init_syslog(char *facility)
 **  	t -- maximum time range for restarts (0 == init)
 **
 **  Return value:
-**  	TRUE -- OK to continue
-**  	FALSE -- error
+**  	true -- OK to continue
+**  	false -- error
 */
 
-static _Bool
+static bool
 arcf_restart_check(int n, time_t t)
 {
     static int     idx = 0;  /* last filled slot */
@@ -632,16 +630,16 @@ arcf_restart_check(int n, time_t t)
 
         if (list == NULL)
         {
-            return FALSE;
+            return false;
         }
 
         alen = n;
-        return TRUE;
+        return true;
     }
 
     if (alen == 0 || list == NULL)
     {
-        return FALSE;
+        return false;
     }
 
     int    which;
@@ -657,13 +655,13 @@ arcf_restart_check(int n, time_t t)
 
     if (list[which] != 0 && list[which] + t > now)
     {
-        return FALSE;
+        return false;
     }
 
     list[which] = now;
     idx++;
 
-    return TRUE;
+    return true;
 }
 
 /*
@@ -1115,13 +1113,13 @@ arcf_sighandler(int sig)
     if (sig == SIGINT || sig == SIGTERM || sig == SIGHUP)
     {
         diesig = sig;
-        die = TRUE;
+        die = true;
     }
     else if (sig == SIGUSR1 && !die)
     {
         if (conffile != NULL)
         {
-            reload = TRUE;
+            reload = true;
         }
     }
 }
@@ -1153,7 +1151,7 @@ arcf_reloader(/* UNUSED */ void *vp)
 
         if (conffile != NULL)
         {
-            reload = TRUE;
+            reload = true;
         }
     }
 
@@ -1173,7 +1171,7 @@ arcf_reloader(/* UNUSED */ void *vp)
 */
 
 static void
-arcf_killchild(pid_t pid, int sig, _Bool dolog)
+arcf_killchild(pid_t pid, int sig, bool dolog)
 {
     if (kill(pid, sig) == -1 && dolog)
     {
@@ -1204,9 +1202,9 @@ arcf_config_new(void)
 
     memset(new, '\0', sizeof(struct arcf_config));
     new->conf_maxhdrsz = DEFMAXHDRSZ;
-    new->conf_overridecv = TRUE;
-    new->conf_safekeys = TRUE;
-    new->conf_authresip = TRUE;
+    new->conf_overridecv = true;
+    new->conf_safekeys = true;
+    new->conf_authresip = true;
 
     LIST_INIT(&new->conf_peers);
     LIST_INIT(&new->conf_internal);
@@ -1223,10 +1221,10 @@ arcf_config_new(void)
 **  	err -- error string (returned)
 **
 **  Return value:
-**  	TRUE iff the operation succeeded.
+**  	true iff the operation succeeded.
 */
 
-_Bool
+bool
 arcf_list_load(struct conflist *list, char *path, char **err)
 {
     FILE               *f;
@@ -1238,7 +1236,7 @@ arcf_list_load(struct conflist *list, char *path, char **err)
     if (f == NULL)
     {
         *err = strerror(errno);
-        return FALSE;
+        return false;
     }
 
     memset(buf, '\0', sizeof buf);
@@ -1258,7 +1256,7 @@ arcf_list_load(struct conflist *list, char *path, char **err)
         {
             *err = strerror(errno);
             fclose(f);
-            return FALSE;
+            return false;
         }
         v->value = strdup(buf);
         if (v->value == NULL)
@@ -1266,14 +1264,14 @@ arcf_list_load(struct conflist *list, char *path, char **err)
             *err = strerror(errno);
             fclose(f);
             free(v);
-            return FALSE;
+            return false;
         }
 
         LIST_INSERT_HEAD(list, v, entries);
     }
 
     fclose(f);
-    return TRUE;
+    return true;
 }
 
 /*
@@ -1285,10 +1283,10 @@ arcf_list_load(struct conflist *list, char *path, char **err)
 **  	err -- error string (returned)
 **
 **  Return value:
-**  	TRUE iff the operation succeeded.
+**  	true iff the operation succeeded.
 */
 
-_Bool
+bool
 arcf_addlist(struct conflist *list, char *str, char **err)
 {
     struct configvalue *v;
@@ -1297,12 +1295,12 @@ arcf_addlist(struct conflist *list, char *str, char **err)
     if (v == NULL)
     {
         *err = strerror(errno);
-        return FALSE;
+        return false;
     }
     v->value = strdup(str);
 
     LIST_INSERT_HEAD(list, v, entries);
-    return TRUE;
+    return true;
 }
 
 /*
@@ -1416,7 +1414,7 @@ arcf_config_load(struct config      *data,
                  char               *become)
 {
 #ifdef USE_LDAP
-    _Bool btmp;
+    bool btmp;
 #endif /* USE_LDAP */
     char *str;
     char  basedir[MAXPATHLEN + 1];
@@ -1575,7 +1573,7 @@ arcf_config_load(struct config      *data,
         (void) config_get(data, "SealHeaderChecks", &str, sizeof str);
         if (str != NULL)
         {
-            _Bool status;
+            bool  status;
             char *dberr = NULL;
 
             status = arcf_list_load(&conf->conf_sealheaderchecks, str, &dberr);
@@ -1636,7 +1634,7 @@ arcf_config_load(struct config      *data,
     }
     if (str != NULL)
     {
-        _Bool status;
+        bool  status;
         char *dberr = NULL;
 
         status = arcf_list_load(&conf->conf_peers, str, &dberr);
@@ -1654,7 +1652,7 @@ arcf_config_load(struct config      *data,
     }
     if (str != NULL)
     {
-        _Bool status;
+        bool  status;
         char *dberr = NULL;
 
         status = arcf_list_load(&conf->conf_internal, str, &dberr);
@@ -1666,7 +1664,7 @@ arcf_config_load(struct config      *data,
     }
     else if (!testmode)
     {
-        _Bool status;
+        bool  status;
         char *dberr = NULL;
 
         str = LOCALHOST;
@@ -1875,10 +1873,10 @@ arcf_config_load(struct config      *data,
 **  	err -- error string (returned; may be NULL)
 **
 **  Return value:
-**  	TRUE on success, FALSE otherwise.
+**  	true on success, false otherwise.
 */
 
-static _Bool
+static bool
 arcf_config_setlib(struct arcf_config *conf, char **err)
 {
     ARC_STAT status;
@@ -1896,7 +1894,7 @@ arcf_config_setlib(struct arcf_config *conf, char **err)
             {
                 *err = "failed to initialize ARC library";
             }
-            return FALSE;
+            return false;
         }
 
         conf->conf_libopenarc = lib;
@@ -1936,7 +1934,7 @@ arcf_config_setlib(struct arcf_config *conf, char **err)
         {
             *err = "failed to set ARC library options";
         }
-        return FALSE;
+        return false;
     }
 
     if (conf->conf_testkeys)
@@ -1951,7 +1949,7 @@ arcf_config_setlib(struct arcf_config *conf, char **err)
             {
                 *err = "failed to set ARC library options";
             }
-            return FALSE;
+            return false;
         }
     }
 
@@ -1968,7 +1966,7 @@ arcf_config_setlib(struct arcf_config *conf, char **err)
             {
                 *err = "failed to set ARC library options";
             }
-            return FALSE;
+            return false;
         }
     }
 
@@ -1985,11 +1983,11 @@ arcf_config_setlib(struct arcf_config *conf, char **err)
             {
                 *err = "failed to set ARC library options";
             }
-            return FALSE;
+            return false;
         }
     }
 
-    return TRUE;
+    return true;
 }
 
 /*
@@ -2027,7 +2025,7 @@ arcf_config_reload(void)
             syslog(LOG_ERR, "ignoring reload signal");
         }
 
-        reload = FALSE;
+        reload = false;
 
         pthread_mutex_unlock(&conf_lock);
         return;
@@ -2043,7 +2041,7 @@ arcf_config_reload(void)
     }
     else
     {
-        _Bool          err = FALSE;
+        bool           err = false;
         u_int          line;
         struct config *cfg;
         char          *missing;
@@ -2063,7 +2061,7 @@ arcf_config_reload(void)
                 syslog(LOG_ERR, "%s: configuration error at line %u: %s", path,
                        line, config_error());
             }
-            err = TRUE;
+            err = true;
         }
 
         if (deprecated != NULL)
@@ -2075,7 +2073,7 @@ arcf_config_reload(void)
                     "%s: settings found for deprecated value(s): %s; aborting",
                     path, deprecated);
             }
-            err = TRUE;
+            err = true;
         }
 
         if (!err)
@@ -2088,7 +2086,7 @@ arcf_config_reload(void)
                     syslog(LOG_ERR, "%s: required parameter \"%s\" missing",
                            conffile, missing);
                 }
-                err = TRUE;
+                err = true;
             }
         }
 
@@ -2099,7 +2097,7 @@ arcf_config_reload(void)
             {
                 syslog(LOG_ERR, "%s: %s", conffile, errbuf);
             }
-            err = TRUE;
+            err = true;
         }
 
         if (!err && !arcf_config_setlib(new, &errstr))
@@ -2109,7 +2107,7 @@ arcf_config_reload(void)
                 syslog(LOG_WARNING,
                        "can't configure ARC library: %s; continuing", errstr);
             }
-            err = TRUE;
+            err = true;
         }
 
         if (err)
@@ -2135,7 +2133,7 @@ arcf_config_reload(void)
         }
     }
 
-    reload = FALSE;
+    reload = false;
 
     pthread_mutex_unlock(&conf_lock);
 
@@ -2415,10 +2413,10 @@ arcf_findheader(msgctx afc, char *hname, int instance)
 **  	host -- hostname to find
 **
 **  Return value:
-**  	TRUE if there's a match, FALSE otherwise.
+**  	true if there's a match, false otherwise.
 */
 
-_Bool
+bool
 arcf_checkhost(struct conflist *list, char *host)
 {
     char               *p;
@@ -2430,7 +2428,7 @@ arcf_checkhost(struct conflist *list, char *host)
     /* short circuits */
     if (list == NULL || host[0] == '\0')
     {
-        return FALSE;
+        return false;
     }
 
     /* iterate over the possibilities */
@@ -2441,18 +2439,18 @@ arcf_checkhost(struct conflist *list, char *host)
         LIST_FOREACH(node, list, entries)
         if (strcmp(node->value, buf) == 0)
         {
-            return FALSE;
+            return false;
         }
 
         /* ...and now the positive case */
         LIST_FOREACH(node, list, entries)
         if (strcmp(node->value, &buf[1]) == 0)
         {
-            return TRUE;
+            return true;
         }
     }
 
-    return FALSE;
+    return false;
 }
 
 /*
@@ -2464,10 +2462,10 @@ arcf_checkhost(struct conflist *list, char *host)
 **  	ip -- IP address to find
 **
 **  Return value:
-**  	TRUE if there's a match, FALSE otherwise.
+**  	true if there's a match, false otherwise.
 */
 
-_Bool
+bool
 arcf_checkip(struct conflist *list, struct sockaddr *ip)
 {
     char ipbuf[ARC_MAXHOSTNAMELEN + 1];
@@ -2477,7 +2475,7 @@ arcf_checkip(struct conflist *list, struct sockaddr *ip)
     /* short circuit */
     if (list == NULL)
     {
-        return FALSE;
+        return false;
     }
 
 #if AF_INET6
@@ -2508,12 +2506,12 @@ arcf_checkip(struct conflist *list, struct sockaddr *ip)
         LIST_FOREACH(node, list, entries)
         if (strcmp(ipbuf, node->value) == 0)
         {
-            return FALSE;
+            return false;
         }
         LIST_FOREACH(node, list, entries)
         if (strcmp(&ipbuf[1], node->value) == 0)
         {
-            return TRUE;
+            return true;
         }
 
         /* try it with square brackets */
@@ -2524,12 +2522,12 @@ arcf_checkip(struct conflist *list, struct sockaddr *ip)
         LIST_FOREACH(node, list, entries)
         if (strcmp(ipbuf, node->value) == 0)
         {
-            return FALSE;
+            return false;
         }
         LIST_FOREACH(node, list, entries)
         if (strcmp(&ipbuf[1], node->value) == 0)
         {
-            return TRUE;
+            return true;
         }
 
         /* iterate over possible bitwise expressions */
@@ -2551,7 +2549,7 @@ arcf_checkip(struct conflist *list, struct sockaddr *ip)
             sz = strlcat(ipbuf, "/", sizeof ipbuf);
             if (sz >= sizeof ipbuf)
             {
-                return FALSE;
+                return false;
             }
 
             dst = &ipbuf[sz];
@@ -2560,18 +2558,18 @@ arcf_checkip(struct conflist *list, struct sockaddr *ip)
             sz = snprintf(dst, dst_len, "%d", 128 - bits);
             if (sz >= sizeof ipbuf)
             {
-                return FALSE;
+                return false;
             }
 
             LIST_FOREACH(node, list, entries)
             if (strcmp(ipbuf, node->value) == 0)
             {
-                return FALSE;
+                return false;
             }
             LIST_FOREACH(node, list, entries)
             if (strcmp(&ipbuf[1], node->value) == 0)
             {
-                return TRUE;
+                return true;
             }
 
             /* try it with square brackets */
@@ -2583,7 +2581,7 @@ arcf_checkip(struct conflist *list, struct sockaddr *ip)
             sz = strlcat(ipbuf, "/", sizeof ipbuf);
             if (sz >= sizeof ipbuf)
             {
-                return FALSE;
+                return false;
             }
 
             dst = &ipbuf[sz];
@@ -2592,18 +2590,18 @@ arcf_checkip(struct conflist *list, struct sockaddr *ip)
             sz = snprintf(dst, dst_len, "%d", 128 - bits);
             if (sz >= sizeof ipbuf)
             {
-                return FALSE;
+                return false;
             }
 
             LIST_FOREACH(node, list, entries)
             if (strcmp(ipbuf, node->value) == 0)
             {
-                return FALSE;
+                return false;
             }
             LIST_FOREACH(node, list, entries)
             if (strcmp(&ipbuf[1], node->value) == 0)
             {
-                return TRUE;
+                return true;
             }
 
             /* flip off a bit */
@@ -2638,12 +2636,12 @@ arcf_checkip(struct conflist *list, struct sockaddr *ip)
         LIST_FOREACH(node, list, entries)
         if (strcmp(ipbuf, node->value) == 0)
         {
-            return FALSE;
+            return false;
         }
         LIST_FOREACH(node, list, entries)
         if (strcmp(&ipbuf[1], node->value) == 0)
         {
-            return TRUE;
+            return true;
         }
 
         /* try it with square brackets */
@@ -2654,12 +2652,12 @@ arcf_checkip(struct conflist *list, struct sockaddr *ip)
         LIST_FOREACH(node, list, entries)
         if (strcmp(ipbuf, node->value) == 0)
         {
-            return FALSE;
+            return false;
         }
         LIST_FOREACH(node, list, entries)
         if (strcmp(&ipbuf[1], node->value) == 0)
         {
-            return TRUE;
+            return true;
         }
 
         /* iterate over possible bitwise expressions */
@@ -2693,12 +2691,12 @@ arcf_checkip(struct conflist *list, struct sockaddr *ip)
             LIST_FOREACH(node, list, entries)
             if (strcmp(ipbuf, node->value) == 0)
             {
-                return FALSE;
+                return false;
             }
             LIST_FOREACH(node, list, entries)
             if (strcmp(&ipbuf[1], node->value) == 0)
             {
-                return TRUE;
+                return true;
             }
 
             /* try it with square brackets */
@@ -2711,17 +2709,17 @@ arcf_checkip(struct conflist *list, struct sockaddr *ip)
             LIST_FOREACH(node, list, entries)
             if (strcmp(ipbuf, node->value) == 0)
             {
-                return FALSE;
+                return false;
             }
             LIST_FOREACH(node, list, entries)
             if (strcmp(&ipbuf[1], node->value) == 0)
             {
-                return TRUE;
+                return true;
             }
         }
     }
 
-    return FALSE;
+    return false;
 }
 
 #if SMFI_VERSION >= 0x01000000
@@ -2821,7 +2819,7 @@ mlfi_negotiate(SMFICTX       *ctx,
     {
         if (cc != NULL)
         {
-            cc->cctx_noleadspc = TRUE;
+            cc->cctx_noleadspc = true;
             *pf1 |= SMFIP_HDR_LEADSPC;
         }
     }
@@ -2833,7 +2831,7 @@ mlfi_negotiate(SMFICTX       *ctx,
     /* set "milterv2" flag if SMFIP_SKIP was available */
     if ((f1 & SMFIP_SKIP) != 0)
     {
-        cc->cctx_milterv2 = TRUE;
+        cc->cctx_milterv2 = true;
     }
 
     (void) arcf_setpriv(ctx, cc);
@@ -3064,7 +3062,7 @@ sfsistat
 mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 {
 #ifdef _FFR_REPLACE_RULES
-    _Bool dorepl = FALSE;
+    bool dorepl = false;
 #endif /* _FFR_REPLACE_RULES */
     msgctx              afc;
     connctx             cc;
@@ -3276,68 +3274,68 @@ mlfi_eoh(SMFICTX *ctx)
     /* if requested, verify RFC5322-required headers (RFC5322 3.6) */
     if (conf->conf_reqhdrs)
     {
-        _Bool ok = TRUE;
+        bool ok = true;
 
         /* exactly one From: */
         if (arcf_findheader(afc, "From", 0) == NULL ||
             arcf_findheader(afc, "From", 1) != NULL)
         {
-            ok = FALSE;
+            ok = false;
         }
 
         /* exactly one Date: */
         if (arcf_findheader(afc, "Date", 0) == NULL ||
             arcf_findheader(afc, "Date", 1) != NULL)
         {
-            ok = FALSE;
+            ok = false;
         }
 
         /* no more than one Reply-To: */
         if (arcf_findheader(afc, "Reply-To", 1) != NULL)
         {
-            ok = FALSE;
+            ok = false;
         }
 
         /* no more than one To: */
         if (arcf_findheader(afc, "To", 1) != NULL)
         {
-            ok = FALSE;
+            ok = false;
         }
 
         /* no more than one Cc: */
         if (arcf_findheader(afc, "Cc", 1) != NULL)
         {
-            ok = FALSE;
+            ok = false;
         }
 
         /* no more than one Bcc: */
         if (arcf_findheader(afc, "Bcc", 1) != NULL)
         {
-            ok = FALSE;
+            ok = false;
         }
 
         /* no more than one Message-Id: */
         if (arcf_findheader(afc, "Message-Id", 1) != NULL)
         {
-            ok = FALSE;
+            ok = false;
         }
 
         /* no more than one In-Reply-To: */
         if (arcf_findheader(afc, "In-Reply-To", 1) != NULL)
         {
-            ok = FALSE;
+            ok = false;
         }
 
         /* no more than one References: */
         if (arcf_findheader(afc, "References", 1) != NULL)
         {
-            ok = FALSE;
+            ok = false;
         }
 
         /* no more than one Subject: */
         if (arcf_findheader(afc, "Subject", 1) != NULL)
         {
-            ok = FALSE;
+            ok = false;
         }
 
         if (!ok)
@@ -3360,7 +3358,7 @@ mlfi_eoh(SMFICTX *ctx)
 
     if (!LIST_EMPTY(&conf->conf_sealheaderchecks))
     {
-        _Bool               found = FALSE;
+        bool                found = false;
         int                 restatus;
         struct configvalue *node;
         char                buf[BUFRSZ];
@@ -3413,7 +3411,7 @@ mlfi_eoh(SMFICTX *ctx)
                         str = json_string_value(json);
                         if (regexec(&re, str, 0, NULL, 0) == 0)
                         {
-                            found = TRUE;
+                            found = true;
                             break;
                         }
                     }
@@ -3432,7 +3430,7 @@ mlfi_eoh(SMFICTX *ctx)
 
                                 if (regexec(&re, str, 0, NULL, 0) == 0)
                                 {
-                                    found = TRUE;
+                                    found = true;
                                     break;
                                 }
                             }
@@ -3443,7 +3441,7 @@ mlfi_eoh(SMFICTX *ctx)
                 }
                 else if (regexec(&re, hdr->hdr_val, 0, NULL, 0) == 0)
                 {
-                    found = TRUE;
+                    found = true;
                     break;
                 }
             }
@@ -3621,7 +3619,7 @@ mlfi_body(SMFICTX *ctx, u_char *bodyp, size_t bodylen)
 }
 
 /* helper function to handle overriding the chain state */
-static _Bool
+static bool
 reconcile_arc_state(msgctx afc, struct result *r)
 {
     int initial_cv;
@@ -3742,7 +3740,7 @@ mlfi_eom(SMFICTX *ctx)
             if (no_i_whine && conf->conf_dolog)
             {
                 syslog(LOG_WARNING, "WARNING: symbol 'i' not available");
-                no_i_whine = FALSE;
+                no_i_whine = false;
             }
             afc->mctx_jobid = (u_char *) JOBIDUNKNOWN;
         }
@@ -3799,7 +3797,7 @@ mlfi_eom(SMFICTX *ctx)
 
     if (BITSET(ARC_MODE_SIGN, cc->cctx_mode))
     {
-        _Bool arfound = FALSE;
+        bool arfound = false;
         memset(&ar, '\0', sizeof ar);
         arc_dstring_blank(afc->mctx_tmpstr);
 
@@ -3833,7 +3831,7 @@ mlfi_eom(SMFICTX *ctx)
                     continue;
                 }
 
-                arfound = TRUE;
+                arfound = true;
                 if (reconcile_arc_state(afc, &ar.ares_result[i]) &&
                     conf->conf_dolog)
                 {
@@ -3869,7 +3867,7 @@ mlfi_eom(SMFICTX *ctx)
                 }
                 else
                 {
-                    _Bool quote = !ares_istoken(
+                    bool quote = !ares_istoken(
                         ar.ares_result[i].result_value[j]);
                     arc_dstring_printf(
                         afc->mctx_tmpstr, " %s.%s=%s%s%s",
@@ -3972,7 +3970,7 @@ mlfi_eom(SMFICTX *ctx)
 
         if (conf->conf_finalreceiver && arcchainlen > 0)
         {
-            _Bool quote = !ares_istoken((char *) arcchainbuf);
+            bool quote = !ares_istoken((char *) arcchainbuf);
 
             arc_dstring_printf(afc->mctx_tmpstr, " arc.chain=%s%s%s",
                                quote ? "\"" : "", arcchainbuf,
@@ -4155,18 +4153,18 @@ usage(void)
 int
 main(int argc, char **argv)
 {
-    _Bool autorestart = FALSE;
-    _Bool gotp = FALSE;
-    _Bool dofork = TRUE;
-    _Bool configonly = FALSE;
-    int   c;
-    int   status;
-    int   n;
-    int   verbose = 0;
-    int   maxrestarts = 0;
-    int   maxrestartrate_n = 0;
-    int   filemask = -1;
-    int   mdebug = 0;
+    bool autorestart = false;
+    bool gotp = false;
+    bool dofork = true;
+    bool configonly = false;
+    int  c;
+    int  status;
+    int  n;
+    int  verbose = 0;
+    int  maxrestarts = 0;
+    int  maxrestartrate_n = 0;
+    int  filemask = -1;
+    int  mdebug = 0;
 #ifdef HAVE_SMFI_VERSION
     u_int mvmajor;
     u_int mvminor;
@@ -4195,9 +4193,9 @@ main(int argc, char **argv)
     char           err[BUFRSZ + 1];
 
     /* initialize */
-    reload = FALSE;
+    reload = false;
     sock = NULL;
-    no_i_whine = TRUE;
+    no_i_whine = true;
     conffile = NULL;
 
     memset(myhostname, '\0', sizeof myhostname);
@@ -4222,7 +4220,7 @@ main(int argc, char **argv)
         switch (c)
         {
         case 'A':
-            autorestart = TRUE;
+            autorestart = true;
             break;
 
         case 'c':
@@ -4237,15 +4235,15 @@ main(int argc, char **argv)
             break;
 
         case 'f':
-            dofork = FALSE;
+            dofork = false;
             break;
 
         case 'l':
-            curconf->conf_dolog = TRUE;
+            curconf->conf_dolog = true;
             break;
 
         case 'n':
-            configonly = TRUE;
+            configonly = true;
             break;
 
         case 'p':
@@ -4255,7 +4253,7 @@ main(int argc, char **argv)
             }
             sock = optarg;
             (void) smfi_setconn(optarg);
-            gotp = TRUE;
+            gotp = true;
             break;
 
         case 'P':
@@ -4267,7 +4265,7 @@ main(int argc, char **argv)
             break;
 
         case 'r':
-            curconf->conf_reqhdrs = TRUE;
+            curconf->conf_reqhdrs = true;
             break;
 
         case 't':
@@ -4275,7 +4273,7 @@ main(int argc, char **argv)
             {
                 return usage();
             }
-            testmode = TRUE;
+            testmode = true;
             testfile = optarg;
             break;
 
@@ -4520,7 +4518,7 @@ main(int argc, char **argv)
             (void) config_get(cfg, "Socket", &sock, sizeof sock);
             if (sock != NULL)
             {
-                gotp = TRUE;
+                gotp = true;
                 (void) smfi_setconn(sock);
             }
         }
@@ -4554,9 +4552,9 @@ main(int argc, char **argv)
     /* suppress a bunch of things if we're in test mode */
     if (testmode)
     {
-        curconf->conf_dolog = FALSE;
-        autorestart = FALSE;
-        dofork = FALSE;
+        curconf->conf_dolog = false;
+        autorestart = false;
+        dofork = false;
         become = NULL;
         pidfile = NULL;
         chrootdir = NULL;
@@ -4686,7 +4684,7 @@ main(int argc, char **argv)
 
     if (curconf->conf_enablecores)
     {
-        _Bool enabled = FALSE;
+        bool enabled = false;
 
 #ifdef __linux__
         if (prctl(PR_SET_DUMPABLE, 1) == -1)
@@ -4700,7 +4698,7 @@ main(int argc, char **argv)
         }
         else
         {
-            enabled = TRUE;
+            enabled = true;
         }
 #endif /* __linux__ */
 
@@ -4716,11 +4714,11 @@ main(int argc, char **argv)
         }
     }
 
-    die = FALSE;
+    die = false;
 
     if (autorestart)
     {
-        _Bool            quitloop = FALSE;
+        bool             quitloop = false;
         int              restarts = 0;
         int              status;
         pid_t            pid;
@@ -4877,7 +4875,7 @@ main(int argc, char **argv)
                     }
                 }
 
-                quitloop = TRUE;
+                quitloop = true;
                 break;
 
             default:
@@ -4907,7 +4905,7 @@ main(int argc, char **argv)
                         {
                             arcf_killchild(pid, SIGUSR1, curconf->conf_dolog);
 
-                            reload = FALSE;
+                            reload = false;
 
                             continue;
                         }
@@ -4933,7 +4931,7 @@ main(int argc, char **argv)
                             {
                                 syslog(LOG_NOTICE, "exited with status %d",
                                        WEXITSTATUS(status));
-                                quitloop = TRUE;
+                                quitloop = true;
                             }
                             else
                             {
@@ -4946,7 +4944,7 @@ main(int argc, char **argv)
 
                     if (conffile != NULL)
                     {
-                        reload = TRUE;
+                        reload = true;
                     }
 
                     break;
@@ -5162,7 +5160,7 @@ main(int argc, char **argv)
 
 #ifdef HAVE_SMFI_OPENSOCKET
     /* try to establish the milter socket */
-    if (!testmode && smfi_opensocket(FALSE) == MI_FAILURE)
+    if (!testmode && smfi_opensocket(false) == MI_FAILURE)
     {
         if (curconf->conf_dolog)
         {
@@ -5251,7 +5249,7 @@ main(int argc, char **argv)
     }
 
     /* tell the reloader thread to die */
-    die = TRUE;
+    die = true;
     (void) raise(SIGUSR1);
 
     if (!autorestart && pidfile != NULL)

@@ -14,6 +14,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -84,8 +85,8 @@ static char *optlist[] = {
 void
 arcf_optlist(FILE *where)
 {
-    _Bool first = TRUE;
-    int   c;
+    bool first = true;
+    int  c;
 
     assert(where != NULL);
 
@@ -94,7 +95,7 @@ arcf_optlist(FILE *where)
         if (first)
         {
             fprintf(where, "\tActive code options:\n");
-            first = FALSE;
+            first = false;
         }
 
         fprintf(where, "\t\t%s\n", optlist[c]);

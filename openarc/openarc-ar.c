@@ -9,14 +9,12 @@
 #include "build-config.h"
 
 /* system includes */
-#include <sys/param.h>
-#include <sys/types.h>
-#ifdef HAVE_STDBOOL_H
-#include <stdbool.h>
-#endif /* HAVE_STDBOOL_H */
 #include <assert.h>
 #include <ctype.h>
+#include <stdbool.h>
 #include <string.h>
+#include <sys/param.h>
+#include <sys/types.h>
 #ifdef ARTEST
 #include <sysexits.h>
 #endif /* ARTEST */
@@ -135,9 +133,9 @@ ares_tokenize(const char *input,
               char      **tokens,
               int         ntokens)
 {
-    _Bool quoted = FALSE;
-    _Bool escaped = FALSE;
-    _Bool intok = FALSE;
+    bool  quoted = false;
+    bool  escaped = false;
+    bool  intok = false;
     int   n = 0;
     int   parens = 0;
     char *q;
@@ -162,7 +160,7 @@ ares_tokenize(const char *input,
                 {
                     tokens[n] = q;
                 }
-                intok = TRUE;
+                intok = true;
             }
 
             if (*p == '\\' || *p == '"')
@@ -173,11 +171,11 @@ ares_tokenize(const char *input,
             }
             *q = *p;
             q++;
-            escaped = FALSE;
+            escaped = false;
         }
         else if (*p == '\\' && quoted) /* escape */
         {
-            escaped = TRUE;
+            escaped = true;
         }
         else if (*p == '"' && parens == 0) /* quoting */
         {
@@ -189,7 +187,7 @@ ares_tokenize(const char *input,
                 {
                     tokens[n] = q;
                 }
-                intok = TRUE;
+                intok = true;
             }
         }
         else if (*p == '(' && !quoted) /* "(" (comment) */
@@ -202,7 +200,7 @@ ares_tokenize(const char *input,
                 {
                     tokens[n] = q;
                 }
-                intok = TRUE;
+                intok = true;
             }
 
             *q = *p;
@@ -216,7 +214,7 @@ ares_tokenize(const char *input,
 
                 if (parens == 0)
                 {
-                    intok = FALSE;
+                    intok = false;
                     n++;
 
                     *q = ')';
@@ -255,7 +253,7 @@ ares_tokenize(const char *input,
                 }
                 else
                 {
-                    intok = FALSE;
+                    intok = false;
                     *q = '\0';
                     q++;
                     n++;
@@ -273,7 +271,7 @@ ares_tokenize(const char *input,
 
             if (intok)
             {
-                intok = FALSE;
+                intok = false;
                 *q = '\0';
                 q++;
                 n++;
@@ -304,7 +302,7 @@ ares_tokenize(const char *input,
                 {
                     tokens[n] = q;
                 }
-                intok = TRUE;
+                intok = true;
             }
 
             *q = *p;
@@ -402,13 +400,13 @@ ares_xconvert(struct lookup *table, int code)
 **  	Whether the method was added
 */
 
-static _Bool
+static bool
 ares_method_add(struct authres *ar, struct result *r)
 {
     if (r->result_method == ARES_METHOD_UNKNOWN ||
         ar->ares_count >= MAXARESULTS)
     {
-        return FALSE;
+        return false;
     }
     if (r->result_method != ARES_METHOD_DKIM)
     {
@@ -416,7 +414,7 @@ ares_method_add(struct authres *ar, struct result *r)
         {
             if (ar->ares_result[i].result_method == r->result_method)
             {
-                return FALSE;
+                return false;
             }
         }
     }
@@ -424,7 +422,7 @@ ares_method_add(struct authres *ar, struct result *r)
     memcpy(ar->ares_result + ar->ares_count, r,
            sizeof ar->ares_result[ar->ares_count]);
     ar->ares_count++;
-    return TRUE;
+    return true;
 }
 
 /*
@@ -789,27 +787,27 @@ ares_parse(const char *hdr, struct authres *ar, const char *authserv)
 **	str -- string to check
 **
 **  Return value:
-**	TRUE if the string contains no characters that require quoting,
-**      FALSE otherwise.
+**	true if the string contains no characters that require quoting,
+**      false otherwise.
 */
-_Bool
+bool
 ares_istoken(const char *str)
 {
     for (const char *c = str; *c != '\0'; c++)
     {
         if (iscntrl(*c))
         {
-            return FALSE;
+            return false;
         }
         /* ' ' and tspecials from RFC 2045 except @
          * (local-part@domain-name doesn't require quoting)
          */
         if (strchr(" ()<>,;:\\\"/[]?=", *c) != NULL)
         {
-            return FALSE;
+            return false;
         }
     }
-    return TRUE;
+    return true;
 }
 
 /*

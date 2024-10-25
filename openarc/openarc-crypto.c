@@ -10,15 +10,13 @@
 #include "build-config.h"
 
 /* system includes */
-#include <sys/types.h>
-#ifdef HAVE_STDBOOL_H
-#include <stdbool.h>
-#endif /* HAVE_STDBOOL_H */
 #include <assert.h>
 #include <errno.h>
 #include <pthread.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
 
 /* openssl includes */
 #include <openssl/conf.h>
@@ -32,7 +30,7 @@
 #include "openarc.h"
 
 /* globals */
-static _Bool            crypto_init_done = FALSE;
+static bool             crypto_init_done = false;
 static pthread_mutex_t  id_lock;
 static pthread_key_t    id_key;
 static unsigned int     nmutexes = 0;
@@ -294,7 +292,7 @@ arcf_crypto_init(void)
     }
 #endif /* USE_OPENSSL_ENGINE */
 
-    crypto_init_done = TRUE;
+    crypto_init_done = true;
 
     return 0;
 }
@@ -334,7 +332,7 @@ arcf_crypto_free(void)
             nmutexes = 0;
         }
 
-        crypto_init_done = FALSE;
+        crypto_init_done = false;
     }
 }
 

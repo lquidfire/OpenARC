@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <netinet/in.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -360,7 +361,7 @@ arcf_testfile(ARC_LIB             *libopenarc,
               char                *file,
               int                  tverbose)
 {
-    bool     inheaders = TRUE;
+    bool     inheaders = true;
     int      len = 0;
     int      buflen = 0;
     int      lineno = 0;
@@ -451,7 +452,7 @@ arcf_testfile(ARC_LIB             *libopenarc,
                     }
                 }
 
-                inheaders = FALSE;
+                inheaders = false;
                 memset(buf, '\0', sizeof buf);
                 memset(line, '\0', sizeof buf);
 
@@ -592,7 +593,7 @@ arcf_testfile(ARC_LIB             *libopenarc,
             return EX_SOFTWARE;
         }
 
-        inheaders = FALSE;
+        inheaders = false;
         memset(buf, '\0', sizeof buf);
     }
 

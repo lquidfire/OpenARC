@@ -20,18 +20,18 @@
 #include "arc.h"
 
 /* PROTOTYPES */
-extern int arcf_testfiles        __P((ARC_LIB *, char *, int) );
+extern int   arcf_testfiles(ARC_LIB *, char *, int);
 
-extern int arcf_test_addheader   __P((void *, char *, char *) );
-extern int arcf_test_addrcpt     __P((void *, char *) );
-extern int arcf_test_chgheader   __P((void *, char *, int, char *) );
-extern int arcf_test_delrcpt     __P((void *, char *) );
-extern void *arcf_test_getpriv   __P((void *) );
-extern char *arcf_test_getsymval __P((void *, char *) );
-extern int arcf_test_insheader   __P((void *, int, char *, char *) );
-extern int arcf_test_progress    __P((void *) );
-extern int arcf_test_quarantine  __P((void *, char *) );
-extern int arcf_test_setpriv     __P((void *, void *) );
-extern int arcf_test_setreply    __P((void *, char *, char *, char *) );
+extern int   arcf_test_addheader(void *, char *, char *);
+extern int   arcf_test_addrcpt(void *, char *);
+extern int   arcf_test_chgheader(void *, char *, int, char *);
+extern int   arcf_test_delrcpt(void *, char *);
+extern void *arcf_test_getpriv(void *);
+extern char *arcf_test_getsymval(void *, char *);
+extern int   arcf_test_insheader(void *, int, char *, char *);
+extern int   arcf_test_progress(void *);
+extern int   arcf_test_quarantine(void *, char *);
+extern int   arcf_test_setpriv(void *, void *);
+extern int   arcf_test_setreply(void *, char *, char *, char *);
 
 #endif /* _TEST_H_ */

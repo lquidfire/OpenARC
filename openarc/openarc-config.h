@@ -8,56 +8,49 @@
 #include "build-config.h"
 
 /* system includes */
+#include <stdbool.h>
 #include <sys/types.h>
-
-/* macros */
-#ifndef FALSE
-#define FALSE 0
-#endif /* ! FALSE */
-#ifndef TRUE
-#define TRUE 1
-#endif /* ! TRUE */
 
 /* config definition */
 struct configdef arcf_config[] = {
-    {"AuthResIP",                     CONFIG_TYPE_BOOLEAN, FALSE},
-    {"AuthservID",                    CONFIG_TYPE_STRING,  FALSE},
-    {"AutoRestart",                   CONFIG_TYPE_BOOLEAN, FALSE},
-    {"AutoRestartCount",              CONFIG_TYPE_INTEGER, FALSE},
-    {"AutoRestartRate",               CONFIG_TYPE_STRING,  FALSE},
-    {"Background",                    CONFIG_TYPE_BOOLEAN, FALSE},
-    {"BaseDirectory",                 CONFIG_TYPE_STRING,  FALSE},
-    {"Canonicalization",              CONFIG_TYPE_STRING,  FALSE},
-    {"ChangeRootDirectory",           CONFIG_TYPE_STRING,  FALSE},
-    {"Domain",                        CONFIG_TYPE_STRING,  FALSE},
-    {"EnableCoredumps",               CONFIG_TYPE_BOOLEAN, FALSE},
-    {"FinalReceiver",                 CONFIG_TYPE_BOOLEAN, FALSE},
-    {"FixedTimestamp",                CONFIG_TYPE_STRING,  FALSE},
-    {"Include",                       CONFIG_TYPE_INCLUDE, FALSE},
-    {"InternalHosts",                 CONFIG_TYPE_STRING,  FALSE},
-    {"KeepTemporaryFiles",            CONFIG_TYPE_BOOLEAN, FALSE},
-    {"KeyFile",                       CONFIG_TYPE_STRING,  FALSE},
-    {"MaximumHeaders",                CONFIG_TYPE_INTEGER, FALSE},
-    {"MilterDebug",                   CONFIG_TYPE_INTEGER, FALSE},
-    {"Mode",                          CONFIG_TYPE_STRING,  FALSE},
-    {"PeerList",                      CONFIG_TYPE_STRING,  FALSE},
-    {"PermitAuthenticationOverrides", CONFIG_TYPE_BOOLEAN, FALSE},
-    {"PidFile",                       CONFIG_TYPE_STRING,  FALSE},
-    {"RequireSafeKeys",               CONFIG_TYPE_BOOLEAN, FALSE},
-    {"Selector",                      CONFIG_TYPE_STRING,  FALSE},
-    {"SignatureAlgorithm",            CONFIG_TYPE_STRING,  FALSE},
-    {"SignHeaders",                   CONFIG_TYPE_STRING,  FALSE},
-    {"OverSignHeaders",               CONFIG_TYPE_STRING,  FALSE},
-    {"SealHeaderChecks",              CONFIG_TYPE_STRING,  FALSE},
-    {"Socket",                        CONFIG_TYPE_STRING,  FALSE},
-    {"SoftwareHeader",                CONFIG_TYPE_BOOLEAN, FALSE},
-    {"Syslog",                        CONFIG_TYPE_BOOLEAN, FALSE},
-    {"SyslogFacility",                CONFIG_TYPE_STRING,  FALSE},
-    {"TemporaryDirectory",            CONFIG_TYPE_STRING,  FALSE},
-    {"TestKeys",                      CONFIG_TYPE_STRING,  FALSE},
-    {"UMask",                         CONFIG_TYPE_INTEGER, FALSE},
-    {"UserID",                        CONFIG_TYPE_STRING,  FALSE},
-    {NULL,                            (u_int) -1,          FALSE}
+    {"AuthResIP",                     CONFIG_TYPE_BOOLEAN, false},
+    {"AuthservID",                    CONFIG_TYPE_STRING,  false},
+    {"AutoRestart",                   CONFIG_TYPE_BOOLEAN, false},
+    {"AutoRestartCount",              CONFIG_TYPE_INTEGER, false},
+    {"AutoRestartRate",               CONFIG_TYPE_STRING,  false},
+    {"Background",                    CONFIG_TYPE_BOOLEAN, false},
+    {"BaseDirectory",                 CONFIG_TYPE_STRING,  false},
+    {"Canonicalization",              CONFIG_TYPE_STRING,  false},
+    {"ChangeRootDirectory",           CONFIG_TYPE_STRING,  false},
+    {"Domain",                        CONFIG_TYPE_STRING,  false},
+    {"EnableCoredumps",               CONFIG_TYPE_BOOLEAN, false},
+    {"FinalReceiver",                 CONFIG_TYPE_BOOLEAN, false},
+    {"FixedTimestamp",                CONFIG_TYPE_STRING,  false},
+    {"Include",                       CONFIG_TYPE_INCLUDE, false},
+    {"InternalHosts",                 CONFIG_TYPE_STRING,  false},
+    {"KeepTemporaryFiles",            CONFIG_TYPE_BOOLEAN, false},
+    {"KeyFile",                       CONFIG_TYPE_STRING,  false},
+    {"MaximumHeaders",                CONFIG_TYPE_INTEGER, false},
+    {"MilterDebug",                   CONFIG_TYPE_INTEGER, false},
+    {"Mode",                          CONFIG_TYPE_STRING,  false},
+    {"PeerList",                      CONFIG_TYPE_STRING,  false},
+    {"PermitAuthenticationOverrides", CONFIG_TYPE_BOOLEAN, false},
+    {"PidFile",                       CONFIG_TYPE_STRING,  false},
+    {"RequireSafeKeys",               CONFIG_TYPE_BOOLEAN, false},
+    {"Selector",                      CONFIG_TYPE_STRING,  false},
+    {"SignatureAlgorithm",            CONFIG_TYPE_STRING,  false},
+    {"SignHeaders",                   CONFIG_TYPE_STRING,  false},
+    {"OverSignHeaders",               CONFIG_TYPE_STRING,  false},
+    {"SealHeaderChecks",              CONFIG_TYPE_STRING,  false},
+    {"Socket",                        CONFIG_TYPE_STRING,  false},
+    {"SoftwareHeader",                CONFIG_TYPE_BOOLEAN, false},
+    {"Syslog",                        CONFIG_TYPE_BOOLEAN, false},
+    {"SyslogFacility",                CONFIG_TYPE_STRING,  false},
+    {"TemporaryDirectory",            CONFIG_TYPE_STRING,  false},
+    {"TestKeys",                      CONFIG_TYPE_STRING,  false},
+    {"UMask",                         CONFIG_TYPE_INTEGER, false},
+    {"UserID",                        CONFIG_TYPE_STRING,  false},
+    {NULL,                            (u_int) -1,          false}
 };
 
 #endif /* _ARC_CONFIG_H_ */
