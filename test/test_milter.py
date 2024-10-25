@@ -530,6 +530,16 @@ def test_milter_authresip(run_miltertest):
     assert res['headers'][3][1] == ' i=1; example.com; arc=none'
 
 
+def test_milter_finalreceiver(run_miltertest):
+    """FinalReceiver adds arc.chain"""
+    headers = []
+    for i in range(0, 3):
+        res = run_miltertest(headers)
+        headers = [*res['headers'], *headers]
+
+    assert res['headers'][0][1] == ' example.com; arc=pass header.oldest-pass=0 smtp.remote-ip=127.0.0.1 arc.chain="example.com:example.com"'
+
+
 def test_milter_peerlist(run_miltertest):
     """Connections from peers just get `accept` back immediately"""
     with pytest.raises(miltertest.MilterError, match='unexpected response: a'):
