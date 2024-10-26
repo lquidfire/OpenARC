@@ -82,19 +82,6 @@ outer_LIBS="$LIBS"
 #
 # Checks for libraries
 #
-saved_LIBS="$LIBS"
-LIBS=""
-AC_SEARCH_LIBS(inet_addr, nsl)
-LIBNSL_LIBS="$LIBS"
-LIBS="$saved_LIBS"
-AC_SUBST([LIBNSL_LIBS])
-
-saved_LIBS="$LIBS"
-LIBS=""
-AC_SEARCH_LIBS(dlopen, dl)
-LIBDL_LIBS="$LIBS"
-LIBS="$saved_LIBS"
-AC_SUBST([LIBDL_LIBS])
 
 AC_SEARCH_LIBS(socket, socket)
 AC_SEARCH_LIBS(inet_aton, resolv)
@@ -271,89 +258,6 @@ then
 fi
 
 #
-# Checks for structure members
-#
-AC_CHECK_MEMBER([struct sockaddr_un.sun_len],
-                AC_DEFINE([HAVE_SUN_LEN],
-                          [1],
-                          [Define if sockaddr_un has a sun_len member]),
-                [],
-                [[#include <sys/un.h>]])
-
-AC_CHECK_MEMBER([struct sockaddr_in.sin_len],
-                AC_DEFINE([HAVE_SIN_LEN],
-                          [1],
-                          [Define if sockaddr_in has a sin_len member]),
-                [],
-                [[#include <netinet/in.h>]])
-
-AC_CHECK_MEMBER([struct sockaddr_in6.sin6_len],
-                AC_DEFINE([HAVE_SIN6_LEN],
-                          [1],
-                          [Define if sockaddr_in6 has a sin6_len member]),
-                [],
-                [[#include <netinet/in.h>]])
-
-#
-# Library feature string and macros
-#
-LIBOPENARC_FEATURE_STRING="libopenarc $PACKAGE_VERSION:"
-
-AC_DEFUN([TR_UP], [m4_translit([AS_TR_SH([$1])], [a-z], [A-Z])])
-
-AC_DEFUN([FEATURE],
-         [notincluded="(Not enabled for this installation.)"
-          AC_ARG_ENABLE($1, AS_HELP_STRING(--enable-$1, $2),
-                        AS_IF([test "x$enable_]$1[" = "xyes"],
-                              [
-				AC_SUBST(TR_UP($1)[_MANNOTICE], "")
-				AC_DEFINE(TR_UP($1), 1, [enable $1 feature])
-			      ],
-			      [
-				AC_SUBST(TR_UP($1)[_MANNOTICE], $notincluded)
-			      ]),
-                        AC_SUBST(TR_UP($1)[_MANNOTICE], $notincluded))
-         ])
-
-AC_DEFUN([LIB_FEATURE],
-         [FEATURE($1, $2)
-          AS_IF([test "x$enable_]$1[" = "xyes"],
-	        [
-			LIBOPENARC_FEATURE_STRING="$LIBOPENARC_FEATURE_STRING $1"
-		])
-         ])
-
-AC_DEFUN([FFR_FEATURE],
-         [experimentalnotincluded="(Experimental feature not enabled for this installation.)"
-          AC_ARG_ENABLE($1, AS_HELP_STRING(--enable-$1, $2),
-                        AS_IF([test "x$enable_]$1[" = "xyes"],
-                              [
-				AC_DEFINE([_FFR_]TR_UP($1), 1,
-				          [enable $1 feature])
-				AC_SUBST(TR_UP($1)[_MANNOTICE],
-				         "(Note: Feature is experimental.)")
-                              ],
-                              [
-				AC_SUBST(TR_UP($1)[_MANNOTICE],
-				         $experimentalnotincluded)
-                              ]),
-                        AC_SUBST(TR_UP($1)[_MANNOTICE],
-                                 $experimentalnotincluded))
-         ])
-
-AC_DEFUN([LIB_FFR_FEATURE],
-         [FFR_FEATURE($1, $2)
-          AS_IF([test "x$enable_]$1[" = "xyes"],
-                [
-			LIBOPENARC_FEATURE_STRING="$LIBOPENARC_FEATURE_STRING $1"
-		])
-         ])
-
-#
-# openarc
-#
-
-#
 # use rpath at load time?
 #
 
@@ -372,134 +276,6 @@ then
 fi
 
 #
-# test coverage/profiling stuff
-#
-AC_ARG_ENABLE([codecoverage],
-	AS_HELP_STRING([--enable-codecoverage],
-	               [include code coverage/profiling code]))
-if test x"$enable_codecoverage" = x"yes"
-then
-	# gcc can do all of them; Solaris cc can only do gprof
-	AC_CHECK_PROG([hasgcc], [gcc], [yes])
-	AC_CHECK_PROG([hascc], [cc], [yes])
-	if test x"$hasgcc" != x"yes" -a x"$hascc" = x"yes"
-	then
-		if test x`cc -V 2>&1 | grep -c "Sun C"` = x"1"
-		then
-			hassuncc="yes"
-		fi
-	fi
-
-	# figure out which profiling system to use
-	AC_CHECK_PROG([hasgprof], [gprof], [yes])
-	AC_ARG_WITH(gprof,
-		AS_HELP_STRING(--with-gprof, profiling with gprof),
-		hasgprof="$withval")
-	if test x"$hasgcc" = x"yes"
-	then
-		AC_CHECK_PROG([hasgcov], [gcov], [yes])
-		AC_ARG_WITH(gcov,
-			AS_HELP_STRING(--with-gcov, profiling with gcov),
-			hasgcov="$withval")
-		AC_CHECK_PROG([haslcov], [lcov], [yes])
-		AC_ARG_WITH(lcov,
-			AS_HELP_STRING(--with-lcov, profiling with lcov),
-			haslcov="$withval")
-	fi
-
-	# bail if none
-	if test x"$hasgprof" != x"yes" -a \
-		x"$hasgcov" != x"yes" -a \
-		x"$haslcov" != x"yes"
-	then
-		AC_MSG_ERROR([no supported test coverage packages found])
-	fi
-
-	# see if there's a libgcov (OpenBSD doesn't have one)
-	if test x"$hasgcov" = x"yes" -a x"$haslcov" != x"yes"
-	then
-		saved_LIBS="$LIBS"
-		LIBS="$outer_LIBS"
-		AC_SEARCH_LIBS([__gcov_init], [gcov])
-		GCOV_LIBS="$LIBS"
-		LIBS="$saved_LIBS"
-	fi
-
-	COV_CFLAGS=""
-	COV_LDFLAGS=""
-	COV_LIBADD=""
-
-	# sun profiling
-	if test x"$hasgprof" = x"yes" -a \
-	        x"$hasgcov" != x"yes" -a \
-	        x"$hassuncc" = x"yes"
-	then
-		COV_CFLAGS="-g -xpg"
-		COV_LDFLAGS="-g -xpg"
-	# non-sun profiling
-	elif test x"$hasgprof" = x"yes" -a \
-		x"$hasgcov" != x"yes" -a \
-		x"$hassuncc" != x"yes"
-	then
-		COV_CFLAGS="-g -pg"
-		COV_LDFLAGS="-g -pg"
-	# gcov profiling
-	elif test x"$hasgcov" = x"yes"
-	then
-		COV_CFLAGS="-g -fprofile-arcs -ftest-coverage"
-		COV_LIBADD="$GCOV_LIBS"
-	fi
-
-	AC_SUBST(COV_CFLAGS)
-	AC_SUBST(COV_LDFLAGS)
-	AC_SUBST(COV_LIBADD)
-fi
-
-# see if profiling-enabled binaries generate profile output with the
-# standard name "gmon.out" or "<file>.gmon"
-
-gprof_gmon_out="unknown"
-if test x"$hasgprof" = x"yes"
-then
-	gprofcheck='
-int main() {
-	long x;
-
-	x = random();
-}'
-	AC_MSG_CHECKING([names of profiling output files])
-
-	saved_CFLAGS="$CFLAGS"
-	saved_LDFLAGS="$LDFLAGS"
-
-	CFLAGS="$CFLAGS $COV_CFLAGS"
-	LDFLAGS="$LDFLAGS $COV_LDFLAGS"
-
-	AC_RUN_IFELSE([AC_LANG_SOURCE([$gprofcheck])],
-	              [	if test -f "gmon.out"
-			then
-				gprof_gmon_out="yes"
-				rm -f gmon.out
-				AC_MSG_RESULT(gmon.out)
-			else
-				gprof_gmon_out="no"
-				rm -f *.gmon
-				AC_MSG_RESULT([<binary>.gmon])
-			fi
-	              ],
-	              [AC_MSG_RESULT(unknown)])
-
-	CFLAGS="$saved_CFLAGS"
-	LDFLAGS="$saved_LDFLAGS"
-fi
-
-AM_CONDITIONAL(LCOV, test x"$haslcov" = x"yes" -a x"$hasgcov" = x"yes")
-AM_CONDITIONAL(GCOV, test x"$hasgcov" = x"yes")
-AM_CONDITIONAL(GCOV_ONLY, test x"$hasgcov" = x"yes" -a x"$haslcov" != x"yes")
-AM_CONDITIONAL(GPROF, test x"$hasgprof" = x"yes" -a x"$hasgcov" != x"yes")
-AM_CONDITIONAL(GPROF_FILENAMES, test x"$gprof_gmon_out" = x"no")
-
-#
 # openarc
 #
 AC_ARG_ENABLE([filter],
@@ -512,6 +288,9 @@ AM_CONDITIONAL([BUILD_FILTER], [test x"$enable_filter" != x"no"])
 #
 # Conditional stuff
 #
+
+LIBOPENARC_FEATURE_STRING="libopenarc $PACKAGE_VERSION:"
+
 AC_ARG_ENABLE([allsymbols],
               AS_HELP_STRING([--enable-allsymbols],
                              [export internal-use symbols for better test coverage]))
