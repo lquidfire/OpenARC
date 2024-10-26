@@ -278,13 +278,6 @@ unless an alternate
 .I group
 is specified.
 
-.SH NOTES
-Features that involve specification of IPv4 addresses or CIDR blocks
-will use the
-.I inet_addr(3)
-function to parse that information.  Users should be familiar with the
-way that function handles the non-trivial cases (for example, "192.0.2/24"
-and "192.0.2.0/24" are not the same thing).
 .SH FILES
 .TP
 .I @SYSCONFDIR@/openarc.conf
@@ -301,15 +294,10 @@ Copyright (c) 2009-2017, The Trusted Domain Project.  All rights reserved.
 .SH SEE ALSO
 .I openarc(8), sendmail(8)
 .P
-RFC5451 - Message Header Field for Indicating Message Authentication Status
-.P
-RFC5617 - DKIM Author Domain Signing Practises
-.P
-RFC5965 - An Extensible Format for Email Feedback Reports
-.P
-RFC6008 - Authentication-Results Registration for Differentiating among
-Cryptographic Results
-.P
 RFC6376 - DomainKeys Identified Mail
 .P
-RFC6651 - Extensions to DomainKeys Identified Mail (DKIM) for Failure Reporting
+RFC8601 - Message Header Field for Indicating Message Authentication Status
+.P
+RFC8616 - Email Authentication for Internationalized Mail
+.P
+RFC8617 - The Authenticated Received Chain (ARC) Protocol

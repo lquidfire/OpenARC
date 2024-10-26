@@ -111,5 +111,4 @@ RFC5321 - Simple Mail Transfer Protocol
 .P
 RFC5322 - Internet Messages
 .P
-RFC7601 - Message Header Field for Indicating Message Authentication Status
-.P
+RFC8601 - Message Header Field for Indicating Message Authentication Status
