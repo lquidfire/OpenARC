@@ -189,21 +189,14 @@ strl_h_found="no"
 
 AC_CHECK_HEADERS([bsd/string.h], [bsdstrl_h_found="yes"])
 
-AC_CHECK_FUNCS([strlcat strlcpy], [strl_found="yes"],
-               [
-                saved_LIBS="$LIBS"
-                LIBS="$outer_LIBS"
-                AC_SEARCH_LIBS([strlcat],
-                               [bsd strl],
-                               [libstrl_found="yes"],
-                               [strl_found="no"])
-                AC_SEARCH_LIBS([strlcpy],
-                               [bsd strl],
-                               [libstrl_found="yes"],
-                               [strl_found="no"])
-                STRL_LIBS="$LIBS"
-                LIBS="$saved_LIBS"
-               ])
+AC_CHECK_FUNCS([strlcat strlcpy], [strl_found="yes"], [
+    saved_LIBS="$LIBS"
+    LIBS="$outer_LIBS"
+    AC_SEARCH_LIBS([strlcat], [bsd strl], [libstrl_found="yes"], [strl_found="no"])
+    AC_SEARCH_LIBS([strlcpy], [bsd strl], [libstrl_found="yes"], [strl_found="no"])
+    STRL_LIBS="$LIBS"
+    LIBS="$saved_LIBS"
+])
 
 AS_IF([test "x$libstrl_found" = xyes], [LIBS="$LIBS $STRL_LIBS"])
 
@@ -357,23 +350,20 @@ AC_SUBST(LIBMILTER_LIBS)
 
 AC_ARG_WITH([libjansson], AS_HELP_STRING([--with-libjansson], [use Jansson for header field checks]))
 
-AS_IF(
-    [test "x$enable_filter" != xno -a "x$with_libjansson" != xno],
-    [
-        PKG_CHECK_MODULES(
-            [LIBJANSSON],
-            [jansson >= 2.2.1],
-            [AC_DEFINE([USE_JANSSON], [1], [use Jansson for header field checks])]
-        )
-    ]
-)
+AS_IF([test "x$enable_filter" != xno -a "x$with_libjansson" != xno], [
+    PKG_CHECK_MODULES(
+        [LIBJANSSON],
+        [jansson >= 2.2.1],
+        [AC_DEFINE([USE_JANSSON], [1], [use Jansson for header field checks])]
+    )
+])
 
 AC_SUBST(LIBJANSSON_CFLAGS)
 AC_SUBST(LIBJANSSON_LIBS)
 
 
 AC_DEFINE_UNQUOTED([LIBOPENARC_FEATURE_STRING], "$LIBOPENARC_FEATURE_STRING",
-                   [Feature string for printing])
+    [Feature string for printing])
 
 #
 # final command line tweaks
