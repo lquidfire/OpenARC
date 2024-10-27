@@ -34,8 +34,6 @@ libopenarc_libopenarc_la_SOURCES = \
 	libopenarc/arc-internal.h \
 	libopenarc/arc-keys.c \
 	libopenarc/arc-keys.h \
-	libopenarc/arc-mailparse.c \
-	libopenarc/arc-mailparse.h \
 	libopenarc/arc-tables.c \
 	libopenarc/arc-tables.h \
 	libopenarc/arc-types.h \

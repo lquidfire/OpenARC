@@ -34,6 +34,9 @@ All notable changes to this project will be documented in this file.
 - milter - An `ar-test` program for seeing how `Authentication-Results`
   headers are parsed is built without making you jump through weird hoops.
 
+### Removed
+- libopenarc - `arc_mail_parse()`
+
 ### Fixed
 - libopenarc - Seals on failed chains only cover the latest ARC header set,
   as required by [RFC 8617 section 5.1.2](https://datatracker.ietf.org/doc/html/rfc8617#section-5.1.2).
