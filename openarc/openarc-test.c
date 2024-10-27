@@ -338,7 +338,7 @@ arcf_test_getsymval(void *ctx, char *sym)
 
     snprintf(symout, sizeof symout, "DEBUG-%s", sym);
 
-    return strdup(symout);
+    return ARC_STRDUP(symout);
 }
 
 /*
@@ -669,7 +669,7 @@ arcf_testfiles(ARC_LIB *libopenarc, char *flist, int verbose)
     tverbose = verbose;
 
     /* set up a fake SMFICTX */
-    tctx = (struct test_context *) malloc(sizeof(struct test_context));
+    tctx = ARC_MALLOC(sizeof(struct test_context));
     if (tctx == NULL)
     {
         fprintf(stderr, "%s: malloc(): %s\n", progname, strerror(errno));

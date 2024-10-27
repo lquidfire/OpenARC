@@ -24,10 +24,6 @@
 #include <sys/prctl.h>
 #endif /* __linux__ */
 #include <sys/queue.h>
-#ifdef USE_LUA
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#endif /* USE_LUA */
 #ifdef AF_INET6
 #include <arpa/inet.h>
 #endif /* AF_INET6 */
@@ -266,22 +262,12 @@ pthread_mutex_t     pwdb_lock;  /* passwd/group lock */
 char                myhostname[MAXHOSTNAMELEN + 1]; /* local host's name */
 
 /* Other useful definitions */
-#define CRLF         "\r\n" /* CRLF */
-#define SUPERUSER    "root" /* superuser name */
+#define CRLF           "\r\n" /* CRLF */
+#define SUPERUSER      "root" /* superuser name */
 
 /* MACROS */
-#define BITSET(b, s) (((b) & (s)) == (b))
-#define JOBID(x)     ((x) == NULL ? JOBIDUNKNOWN : (char *) (x))
-#define TRYFREE(x)                                                             \
-    do                                                                         \
-    {                                                                          \
-        if ((x) != NULL)                                                       \
-        {                                                                      \
-            free(x);                                                           \
-            (x) = NULL;                                                        \
-        }                                                                      \
-    }                                                                          \
-    while (0)
+#define BITSET(b, s)   (((b) & (s)) == (b))
+#define JOBID(x)       ((x) == NULL ? JOBIDUNKNOWN : (char *) (x))
 #define ARCF_EOHMACROS "i {daemon_name} {auth_type}"
 
 /*
@@ -626,7 +612,7 @@ arcf_restart_check(int n, time_t t)
 
     if (t == 0)
     {
-        list = calloc(n, sizeof(time_t));
+        list = ARC_CALLOC(n, sizeof(time_t));
 
         if (list == NULL)
         {
@@ -1194,13 +1180,12 @@ arcf_config_new(void)
 {
     struct arcf_config *new;
 
-    new = (struct arcf_config *) malloc(sizeof(struct arcf_config));
+    new = ARC_CALLOC(1, sizeof(struct arcf_config));
     if (new == NULL)
     {
         return NULL;
     }
 
-    memset(new, '\0', sizeof(struct arcf_config));
     new->conf_maxhdrsz = DEFMAXHDRSZ;
     new->conf_overridecv = true;
     new->conf_safekeys = true;
@@ -1251,19 +1236,19 @@ arcf_list_load(struct conflist *list, char *path, char **err)
             }
         }
 
-        v = malloc(sizeof(struct configvalue));
+        v = ARC_MALLOC(sizeof(struct configvalue));
         if (v == NULL)
         {
             *err = strerror(errno);
             fclose(f);
             return false;
         }
-        v->value = strdup(buf);
+        v->value = ARC_STRDUP(buf);
         if (v->value == NULL)
         {
             *err = strerror(errno);
             fclose(f);
-            free(v);
+            ARC_FREE(v);
             return false;
         }
 
@@ -1291,13 +1276,13 @@ arcf_addlist(struct conflist *list, char *str, char **err)
 {
     struct configvalue *v;
 
-    v = (struct configvalue *) malloc(sizeof(struct configvalue));
+    v = ARC_MALLOC(sizeof(struct configvalue));
     if (v == NULL)
     {
         *err = strerror(errno);
         return false;
     }
-    v->value = strdup(str);
+    v->value = ARC_STRDUP(str);
 
     LIST_INSERT_HEAD(list, v, entries);
     return true;
@@ -1322,8 +1307,8 @@ arcf_list_destroy(struct conflist *list)
 
         n = LIST_FIRST(list);
         LIST_REMOVE(n, entries);
-        free(n->value);
-        free(n);
+        ARC_FREE(n->value);
+        ARC_FREE(n);
     }
 }
 
@@ -1352,7 +1337,7 @@ arcf_config_free(struct arcf_config *conf)
 
     if (conf->conf_authservid != NULL)
     {
-        free(conf->conf_authservid);
+        ARC_FREE(conf->conf_authservid);
     }
 
     if (!LIST_EMPTY(&conf->conf_peers))
@@ -1372,12 +1357,12 @@ arcf_config_free(struct arcf_config *conf)
 
     if (conf->conf_signhdrs != NULL)
     {
-        free(conf->conf_signhdrs);
+        ARC_FREE(conf->conf_signhdrs);
     }
 
     if (conf->conf_oversignhdrs != NULL)
     {
-        free(conf->conf_oversignhdrs);
+        ARC_FREE(conf->conf_oversignhdrs);
     }
 
     if (!LIST_EMPTY(&conf->conf_sealheaderchecks))
@@ -1385,7 +1370,7 @@ arcf_config_free(struct arcf_config *conf)
         arcf_list_destroy(&conf->conf_sealheaderchecks);
     }
 
-    free(conf);
+    ARC_FREE(conf);
 }
 
 /*
@@ -1431,11 +1416,11 @@ arcf_config_load(struct config      *data,
     }
     if (str == NULL || strcmp(str, "HOSTNAME") == 0)
     {
-        conf->conf_authservid = strdup(myhostname);
+        conf->conf_authservid = ARC_STRDUP(myhostname);
     }
     else
     {
-        conf->conf_authservid = strdup(str);
+        conf->conf_authservid = ARC_STRDUP(str);
     }
 
     if (data != NULL)
@@ -1474,7 +1459,7 @@ arcf_config_load(struct config      *data,
             char *mode;
             char *ctx;
 
-            copy = strdup(str);
+            copy = ARC_STRDUP(str);
             mode = strtok_r(copy, "/", &ctx);
             conf->conf_canonhdr = arcf_lookup_strtoint(mode,
                                                        arcf_canonicalizations);
@@ -1489,7 +1474,7 @@ arcf_config_load(struct config      *data,
                 conf->conf_canonbody = ARC_CANON_SIMPLE;
             }
 
-            free(copy);
+            ARC_FREE(copy);
 
             if (conf->conf_canonhdr == -1 || conf->conf_canonbody == -1)
             {
@@ -1787,7 +1772,7 @@ arcf_config_load(struct config      *data,
             }
         }
 
-        s33krit = malloc(s.st_size + 1);
+        s33krit = ARC_MALLOC(s.st_size + 1);
         if (s33krit == NULL)
         {
             if (conf->conf_dolog)
@@ -1825,7 +1810,7 @@ arcf_config_load(struct config      *data,
             snprintf(err, errlen, "%s: read(): %s", conf->conf_keyfile,
                      strerror(errno));
             close(fd);
-            free(s33krit);
+            ARC_FREE(s33krit);
             return -1;
         }
         else if (rlen != s.st_size)
@@ -1839,7 +1824,7 @@ arcf_config_load(struct config      *data,
             snprintf(err, errlen, "%s: read() wrong size (%lu)",
                      conf->conf_keyfile, (u_long) rlen);
             close(fd);
-            free(s33krit);
+            ARC_FREE(s33krit);
             return -1;
         }
 
@@ -2192,13 +2177,11 @@ arcf_initcontext(struct arcf_config *conf)
 
     assert(conf != NULL);
 
-    ctx = (msgctx) malloc(sizeof(struct msgctx));
+    ctx = ARC_CALLOC(1, sizeof(struct msgctx));
     if (ctx == NULL)
     {
         return NULL;
     }
-
-    (void) memset(ctx, '\0', sizeof(struct msgctx));
 
     return ctx;
 }
@@ -2241,11 +2224,11 @@ arcf_cleanup(SMFICTX *ctx)
             hdr = afc->mctx_hqhead;
             while (hdr != NULL)
             {
-                TRYFREE(hdr->hdr_hdr);
-                TRYFREE(hdr->hdr_val);
+                ARC_FREE(hdr->hdr_hdr);
+                ARC_FREE(hdr->hdr_val);
                 prev = hdr;
                 hdr = hdr->hdr_next;
-                TRYFREE(prev);
+                ARC_FREE(prev);
             }
         }
 
@@ -2260,7 +2243,7 @@ arcf_cleanup(SMFICTX *ctx)
             vbr_close(afc->mctx_vbr);
         }
 
-        TRYFREE(afc->mctx_vbrinfo);
+        ARC_FREE(afc->mctx_vbrinfo);
 #endif /* _FFR_VBR */
 
         if (afc->mctx_tmpstr != NULL)
@@ -2279,37 +2262,14 @@ arcf_cleanup(SMFICTX *ctx)
             {
                 next = cur->se_next;
 
-                free(cur);
+                ARC_FREE(cur);
 
                 cur = next;
             }
         }
 #endif /* _FFR_STATSEXT */
 
-#ifdef USE_LUA
-        if (afc->mctx_luaglobalh != NULL)
-        {
-            struct lua_global *cur;
-            struct lua_global *next;
-
-            cur = afc->mctx_luaglobalh;
-            while (cur != NULL)
-            {
-                next = cur->lg_next;
-
-                if (cur->lg_type == LUA_TNUMBER || cur->lg_type == LUA_TSTRING)
-                {
-                    free(cur->lg_value);
-                }
-
-                free(cur);
-
-                cur = next;
-            }
-        }
-#endif /* USE_LUA */
-
-        free(afc);
+        ARC_FREE(afc);
         cc->cctx_msg = NULL;
     }
 }
@@ -2763,7 +2723,7 @@ mlfi_negotiate(SMFICTX       *ctx,
     arcf_config_reload();
 
     /* initialize connection context */
-    cc = malloc(sizeof(struct connctx));
+    cc = ARC_CALLOC(1, sizeof(struct connctx));
     if (cc == NULL)
     {
         if (curconf->conf_dolog)
@@ -2773,8 +2733,6 @@ mlfi_negotiate(SMFICTX       *ctx,
 
         return SMFIS_TEMPFAIL;
     }
-
-    memset(cc, '\0', sizeof(struct connctx));
 
     pthread_mutex_lock(&conf_lock);
 
@@ -2799,7 +2757,7 @@ mlfi_negotiate(SMFICTX       *ctx,
         conf->conf_refcnt--;
         pthread_mutex_unlock(&conf_lock);
 
-        free(cc);
+        ARC_FREE(cc);
 
         return SMFIS_REJECT;
     }
@@ -2863,7 +2821,7 @@ mlfi_connect(SMFICTX *ctx, char *host, _SOCK_ADDR *ip)
     cc = arcf_getpriv(ctx);
     if (cc == NULL)
     {
-        cc = malloc(sizeof(struct connctx));
+        cc = ARC_CALLOC(1, sizeof(struct connctx));
         if (cc == NULL)
         {
             pthread_mutex_lock(&conf_lock);
@@ -2878,8 +2836,6 @@ mlfi_connect(SMFICTX *ctx, char *host, _SOCK_ADDR *ip)
             /* XXX -- result should be selectable */
             return SMFIS_TEMPFAIL;
         }
-
-        memset(cc, '\0', sizeof(struct connctx));
 
         pthread_mutex_lock(&conf_lock);
 
@@ -3113,7 +3069,7 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
         return SMFIS_CONTINUE;
     }
 
-    newhdr = (Header) malloc(sizeof(struct Header));
+    newhdr = ARC_CALLOC(1, sizeof(struct Header));
     if (newhdr == NULL)
     {
         if (conf->conf_dolog)
@@ -3125,9 +3081,7 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
         return SMFIS_TEMPFAIL;
     }
 
-    (void) memset(newhdr, '\0', sizeof(struct Header));
-
-    newhdr->hdr_hdr = strdup(headerf);
+    newhdr->hdr_hdr = ARC_STRDUP(headerf);
 
     if (afc->mctx_tmpstr == NULL)
     {
@@ -3139,8 +3093,8 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
                 syslog(LOG_ERR, "arc_dstring_new() failed");
             }
 
-            TRYFREE(newhdr->hdr_hdr);
-            free(newhdr);
+            ARC_FREE(newhdr->hdr_hdr);
+            ARC_FREE(newhdr);
 
             arcf_cleanup(ctx);
 
@@ -3193,7 +3147,7 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
         arc_dstring_copy(afc->mctx_tmpstr, headerv);
     }
 
-    newhdr->hdr_val = strdup(arc_dstring_get(afc->mctx_tmpstr));
+    newhdr->hdr_val = ARC_STRDUP(arc_dstring_get(afc->mctx_tmpstr));
 
     newhdr->hdr_next = NULL;
     newhdr->hdr_prev = afc->mctx_hqtail;
@@ -3205,9 +3159,9 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
             syslog(LOG_ERR, "malloc(): %s", strerror(errno));
         }
 
-        TRYFREE(newhdr->hdr_hdr);
-        TRYFREE(newhdr->hdr_val);
-        TRYFREE(newhdr);
+        ARC_FREE(newhdr->hdr_hdr);
+        ARC_FREE(newhdr->hdr_val);
+        ARC_FREE(newhdr);
         arcf_cleanup(ctx);
         return SMFIS_TEMPFAIL;
     }
@@ -4073,7 +4027,7 @@ mlfi_close(SMFICTX *ctx)
 
         pthread_mutex_unlock(&conf_lock);
 
-        free(cc);
+        ARC_FREE(cc);
         arcf_setpriv(ctx, NULL);
     }
 

@@ -24,6 +24,7 @@
 #endif /* ARCF_MILTER_PROTOTYPES */
 
 /* libopenarc */
+#include "arc-malloc.h"
 #include "arc.h"
 
 /* libjansson */
