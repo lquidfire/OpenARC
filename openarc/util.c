@@ -319,7 +319,7 @@ arcf_mkarray(char *in)
         }
     }
 
-    out = (char **) malloc((n + 1) * sizeof(char *));
+    out = ARC_CALLOC(n + 1, sizeof(char *));
     if (out == NULL)
     {
         return (const char **) NULL;
