@@ -133,6 +133,7 @@ struct arcf_config
     unsigned char  *conf_keydata;           /* binary key data */
     size_t          conf_keylen;            /* key length */
     int             conf_maxhdrsz;          /* max. header size */
+    int             conf_minkeysz;          /* min. key size */
     struct config  *conf_data;              /* configuration data */
     ARC_LIB        *conf_libopenarc;        /* shared library instance */
     struct conflist conf_peers;             /* peers hosts */
@@ -1545,6 +1546,9 @@ arcf_config_load(struct config      *data,
         (void) config_get(data, "MaximumHeaders", &conf->conf_maxhdrsz,
                           sizeof conf->conf_maxhdrsz);
 
+        config_get(data, "MinimumKeySizeRSA", &conf->conf_minkeysz,
+                   sizeof conf->conf_minkeysz);
+
         (void) config_get(data, "SignHeaders", &conf->conf_signhdrs_raw,
                           sizeof conf->conf_signhdrs_raw);
 
@@ -1908,6 +1912,22 @@ arcf_config_setlib(struct arcf_config *conf, char **err)
     {
         arc_options(conf->conf_libopenarc, ARC_OP_SETOPT, ARC_OPTS_FIXEDTIME,
                     &conf->conf_fixedtime, sizeof conf->conf_fixedtime);
+    }
+
+    if (status != ARC_STAT_OK)
+    {
+        if (err != NULL)
+        {
+            *err = "failed to set ARC library options";
+        }
+        return false;
+    }
+
+    if (conf->conf_minkeysz > 0)
+    {
+        status = arc_options(conf->conf_libopenarc, ARC_OP_SETOPT,
+                             ARC_OPTS_MINKEYSIZE, &conf->conf_minkeysz,
+                             sizeof conf->conf_minkeysz);
     }
 
     if (status != ARC_STAT_OK)

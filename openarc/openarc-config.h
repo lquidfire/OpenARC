@@ -32,6 +32,7 @@ struct configdef arcf_config[] = {
     {"KeyFile",                       CONFIG_TYPE_STRING,  false},
     {"MaximumHeaders",                CONFIG_TYPE_INTEGER, false},
     {"MilterDebug",                   CONFIG_TYPE_INTEGER, false},
+    {"MinimumKeySizeRSA",             CONFIG_TYPE_INTEGER, false},
     {"Mode",                          CONFIG_TYPE_STRING,  false},
     {"PeerList",                      CONFIG_TYPE_STRING,  false},
     {"PermitAuthenticationOverrides", CONFIG_TYPE_BOOLEAN, false},
