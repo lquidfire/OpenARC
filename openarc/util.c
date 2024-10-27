@@ -246,9 +246,9 @@ arcf_socket_cleanup(char *sockspec)
 */
 
 void
-arcf_lowercase(u_char *str)
+arcf_lowercase(unsigned char *str)
 {
-    u_char *p;
+    unsigned char *p;
 
     assert(str != NULL);
 

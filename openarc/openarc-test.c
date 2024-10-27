@@ -530,7 +530,8 @@ arcf_testfile(ARC_LIB             *libopenarc,
 
             if (len + buflen >= (int) sizeof buf - 3)
             {
-                ms = mlfi_body((SMFICTX *) tctx, (u_char *) buf, strlen(buf));
+                ms = mlfi_body((SMFICTX *) tctx, (unsigned char *) buf,
+                               strlen(buf));
                 if (MLFI_OUTPUT(ms, tverbose))
                 {
                     fprintf(stderr, "%s: %s: mlfi_body() returned %s\n",
@@ -618,7 +619,7 @@ arcf_testfile(ARC_LIB             *libopenarc,
     /* some body left */
     if (!inheaders && buf[0] != '\0')
     {
-        ms = mlfi_body((SMFICTX *) tctx, (u_char *) buf, strlen(buf));
+        ms = mlfi_body((SMFICTX *) tctx, (unsigned char *) buf, strlen(buf));
         if (MLFI_OUTPUT(ms, tverbose))
         {
             fprintf(stderr, "%s: %s: mlfi_body() returned %s\n", progname, file,
