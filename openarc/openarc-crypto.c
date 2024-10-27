@@ -285,13 +285,6 @@ arcf_crypto_init(void)
     CRYPTO_set_dynlock_lock_callback(&arcf_crypto_dyn_lock);
     CRYPTO_set_dynlock_destroy_callback(&arcf_crypto_dyn_destroy);
 
-#ifdef USE_OPENSSL_ENGINE
-    if (!SSL_set_engine(NULL))
-    {
-        return EINVAL;
-    }
-#endif /* USE_OPENSSL_ENGINE */
-
     crypto_init_done = true;
 
     return 0;

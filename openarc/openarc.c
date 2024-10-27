@@ -1398,9 +1398,6 @@ arcf_config_load(struct config      *data,
                  size_t              errlen,
                  char               *become)
 {
-#ifdef USE_LDAP
-    bool btmp;
-#endif /* USE_LDAP */
     char *str;
     char  basedir[MAXPATHLEN + 1];
 
@@ -2237,37 +2234,10 @@ arcf_cleanup(SMFICTX *ctx)
             arc_free(afc->mctx_arcmsg);
         }
 
-#ifdef _FFR_VBR
-        if (afc->mctx_vbr != NULL)
-        {
-            vbr_close(afc->mctx_vbr);
-        }
-
-        ARC_FREE(afc->mctx_vbrinfo);
-#endif /* _FFR_VBR */
-
         if (afc->mctx_tmpstr != NULL)
         {
             arc_dstring_free(afc->mctx_tmpstr);
         }
-
-#ifdef _FFR_STATSEXT
-        if (afc->mctx_statsext != NULL)
-        {
-            struct statsext *cur;
-            struct statsext *next;
-
-            cur = afc->mctx_statsext;
-            while (cur != NULL)
-            {
-                next = cur->se_next;
-
-                ARC_FREE(cur);
-
-                cur = next;
-            }
-        }
-#endif /* _FFR_STATSEXT */
 
         ARC_FREE(afc);
         cc->cctx_msg = NULL;
@@ -3017,9 +2987,6 @@ mlfi_envfrom(SMFICTX *ctx, char **envfrom)
 sfsistat
 mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 {
-#ifdef _FFR_REPLACE_RULES
-    bool dorepl = false;
-#endif /* _FFR_REPLACE_RULES */
     msgctx              afc;
     connctx             cc;
     Header              newhdr;
@@ -4137,9 +4104,6 @@ main(int argc, char **argv)
     char          *chrootdir = NULL;
     char          *p;
     char          *pidfile = NULL;
-#ifdef POPAUTH
-    char *popdbfile = NULL;
-#endif /* POPAUTH */
     char          *testfile = NULL;
     struct config *cfg = NULL;
     char          *end;
