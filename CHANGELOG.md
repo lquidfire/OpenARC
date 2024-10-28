@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - libopenarc - `arc_chain_oldest_pass()`
 - milter - `AuthResIP` configuration option.
 - milter - `RequireSafeKeys` configuration option.
+- milter - `MinimumKeySizeRSA` configuration option.
 
 ### Changed
 - Custom OpenSSL locations must be configured using `OPENSSL_CFLAGS`

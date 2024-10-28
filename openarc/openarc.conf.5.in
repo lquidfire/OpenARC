@@ -131,6 +131,12 @@ Sets the debug level to be requested from the milter library.  The
 default is 0.
 
 .TP
+.I MinimumKeySizeRSA (integer)
+Disallows signatures whose keys are smaller than the specified size,
+regardless of whether they would otherwise be valid. If this is not
+set the library's default (which is currently 1024) will be used.
+
+.TP
 .I Mode (string)
 Selects the operating mode(s) for this filter.  If the string contains
 the character "s", the filter will seal messages passing through

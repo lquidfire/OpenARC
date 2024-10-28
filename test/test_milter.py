@@ -561,6 +561,20 @@ def test_milter_finalreceiver(run_miltertest):
     assert res['headers'][0][1] == ' example.com; arc=pass header.oldest-pass=0 smtp.remote-ip=127.0.0.1 arc.chain="example.com:example.com"'
 
 
+def test_milter_minimum_key_bits(run_miltertest):
+    """A 2048-bit key passes when that is the minimum"""
+    res = run_miltertest()
+    res = run_miltertest(res['headers'])
+    assert 'cv=pass' in res['headers'][0][1]
+
+
+def test_milter_minimum_key_bits_fail(run_miltertest):
+    """A 2048-bit key fails when the minimum is 2049"""
+    res = run_miltertest()
+    res = run_miltertest(res['headers'])
+    assert 'cv=fail' in res['headers'][0][1]
+
+
 def test_milter_peerlist(run_miltertest):
     """Connections from peers just get `accept` back immediately"""
     with pytest.raises(miltertest.MilterError, match='unexpected response: a'):

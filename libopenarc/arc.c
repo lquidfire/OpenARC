@@ -2160,15 +2160,12 @@ arc_verify_hash(ARC_MESSAGE *msg, char *b64sig, void *h, size_t hlen)
         goto error;
     }
 
-    keysize = EVP_PKEY_size(pkey);
-    /* FIXME: what is this actually measuring? Should this be
-     * EVP_PKEY_bits() or EVP_PKEY_securitybits()?
-     */
-    if (keysize * 8 < msg->arc_library->arcl_minkeysize)
+    keysize = EVP_PKEY_bits(pkey);
+    if (keysize < msg->arc_library->arcl_minkeysize)
     {
         arc_error(msg, "key size (%u) below minimum (%u)", keysize,
                   msg->arc_library->arcl_minkeysize);
-        status = ARC_STAT_CANTVRFY;
+        status = ARC_STAT_BADSIG;
         goto error;
     }
 
@@ -3340,7 +3337,6 @@ arc_getseal(ARC_MESSAGE         *msg,
     size_t              siglen;
     ARC_STAT            status = ARC_STAT_INTERNAL;
     size_t              diglen;
-    size_t              keysize;
     size_t              len;
     size_t              b64siglen;
     char               *sighdr = NULL;
@@ -3462,18 +3458,6 @@ arc_getseal(ARC_MESSAGE         *msg,
     {
         arc_error(msg, "EVP_PKEY_CTX_set_signature_md() failed");
         status = ARC_STAT_INTERNAL;
-        goto error;
-    }
-
-    /* FIXME: what is this actually measuring? Should this be
-     * EVP_PKEY_bits() or EVP_PKEY_securitybits()?
-     */
-    keysize = EVP_PKEY_size(pkey);
-    if (keysize * 8 < msg->arc_library->arcl_minkeysize)
-    {
-        arc_error(msg, "key size (%u) below minimum (%u)", keysize,
-                  msg->arc_library->arcl_minkeysize);
-        status = ARC_STAT_CANTVRFY;
         goto error;
     }
 
