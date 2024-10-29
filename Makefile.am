@@ -41,6 +41,7 @@ libopenarc_libopenarc_la_SOURCES = \
 	libopenarc/arc-util.h \
 	util/arc-dstring.c \
 	util/arc-dstring.h \
+	util/arc-malloc.h \
 	util/arc-nametable.c \
 	util/arc-nametable.h
 libopenarc_libopenarc_la_CPPFLAGS = -I$(srcdir)/util $(OPENSSL_CFLAGS) $(LIBIDN2_CFLAGS)
@@ -86,6 +87,7 @@ openarc_openarc_SOURCES = \
 	openarc/util.h \
 	util/arc-dstring.c \
 	util/arc-dstring.h \
+	util/arc-malloc.h \
 	util/arc-nametable.c \
 	util/arc-nametable.h
 openarc_openarc_CC = $(PTHREAD_CC)

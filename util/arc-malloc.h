@@ -1,7 +1,7 @@
 /*
  * Copyright 2024 OpenARC contributors.
  *
- * See LICENSE for distribution terms.
+ * See LICENSE.
  */
 
 #ifndef ARC_MALLOC_H
