@@ -40,7 +40,9 @@ libopenarc_libopenarc_la_SOURCES = \
 	libopenarc/arc-util.c \
 	libopenarc/arc-util.h \
 	util/arc-dstring.c \
-	util/arc-dstring.h
+	util/arc-dstring.h \
+	util/arc-nametable.c \
+	util/arc-nametable.h
 libopenarc_libopenarc_la_CPPFLAGS = -I$(srcdir)/util $(OPENSSL_CFLAGS) $(LIBIDN2_CFLAGS)
 libopenarc_libopenarc_la_LDFLAGS = -no-undefined -version-info $(LIBOPENARC_VERSION_INFO)
 libopenarc_libopenarc_la_LIBADD = $(OPENSSL_LIBS) $(LIBIDN2_LIBS)
@@ -83,7 +85,9 @@ openarc_openarc_SOURCES = \
 	openarc/util.c \
 	openarc/util.h \
 	util/arc-dstring.c \
-	util/arc-dstring.h
+	util/arc-dstring.h \
+	util/arc-nametable.c \
+	util/arc-nametable.h
 openarc_openarc_CC = $(PTHREAD_CC)
 openarc_openarc_CFLAGS = $(PTHREAD_CFLAGS)
 openarc_openarc_CPPFLAGS = -I$(srcdir)/libopenarc -I$(srcdir)/util $(OPENSSL_CFLAGS) $(LIBIDN2_CFLAGS) $(LIBMILTER_CPPFLAGS) $(LIBJANSSON_CFLAGS)
@@ -95,7 +99,9 @@ noinst_PROGRAMS = openarc/ar-test
 openarc_ar_test_SOURCES = \
 	openarc/openarc-ar.c \
 	openarc/openarc-ar.h \
-	openarc/ar-test.c
+	openarc/ar-test.c \
+	util/arc-nametable.c \
+	util/arc-nametable.h
 
 openarc_ar_test_CPPFLAGS = -I$(srcdir)/libopenarc -I$(srcdir)/util
 endif

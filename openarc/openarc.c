@@ -74,6 +74,7 @@
 
 /* openarc includes */
 #include "arc-dstring.h"
+#include "arc-nametable.h"
 #include "config.h"
 #include "openarc-ar.h"
 #include "openarc-config.h"
@@ -178,13 +179,7 @@ struct connctx
 **  LOOKUP -- generic lookup table
 */
 
-struct lookup
-{
-    char *str;
-    int   code;
-};
-
-struct lookup log_facilities[] = {
+struct nametable log_facilities[] = {
     {"auth",     LOG_AUTH  },
     {"cron",     LOG_CRON  },
     {"daemon",   LOG_DAEMON},
@@ -207,19 +202,19 @@ struct lookup log_facilities[] = {
     {NULL,       -1        }
 };
 
-struct lookup arcf_canonicalizations[] = {
+struct nametable arcf_canonicalizations[] = {
     {"simple",  ARC_CANON_SIMPLE },
     {"relaxed", ARC_CANON_RELAXED},
     {NULL,      -1               }
 };
 
-struct lookup arcf_signalgorithms[] = {
+struct nametable arcf_signalgorithms[] = {
     {"rsa-sha1",   ARC_SIGN_RSASHA1  },
     {"rsa-sha256", ARC_SIGN_RSASHA256},
     {NULL,         -1                }
 };
 
-struct lookup arcf_chainstates[] = {
+struct nametable arcf_chainstates[] = {
     {"none", ARC_CHAIN_NONE},
     {"pass", ARC_CHAIN_PASS},
     {"fail", ARC_CHAIN_FAIL},
@@ -566,22 +561,17 @@ static void
 arcf_init_syslog(char *facility)
 {
 #ifdef LOG_MAIL
-    int            code;
-    struct lookup *p = NULL;
+    int code = -1;
 
     closelog();
 
-    code = LOG_MAIL;
-    if (facility != NULL)
+    if (facility)
     {
-        for (p = log_facilities; p != NULL; p++)
-        {
-            if (strcasecmp(p->str, facility) == 0)
-            {
-                code = p->code;
-                break;
-            }
-        }
+        code = arc_name_to_code(log_facilities, facility);
+    }
+    if (code == -1)
+    {
+        code = LOG_MAIL;
     }
 
     openlog(progname, LOG_PID, code);
@@ -1059,32 +1049,6 @@ arcf_securefile(
 }
 
 /*
-**  ARCF_LOOKUP_STRTOINT -- look up the integer code for a config option
-**                           or value
-**
-**  Parameters:
-**  	opt -- option to look up
-**  	table -- lookup table to use
-**
-**  Return value:
-**  	Integer version of the option, or -1 on error.
-*/
-
-static int
-arcf_lookup_strtoint(char *opt, struct lookup *table)
-{
-    int c;
-
-    for (c = 0;; c++)
-    {
-        if (table[c].str == NULL || strcasecmp(opt, table[c].str) == 0)
-        {
-            return table[c].code;
-        }
-    }
-}
-
-/*
 **  ARCF_SIGHANDLER -- signal handler
 **
 **  Parameters:
@@ -1459,13 +1423,13 @@ arcf_config_load(struct config      *data,
 
             copy = ARC_STRDUP(str);
             mode = strtok_r(copy, "/", &ctx);
-            conf->conf_canonhdr = arcf_lookup_strtoint(mode,
-                                                       arcf_canonicalizations);
+            conf->conf_canonhdr = arc_name_to_code(arcf_canonicalizations,
+                                                   mode);
             mode = strtok_r(NULL, "/", &ctx);
             if (mode != NULL)
             {
-                conf->conf_canonbody = arcf_lookup_strtoint(
-                    mode, arcf_canonicalizations);
+                conf->conf_canonbody = arc_name_to_code(arcf_canonicalizations,
+                                                        mode);
             }
             else
             {
@@ -1485,7 +1449,7 @@ arcf_config_load(struct config      *data,
         (void) config_get(data, "SignatureAlgorithm", &str, sizeof str);
         if (str != NULL)
         {
-            conf->conf_signalg = arcf_lookup_strtoint(str, arcf_signalgorithms);
+            conf->conf_signalg = arc_name_to_code(arcf_signalgorithms, str);
         }
         else
         {

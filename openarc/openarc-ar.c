@@ -27,6 +27,7 @@
 #endif /* USE_STRL_H */
 
 /* openarc includes */
+#include "arc-nametable.h"
 #include "openarc-ar.h"
 
 /* macros */
@@ -37,14 +38,7 @@
 
 #define ARES_MAXTOKENS    1024
 
-/* tables */
-struct lookup
-{
-    char *str;
-    int   code;
-};
-
-struct lookup methods[] = {
+struct nametable methods[] = {
     {"arc",        ARES_METHOD_ARC       },
     {"auth",       ARES_METHOD_AUTH      },
     {"dkim",       ARES_METHOD_DKIM      },
@@ -62,7 +56,7 @@ struct lookup methods[] = {
     {NULL,         ARES_METHOD_UNKNOWN   }
 };
 
-struct lookup aresults[] = {
+struct nametable aresults[] = {
     {"discard",   ARES_RESULT_DISCARD  },
     {"fail",      ARES_RESULT_FAIL     },
     {"neutral",   ARES_RESULT_NEUTRAL  },
@@ -78,7 +72,7 @@ struct lookup aresults[] = {
     {NULL,        ARES_RESULT_UNDEFINED}
 };
 
-struct lookup ptypes[] = {
+struct nametable ptypes[] = {
     {"body",   ARES_PTYPE_BODY   },
     {"dns",    ARES_PTYPE_DNS    },
     {"header", ARES_PTYPE_HEADER },
@@ -327,65 +321,6 @@ ares_tokenize(const char *input,
 }
 
 /*
-**  ARES_CONVERT -- convert a string to its code
-**
-**  Parameters:
-**  	table -- in which table to look up
-**  	str -- string to find
-**
-**  Return value:
-**  	A code translation of "str".
-*/
-
-static int
-ares_convert(struct lookup *table, char *str)
-{
-    int c;
-
-    assert(table != NULL);
-    assert(str != NULL);
-
-    for (c = 0;; c++)
-    {
-        if (table[c].str == NULL || strcasecmp(table[c].str, str) == 0)
-        {
-            return table[c].code;
-        }
-    }
-
-    /* NOTREACHED */
-}
-
-/*
-**  ARES_XCONVERT -- convert a code to its string
-**
-**  Parameters:
-**  	table -- in which table to look up
-**  	code -- code to find
-**
-**  Return value:
-**  	A string translation of "code".
-*/
-
-static char *
-ares_xconvert(struct lookup *table, int code)
-{
-    int c;
-
-    assert(table != NULL);
-
-    for (c = 0;; c++)
-    {
-        if (table[c].str == NULL || table[c].code == code)
-        {
-            return table[c].str;
-        }
-    }
-
-    /* NOTREACHED */
-}
-
-/*
 **  ARES_METHOD_ADD -- add a parsed method to the results if there's room
 **  and we haven't already seen it.
 **
@@ -587,7 +522,7 @@ ares_parse(const char *hdr, struct authres *ar, const char *authserv)
 
             memset(&cur, '\0', sizeof cur);
 
-            m = ares_convert(methods, (char *) tokens[c]);
+            m = arc_name_to_code(methods, (char *) tokens[c]);
 
             cur.result_method = m;
             prevstate = state;
@@ -608,7 +543,7 @@ ares_parse(const char *hdr, struct authres *ar, const char *authserv)
             break;
 
         case ARP_STATE_RESULT:
-            cur.result_result = ares_convert(aresults, (char *) tokens[c]);
+            cur.result_result = arc_name_to_code(aresults, (char *) tokens[c]);
             prevstate = state;
             state = ARP_STATE_PROP_OR_REASON;
 
@@ -688,7 +623,7 @@ ares_parse(const char *hdr, struct authres *ar, const char *authserv)
             {
                 ares_ptype x;
 
-                x = ares_convert(ptypes, (char *) tokens[c]);
+                x = arc_name_to_code(ptypes, (char *) tokens[c]);
                 if (x == ARES_PTYPE_UNKNOWN)
                 {
                     ar->ares_count = initial_ares_count;
@@ -820,7 +755,7 @@ ares_istoken(const char *str)
 const char *
 ares_getmethod(ares_method method)
 {
-    return (const char *) ares_xconvert(methods, method);
+    return arc_code_to_name(methods, method);
 }
 
 /*
@@ -836,7 +771,7 @@ ares_getmethod(ares_method method)
 const char *
 ares_getresult(ares_result result)
 {
-    return (const char *) ares_xconvert(aresults, result);
+    return arc_code_to_name(aresults, result);
 }
 
 /*
@@ -852,5 +787,5 @@ ares_getresult(ares_result result)
 const char *
 ares_getptype(ares_ptype ptype)
 {
-    return (const char *) ares_xconvert(ptypes, ptype);
+    return arc_code_to_name(ptypes, ptype);
 }
