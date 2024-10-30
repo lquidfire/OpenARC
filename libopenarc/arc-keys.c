@@ -137,8 +137,8 @@ arc_get_key_dns(ARC_MESSAGE *msg, char *buf, size_t buflen)
         return ARC_STAT_KEYFAIL;
     }
 
-    status = lib->arcl_dns_start(lib->arcl_dns_service, T_TXT,
-                                 (unsigned char *) qname, ansbuf, anslen, &q);
+    status = lib->arcl_dns_start(lib->arcl_dns_service, T_TXT, qname, ansbuf,
+                                 anslen, &q);
 
     if (status != 0)
     {

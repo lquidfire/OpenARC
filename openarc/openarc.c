@@ -3145,15 +3145,15 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 sfsistat
 mlfi_eoh(SMFICTX *ctx)
 {
-    char                 last;
-    unsigned int         mode;
-    ARC_STAT             status;
-    connctx              cc;
-    msgctx               afc;
-    char                *p;
-    const unsigned char *err = NULL;
-    struct arcf_config  *conf;
-    Header               hdr;
+    char                last;
+    unsigned int        mode;
+    ARC_STAT            status;
+    connctx             cc;
+    msgctx              afc;
+    char               *p;
+    const char         *err = NULL;
+    struct arcf_config *conf;
+    Header              hdr;
 
     assert(ctx != NULL);
 
@@ -3427,10 +3427,9 @@ mlfi_eoh(SMFICTX *ctx)
             last = *p;
         }
 
-        status = arc_header_field(
-            afc->mctx_arcmsg,
-            (unsigned char *) arc_dstring_get(afc->mctx_tmpstr),
-            arc_dstring_len(afc->mctx_tmpstr));
+        status = arc_header_field(afc->mctx_arcmsg,
+                                  arc_dstring_get(afc->mctx_tmpstr),
+                                  arc_dstring_len(afc->mctx_tmpstr));
         if (status != ARC_STAT_OK)
         {
             if (conf->conf_dolog)
@@ -3618,7 +3617,7 @@ mlfi_eom(SMFICTX *ctx)
     struct sockaddr    *ip;
     Header              hdr;
     struct authres      ar;
-    unsigned char       arcchainbuf[ARC_MAXHEADER + 1];
+    char                arcchainbuf[ARC_MAXHEADER + 1];
     char                ipbuf[INET6_ADDRSTRLEN];
 
     assert(ctx != NULL);
@@ -3793,12 +3792,12 @@ mlfi_eom(SMFICTX *ctx)
         **  Get the seal fields to apply.
         */
 
-        status = arc_getseal(
-            afc->mctx_arcmsg, &seal, conf->conf_authservid, conf->conf_selector,
-            conf->conf_domain, conf->conf_keydata, conf->conf_keylen,
-            arc_dstring_len(afc->mctx_tmpstr) > 0
-                ? (unsigned char *) arc_dstring_get(afc->mctx_tmpstr)
-                : NULL);
+        status = arc_getseal(afc->mctx_arcmsg, &seal, conf->conf_authservid,
+                             conf->conf_selector, conf->conf_domain,
+                             conf->conf_keydata, conf->conf_keylen,
+                             arc_dstring_len(afc->mctx_tmpstr) > 0
+                                 ? arc_dstring_get(afc->mctx_tmpstr)
+                                 : NULL);
         if (status != ARC_STAT_OK)
         {
             if (conf->conf_dolog)
@@ -3817,11 +3816,10 @@ mlfi_eom(SMFICTX *ctx)
             char   hfname[BUFRSZ + 1];
 
             memset(hfname, '\0', sizeof hfname);
-            strlcpy(hfname, (char *) arc_hdr_name(sealhdr, &len),
-                    sizeof hfname);
+            strlcpy(hfname, arc_hdr_name(sealhdr, &len), sizeof hfname);
             hfname[len] = '\0';
 
-            hfvalue = (char *) arc_hdr_value(sealhdr);
+            hfvalue = arc_hdr_value(sealhdr);
             if (!cc->cctx_noleadspc)
             {
                 /* strip off the leading space */
@@ -3872,7 +3870,7 @@ mlfi_eom(SMFICTX *ctx)
 
         if (conf->conf_finalreceiver && arcchainlen > 0)
         {
-            bool quote = !ares_istoken((char *) arcchainbuf);
+            bool quote = !ares_istoken(arcchainbuf);
 
             arc_dstring_printf(afc->mctx_tmpstr, " arc.chain=%s%s%s",
                                quote ? "\"" : "", arcchainbuf,

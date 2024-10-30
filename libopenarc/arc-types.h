@@ -193,12 +193,12 @@ struct arc_lib
     void *arcl_dns_service;
     int (*arcl_dns_init)(void **srv);
     void (*arcl_dns_close)(void *srv);
-    int (*arcl_dns_start)(void                *srv,
-                          int                  type,
-                          const unsigned char *query,
-                          unsigned char       *buf,
-                          size_t               buflen,
-                          void               **qh);
+    int (*arcl_dns_start)(void          *srv,
+                          int            type,
+                          const char    *query,
+                          unsigned char *buf,
+                          size_t         buflen,
+                          void         **qh);
     int (*arcl_dns_cancel)(void *srv, void *qh);
     int (*arcl_dns_waitreply)(void           *srv,
                               void           *qh,

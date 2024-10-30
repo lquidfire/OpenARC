@@ -361,8 +361,7 @@ extern ARC_STAT arc_set_dns(
     void (*)(const void *),
     int,
     void (*)(void *),
-    int (*)(
-        void *, int, const unsigned char *, unsigned char *, size_t, void **),
+    int (*)(void *, int, const char *, unsigned char *, size_t, void **),
     int (*)(void *, void *),
     int (*)(void *, void *, struct timeval *, size_t *, int *, int *));
 
@@ -393,12 +392,8 @@ extern const char *arc_getsslbuf(ARC_LIB *);
 **  	A new message instance, or NULL on failure (and "err" is updated).
 */
 
-extern ARC_MESSAGE *arc_message(ARC_LIB *,
-                                arc_canon_t,
-                                arc_canon_t,
-                                arc_alg_t,
-                                arc_mode_t,
-                                const unsigned char **);
+extern ARC_MESSAGE *arc_message(
+    ARC_LIB *, arc_canon_t, arc_canon_t, arc_alg_t, arc_mode_t, const char **);
 
 /*
 **  ARC_FREE -- deallocate a message object
@@ -424,7 +419,7 @@ extern void arc_free(ARC_MESSAGE *);
 **  	An ARC_STAT_* constant.
 */
 
-extern ARC_STAT arc_header_field(ARC_MESSAGE *, const unsigned char *, size_t);
+extern ARC_STAT arc_header_field(ARC_MESSAGE *, const char *, size_t);
 
 /*
 **  ARC_EOH -- declare no more headers are coming
@@ -453,9 +448,7 @@ extern ARC_STAT arc_eoh(ARC_MESSAGE *);
 **  	A ARC_STAT_* constant.
 */
 
-extern ARC_STAT arc_body(ARC_MESSAGE         *msg,
-                         const unsigned char *buf,
-                         size_t               len);
+extern ARC_STAT arc_body(ARC_MESSAGE *, const unsigned char *, size_t);
 
 /*
 **  ARC_EOM -- declare end of message
@@ -510,7 +503,7 @@ extern ARC_STAT arc_getseal(ARC_MESSAGE *,
                             const char *,
                             const unsigned char *,
                             size_t,
-                            const unsigned char *);
+                            const char *);
 
 /*
 **  ARC_HDR_NAME -- extract name from an ARC_HDRFIELD
@@ -523,7 +516,7 @@ extern ARC_STAT arc_getseal(ARC_MESSAGE *,
 **  	Header field name stored in the object.
 */
 
-extern unsigned char *arc_hdr_name(ARC_HDRFIELD *, size_t *);
+extern char *arc_hdr_name(ARC_HDRFIELD *, size_t *);
 
 /*
 **  ARC_HDR_VALUE -- extract value from an ARC_HDRFIELD
@@ -535,7 +528,7 @@ extern unsigned char *arc_hdr_name(ARC_HDRFIELD *, size_t *);
 **  	Header field value stored in the object.
 */
 
-extern unsigned char *arc_hdr_value(ARC_HDRFIELD *);
+extern char *arc_hdr_value(ARC_HDRFIELD *);
 
 /*
 **  ARC_HDR_NEXT -- return pointer to next ARC_HDRFIELD
@@ -605,9 +598,7 @@ extern const char *arc_chain_status_str(ARC_MESSAGE *msg);
 **	argument, then buffer was too small and output was truncated.
 */
 
-extern int arc_chain_custody_str(ARC_MESSAGE   *msg,
-                                 unsigned char *buf,
-                                 size_t         buflen);
+extern int arc_chain_custody_str(ARC_MESSAGE *, char *, size_t);
 
 /*
 **  ARC_CHAIN_OLDEST_PASS -- retrieve the oldest-pass value

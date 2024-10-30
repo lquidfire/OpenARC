@@ -20,7 +20,7 @@ extern int      arc_check_dns_reply(unsigned char *ansbuf,
                                     int            xclass,
                                     int            xtype);
 
-extern bool     arc_hdrlist(unsigned char *, size_t, unsigned char **, bool);
+extern bool     arc_hdrlist(char *, size_t, char **, bool);
 
 extern void     arc_min_timeval(struct timeval *,
                                 struct timeval *,

@@ -798,7 +798,7 @@ arc_canon_selecthdrs(ARC_MESSAGE          *msg,
     char                 *colon;
     struct arc_hdrfield  *hdr;
     struct arc_hdrfield **lhdrs;
-    unsigned char       **hdrs;
+    char                **hdrs;
 
     assert(msg != NULL);
     assert(ptrs != NULL);
@@ -855,7 +855,7 @@ arc_canon_selecthdrs(ARC_MESSAGE          *msg,
             shcnt++;
         }
     }
-    hdrs = ARC_CALLOC(shcnt, sizeof(unsigned char *));
+    hdrs = ARC_CALLOC(shcnt, sizeof(char *));
     if (hdrs == NULL)
     {
         ARC_FREE(lhdrs);
@@ -868,7 +868,7 @@ arc_canon_selecthdrs(ARC_MESSAGE          *msg,
     for (bar = strtok_r(msg->arc_hdrlist, ":", &ctx); bar != NULL;
          bar = strtok_r(NULL, ":", &ctx))
     {
-        hdrs[n] = (unsigned char *) bar;
+        hdrs[n] = bar;
         n++;
     }
 
@@ -878,7 +878,7 @@ arc_canon_selecthdrs(ARC_MESSAGE          *msg,
     {
         lhdrs[shcnt] = NULL;
 
-        len = MIN(ARC_MAXHEADER, strlen((char *) hdrs[c]));
+        len = MIN(ARC_MAXHEADER, strlen(hdrs[c]));
         while (len > 0 && ARC_ISWSP(hdrs[c][len - 1]))
         {
             len--;
@@ -892,7 +892,7 @@ arc_canon_selecthdrs(ARC_MESSAGE          *msg,
             }
 
             if (len == hdr->hdr_namelen &&
-                strncasecmp((char *) hdr->hdr_text, (char *) hdrs[c], len) == 0)
+                strncasecmp(hdr->hdr_text, hdrs[c], len) == 0)
             {
                 lhdrs[shcnt] = hdr;
             }
@@ -1334,7 +1334,7 @@ arc_canon_runheaders(ARC_MESSAGE *msg)
 
                 /* terminate the header field name and test */
                 hdr->hdr_text[hdr->hdr_namelen] = '\0';
-                status = regexec(hdrtest, (char *) hdr->hdr_text, 0, NULL, 0);
+                status = regexec(hdrtest, hdr->hdr_text, 0, NULL, 0);
 
                 /* restore the character */
                 hdr->hdr_text[hdr->hdr_namelen] = savechar;

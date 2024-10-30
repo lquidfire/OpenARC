@@ -29,6 +29,8 @@ All notable changes to this project will be documented in this file.
   are excluded from the AMS, as required by [RFC 8617 section 4.1.2](https://datatracker.ietf.org/doc/html/rfc8617#section-4.1.2).
 - libopenarc - ARC headers are returned with a space before the header value.
 - libopenarc - String arguments are marked as `const` where applicable.
+- libopenarc - String arguments are normal strings (`char *`) unless the
+  argument expects a binary string.
 - libopenarc - `ARC-Seal` headers containing `h=` tags cause a validation
   failure, as required by [RFC 8617 section 4.1.3](https://datatracker.ietf.org/doc/html/rfc8617#section-4.1.3).
 - milter - `Authentication-Results` and `ARC-Authentication-Results` include

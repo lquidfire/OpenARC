@@ -661,7 +661,7 @@ arc_getamshdr_d(
     {
         bool first = true;
 
-        for (pv = strtok_r((char *) arc_dstring_get(tmpbuf), DELIMITER, &ctx);
+        for (pv = strtok_r(arc_dstring_get(tmpbuf), DELIMITER, &ctx);
              pv != NULL; pv = strtok_r(NULL, DELIMITER, &ctx))
         {
             if (!first)
@@ -1050,9 +1050,8 @@ arc_options(ARC_LIB *lib, int op, int arg, void *val, size_t valsz)
         }
         else
         {
-            int             status;
-            unsigned char **hdrs;
-            char            buf[BUFRSZ + 1];
+            int  status;
+            char buf[BUFRSZ + 1];
 
             if (lib->arcl_signre)
             {
@@ -1061,9 +1060,8 @@ arc_options(ARC_LIB *lib, int op, int arg, void *val, size_t valsz)
             }
             memset(buf, '\0', sizeof buf);
 
-            hdrs = (unsigned char **) val;
             (void) strlcpy(buf, "^(", sizeof buf);
-            if (!arc_hdrlist((unsigned char *) buf, sizeof buf, hdrs, true))
+            if (!arc_hdrlist(buf, sizeof buf, (char **) val, true))
             {
                 return ARC_STAT_INVALID;
             }
@@ -1097,7 +1095,7 @@ arc_options(ARC_LIB *lib, int op, int arg, void *val, size_t valsz)
         {
             if (lib->arcl_oversignhdrs != NULL)
             {
-                arc_clobber_array((char **) lib->arcl_oversignhdrs);
+                arc_clobber_array(lib->arcl_oversignhdrs);
             }
             lib->arcl_oversignhdrs = NULL;
         }
@@ -1146,12 +1144,12 @@ arc_set_dns(ARC_LIB *lib,
             void (*dns_callback)(const void *context),
             int dns_callback_int,
             void (*dns_close)(void *srv),
-            int (*dns_start)(void                *srv,
-                             int                  type,
-                             const unsigned char *query,
-                             unsigned char       *buf,
-                             size_t               buflen,
-                             void               **qh),
+            int (*dns_start)(void          *srv,
+                             int            type,
+                             const char    *query,
+                             unsigned char *buf,
+                             size_t         buflen,
+                             void         **qh),
             int (*dns_cancel)(void *srv, void *qh),
             int (*dns_waitreply)(void           *srv,
                                  void           *qh,
@@ -1541,7 +1539,7 @@ arc_process_set(ARC_MESSAGE    *msg,
         arc_error(msg, "unable to allocate %d byte(s)", len + 1);
         return ARC_STAT_INTERNAL;
     }
-    strlcpy((char *) hcopy, (char *) str, len + 1);
+    strlcpy(hcopy, str, len + 1);
 
     set = ARC_CALLOC(1, sizeof(ARC_KVSET));
     if (set == NULL)
@@ -2415,12 +2413,12 @@ arc_validate_seal(ARC_MESSAGE *msg, unsigned int setnum)
 */
 
 ARC_MESSAGE *
-arc_message(ARC_LIB              *lib,
-            arc_canon_t           canonhdr,
-            arc_canon_t           canonbody,
-            arc_alg_t             signalg,
-            arc_mode_t            mode,
-            const unsigned char **err)
+arc_message(ARC_LIB     *lib,
+            arc_canon_t  canonhdr,
+            arc_canon_t  canonbody,
+            arc_alg_t    signalg,
+            arc_mode_t   mode,
+            const char **err)
 {
     ARC_MESSAGE *msg;
 
@@ -2428,7 +2426,7 @@ arc_message(ARC_LIB              *lib,
     {
         if (err != NULL)
         {
-            *err = (unsigned char *) "no mode(s) selected";
+            *err = "no mode(s) selected";
         }
         return NULL;
     }
@@ -2438,7 +2436,7 @@ arc_message(ARC_LIB              *lib,
     {
         if (err != NULL)
         {
-            *err = (unsigned char *) strerror(errno);
+            *err = strerror(errno);
         }
         return NULL;
     }
@@ -2557,13 +2555,13 @@ arc_free(ARC_MESSAGE *msg)
 
 static ARC_STAT
 arc_parse_header_field(ARC_MESSAGE          *msg,
-                       const unsigned char  *hdr,
+                       const char           *hdr,
                        size_t                hlen,
                        struct arc_hdrfield **ret)
 {
-    const unsigned char *colon;
-    const unsigned char *semicolon;
-    const unsigned char *end = NULL;
+    const char          *colon;
+    const char          *semicolon;
+    const char          *end = NULL;
     size_t               c;
     struct arc_hdrfield *h;
 
@@ -2578,11 +2576,10 @@ arc_parse_header_field(ARC_MESSAGE          *msg,
         if (colon == NULL)
         {
             /*
-            **  Field names are printable ASCII; also tolerate
-            **  plain whitespace.
+            **  Field names are printable ASCII.
             */
 
-            if (hdr[c] < 32 || hdr[c] > 126)
+            if (!isprint(hdr[c]))
             {
                 return ARC_STAT_SYNTAX;
             }
@@ -2595,12 +2592,10 @@ arc_parse_header_field(ARC_MESSAGE          *msg,
         }
         else
         {
-            /* field bodies are printable ASCII, SP, HT, CR, LF, or UTF-8 */
-            if (!(hdr[c] == 9 ||                     /* HT */
-                  hdr[c] == 10 ||                    /* LF */
-                  hdr[c] == 13 ||                    /* CR */
-                  (hdr[c] >= 32 && hdr[c] <= 126) || /* SP, print */
-                  (hdr[c] > 127)))                   /* UTF-8 */
+            /* field bodies are printable ASCII, HT (9), LF (10), CR (13), or
+             * UTF-8 */
+            if (isascii(hdr[c]) && !(isprint(hdr[c]) || hdr[c] == 9 ||
+                                     hdr[c] == 10 || hdr[c] == 13))
             {
                 return ARC_STAT_SYNTAX;
             }
@@ -2641,7 +2636,7 @@ arc_parse_header_field(ARC_MESSAGE          *msg,
 
     if ((msg->arc_library->arcl_flags & ARC_LIBFLAGS_FIXCRLF) != 0)
     {
-        unsigned char       prev = '\0';
+        char                prev = '\0';
         struct arc_dstring *tmphdr;
 
         tmphdr = arc_dstring_new(BUFRSZ, MAXBUFRSZ, msg, &arc_error_cb);
@@ -2651,8 +2646,7 @@ arc_parse_header_field(ARC_MESSAGE          *msg,
             return ARC_STAT_NORESOURCE;
         }
 
-        for (const unsigned char *p = hdr, *q = hdr + hlen; p < q && *p != '\0';
-             p++)
+        for (const char *p = hdr, *q = hdr + hlen; p < q && *p != '\0'; p++)
         {
             if (*p == '\n' && prev != '\r') /* bare LF */
             {
@@ -2682,7 +2676,7 @@ arc_parse_header_field(ARC_MESSAGE          *msg,
     }
     else
     {
-        h->hdr_text = strndup((const char *) hdr, hlen);
+        h->hdr_text = strndup(hdr, hlen);
     }
 
     if (h->hdr_text == NULL)
@@ -2714,7 +2708,7 @@ arc_parse_header_field(ARC_MESSAGE          *msg,
 */
 
 ARC_STAT
-arc_header_field(ARC_MESSAGE *msg, const unsigned char *hdr, size_t hlen)
+arc_header_field(ARC_MESSAGE *msg, const char *hdr, size_t hlen)
 {
     ARC_STAT             status;
     struct arc_hdrfield *h;
@@ -3331,7 +3325,7 @@ arc_getseal(ARC_MESSAGE         *msg,
             const char          *domain,
             const unsigned char *key,
             size_t               keylen,
-            const unsigned char *ar)
+            const char          *ar)
 {
     int                 rstatus;
     size_t              siglen;
@@ -3499,11 +3493,10 @@ arc_getseal(ARC_MESSAGE         *msg,
     }
     else
     {
-        arc_dstring_printf(dstr, "; %s", (const char *) ar);
+        arc_dstring_printf(dstr, "; %s", ar);
     }
 
-    status = arc_parse_header_field(msg,
-                                    (unsigned char *) arc_dstring_get(dstr),
+    status = arc_parse_header_field(msg, arc_dstring_get(dstr),
                                     arc_dstring_len(dstr), &h);
     if (status != ARC_STAT_OK)
     {
@@ -3761,14 +3754,14 @@ error:
 **  	Header field name stored in the object.
 */
 
-unsigned char *
+char *
 arc_hdr_name(ARC_HDRFIELD *hdr, size_t *len)
 {
     if (len != NULL)
     {
         *len = hdr->hdr_namelen;
     }
-    return (unsigned char *) hdr->hdr_text;
+    return hdr->hdr_text;
 }
 
 /*
@@ -3781,10 +3774,10 @@ arc_hdr_name(ARC_HDRFIELD *hdr, size_t *len)
 **  	Header field value stored in the object.
 */
 
-unsigned char *
+char *
 arc_hdr_value(ARC_HDRFIELD *hdr)
 {
-    return (unsigned char *) hdr->hdr_text + hdr->hdr_namelen + 1;
+    return hdr->hdr_text + hdr->hdr_namelen + 1;
 }
 
 /*
@@ -3904,7 +3897,7 @@ arc_chain_status_str(ARC_MESSAGE *msg)
 */
 
 int
-arc_chain_custody_str(ARC_MESSAGE *msg, unsigned char *buf, size_t buflen)
+arc_chain_custody_str(ARC_MESSAGE *msg, char *buf, size_t buflen)
 {
     int                 set;
     ARC_KVSET          *kvset;
@@ -3935,12 +3928,10 @@ arc_chain_custody_str(ARC_MESSAGE *msg, unsigned char *buf, size_t buflen)
         kvset = msg->arc_sets[set].arcset_ams->hdr_data;
         str = arc_param_get(kvset, "d");
         (void) arc_dstring_printf(tmpbuf, "%s%s",
-                                  (set < msg->arc_nsets - 1 ? ":" : ""),
-                                  (char *) str);
+                                  (set < msg->arc_nsets - 1 ? ":" : ""), str);
     }
 
-    appendlen = snprintf((char *) buf, buflen, "%s",
-                         (char *) arc_dstring_get(tmpbuf));
+    appendlen = snprintf(buf, buflen, "%s", arc_dstring_get(tmpbuf));
     arc_dstring_free(tmpbuf);
 
     return appendlen;

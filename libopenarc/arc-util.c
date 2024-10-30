@@ -54,17 +54,14 @@
 */
 
 bool
-arc_hdrlist(unsigned char  *buf,
-            size_t          buflen,
-            unsigned char **hdrlist,
-            bool            first)
+arc_hdrlist(char *buf, size_t buflen, char **hdrlist, bool first)
 {
-    bool           escape = false;
-    int            c;
-    int            len;
-    unsigned char *p;
-    unsigned char *q;
-    unsigned char *end;
+    bool  escape = false;
+    int   c;
+    int   len;
+    char *p;
+    char *q;
+    char *end;
 
     assert(buf != NULL);
     assert(hdrlist != NULL);
@@ -78,7 +75,7 @@ arc_hdrlist(unsigned char  *buf,
 
         if (!first)
         {
-            len = strlcat((char *) buf, "|", buflen);
+            len = strlcat(buf, "|", buflen);
             if (len >= buflen)
             {
                 return false;
@@ -86,7 +83,7 @@ arc_hdrlist(unsigned char  *buf,
         }
         else
         {
-            len = strlen((char *) buf);
+            len = strlen(buf);
         }
 
         first = false;
