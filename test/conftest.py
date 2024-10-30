@@ -14,7 +14,8 @@ def private_key(scope='session'):
     binargs = [
         'openssl',
         'genrsa',
-        '-out', keypath,
+        '-out',
+        keypath,
         '2048',
     ]
     subprocess.run(binargs)
@@ -23,7 +24,8 @@ def private_key(scope='session'):
     binargs = [
         'openssl',
         'rsa',
-        '-in', keypath,
+        '-in',
+        keypath,
         '-pubout',
     ]
     res = subprocess.run(binargs, capture_output=True, text=True)
@@ -48,6 +50,7 @@ def tool_path(scope='session'):
         binpath = os.path.dirname(os.path.realpath(__file__))
         binpath = os.path.join(binpath, '..', tool)
         return os.path.realpath(binpath)
+
     return _tool_path
 
 
@@ -60,7 +63,7 @@ def milter_config(request, tmp_path, private_key):
         'sock': tmp_path.joinpath('milter.sock'),
     }
     for candidate in [
-        request.fspath.basename,    # test file
+        request.fspath.basename,  # test file
         request.function.__name__,  # test function
     ]:
         fname = os.path.join(base_path, '.'.join([candidate, 'conf']))
@@ -77,8 +80,10 @@ def milter_cmdline(tmp_path, tool_path, milter_config):
         tool_path('openarc/openarc'),
         '-f',
         '-v',
-        '-c', milter_config['file'],
-        '-p', milter_config['sock'],
+        '-c',
+        milter_config['file'],
+        '-p',
+        milter_config['sock'],
     ]
 
 

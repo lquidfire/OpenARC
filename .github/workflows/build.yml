@@ -16,17 +16,23 @@ jobs:
           git diff
           git status --porcelain | grep -q '^ M' && exit 1 || exit 0
 
-  flake8:
+  ruff:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
         uses: actions/checkout@v4
 
       - name: Install flake8
-        run: sudo pip install flake8
+        run: sudo pip install ruff
 
       - name: Lint Python code
-        run: flake8 --max-line-length=160
+        run: ruff check
+
+      - name: Lint Python code formatting
+        run: |
+          ruff format
+          git diff
+          git status --porcelain | grep -q '^ M' && exit 1 || exit 0
 
   check:
     runs-on: ubuntu-latest

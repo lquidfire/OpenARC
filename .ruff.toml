@@ -1,0 +1,8 @@
+line-length = 160
+
+[lint]
+select = ["F", "E", "W", "B", "RUF"]
+ignore = ["B007"]
+
+[format]
+quote-style = "single"
