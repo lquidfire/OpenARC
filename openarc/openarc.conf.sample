@@ -132,16 +132,15 @@ Domain			example.com
 ##  KeyFile filename
 ##  	default (none)
 ##
-##  Specifies the path to the private key to use when signing.  Ignored if
-##  SigningTable and KeyTable are used.  No default; must be specified for
-##  signing if SigningTable/KeyTable are not in use.
+##  Specifies the path to the private key to use when signing. Required for
+#@  signing.
 
 KeyFile			/var/db/dkim/example.private
 
 ##  MaximumHeaders n
 ##
-##  Disallow messages whose header blocks are bigger than "n" bytes.
-##  Intended to detect and block a denial-of-service attack.  The default
+##  Disable processing for messages whose header blocks are bigger than "n"
+##  bytes. Intended to avoid a denial-of-service attack.  The default
 ##  is 65536.  A value of 0 disables this test.
 
 # MaximumHeaders	n

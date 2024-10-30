@@ -1,114 +1,132 @@
-.TH openarc 8 "The Trusted Domain Project"
-.SH NAME
-.B openarc
-\- ARC signing and verifying filter for MTAs
-.SH SYNOPSIS
-.B openarc
-[\-c configfile]
-[\-f]
-[\-n]
-[\-p socketspec]
-[\-P pidfile]
-[\-u userid[:group]]
-[\-v]
-[\-V]
-.SH DESCRIPTION
-.B openarc
-implements the proposed
-.B ARC
-(Authenticated Received Chain) standard for confirming handling and
-authentication of a message as it is handled for delivery.
+.\" Copyright (c) 2005-2008, Sendmail, Inc. and its suppliers. All rights
+.\" reserved. See LICENSE.Sendmail.
+.\" Copyright (c) 2009-2013, 2015, 2016, The Trusted Domain Project. All
+.\" rights reserved. See LICENSE.
+.Dd @BUILDDATE@
+.Dt OPENARC 8
+.Os OpenARC @VERSION@
 
-.B openarc
+.Sh NAME
+.Nm openarc
+.Nd ARC signing and verifying filter for MTAs
+
+.Sh SYNOPSIS
+.Nm openarc
+.Op Fl c Ar configfile
+.Op Fl f
+.Op Fl n
+.Op Fl p Ar socketspec
+.Op Fl P Ar pidfile
+.Op Fl u Ar userid Op : Ar group
+.Op Fl v
+.Op Fl V
+
+.Sh DESCRIPTION
+.Nm
+implements the proposed ARC (Authenticated Received Chain) standard
+for confirming handling and authentication of a message as it is
+handled for delivery.
+
+.Nm
 uses the
-.I milter
+.Em milter
 interface, originally distributed as part of version 8.11 of
-.B sendmail(8),
+.Xr sendmail 8 ,
 to provide ARC signing and/or verifying service for mail transiting
 a milter-aware MTA.
-.SH OPTIONS
-.TP
-.I \-c configfile
+
+.Sh OPTIONS
+
+.Bl -tag -width Ds
+.It Fl c Ar configfile
 Read the named configuration file.  See the
-.I openarc.conf(5)
-man page for details.  Values in the configuration file are overridden
-when their equivalents are provided on the command line until a configuration
-reload occurs.  The default is to read a configuration file from
-.I @SYSCONFDIR@/openarc.conf
-if one exists, or otherwise to apply defaults to all values.
-.TP
-.I \-f
+.Xr openarc.conf 5
+man page for details.
+Values in the configuration file are overridden when their equivalents
+are provided on the command line (but only until a configuration reload
+occurs.)
+The default is to read a configuration file from
+.Pa @SYSCONFDIR@/openarc.conf
+if one exists.
+If no configuration file is found, default values are used.
+
+.It Fl f
 Normally
-.I openarc
+.Nm
 forks and exits immediately, leaving the service running in the background.
 This flag suppresses that behaviour so that it runs in the foreground.
-.TP
-.I \-n
+
+.It Fl n
 Parse the configuration file and command line arguments, reporting any
-errors found, and then exit.  The exit value will be 0 if the filter would
-start up without complaint, or non-zero otherwise.
-.TP
-.I \-p socketspec
+errors found, and then exit.
+The exit value will be 0 if the filter would start up without complaint,
+and non-zero otherwise.
+
+.It Fl p Ar socketspec
 Specifies the socket that should be established by the filter to receive
 connections from
-.I sendmail(8)
+.Xr sendmail 8
 in order to provide service.
-.I socketspec
+.Ar socketspec
 is in one of two forms:
-.I local:path
+.Ar local:path
 which creates a UNIX domain socket at the specified
-.I path,
+.Ar path,
 or
-.I inet:port[@host]
+.Ar inet:port Op @host
 or
-.I inet6:port[@host]
+.Ar inet6:port Op @host
 which creates a TCP socket on the specified
-.I port
+.Ar port
 using the requested protocol family.  If the
-.I host
+.Ar host
 is not given as either a hostname or an IP address, the socket will be
-listening on all interfaces.  A literal IP address must be enclosed in
-square brackets.  If neither socket type is specified,
-.I local
+listening on all interfaces.
+A literal IP address must be enclosed in square brackets.
+If neither socket type is specified,
+.Cm local
 is assumed, meaning the parameter is interpreted as a path at which
-the socket should be created.  This parameter is mandatory either here or
-in the configuration file.
-.TP
-.I \-P pidfile
+the socket should be created.
+This parameter is mandatory either here or in the configuration file.
+
+.It Fl P Ar pidfile
 Specifies a file into which the filter should write its process ID at startup.
-.TP
-.I \-u userid[:group]
-Attempts to be come the specified
-.I userid
+
+.It Fl u Ar userid Op Ar :group
+Attempts to become the specified
+.Ar userid
 before starting operations.  The process will be assigned all of the groups
 and primary group ID of the named
-.I userid
+.Ar userid
 unless an alternate
-.I group
-is specified.  See the FILE PERMISSIONS section for more information.
-.TP
-.I \-V
-Print the version number and build-time options, and then exit without
-doing anything else.
-.SH EXIT STATUS
-Filter exit status codes are selected according to
-.I sysexits(3).
-.SH VERSION
-This man page covers version @VERSION@ of
-.I openarc.
-.SH COPYRIGHT
-Copyright (c) 2005-2008, Sendmail, Inc. and its suppliers.  All rights
-reserved.
+.Ar group
+is specified.
 
-Copyright (c) 2009-2013, 2015, 2016, The Trusted Domain Project.
-All rights reserved.
-.SH SEE ALSO
-.I openarc.conf(5), sendmail(8)
-.P
+.It Fl V
+Print the version number and build-time options, then exit.
+
+.Sh EXIT STATUS
+Filter exit status codes are selected according to
+.Xr sysexits 3 .
+
+.Sh SEE ALSO
+.Bl -item
+.It
+.Xr openarc.conf 5
+.It
+.Xr sendmail 8
+.It
 Sendmail Operations Guide
-.P
+.It
 RFC5321 - Simple Mail Transfer Protocol
-.P
+.It
 RFC5322 - Internet Messages
-.P
+.It
+RFC6376 - DomainKeys Identified Mail
+.It
 RFC8601 - Message Header Field for Indicating Message Authentication Status
+.It
+RFC8616 - Email Authentication for Internationalized Mail
+.It
+RFC8617 - The Authenticated Received Chain (ARC) Protocol
+.El

@@ -1,171 +1,225 @@
-.TH openarc.conf 5 "The Trusted Domain Project"
+.\" Copyright (c) 2007, 2008, Sendmail, Inc. and its suppliers. All rights
+.\" reserved. See LICENSE.Sendmail.
+.\" Copyright (c) 2009-2017, The Trusted Domain Project. All rights reserved.
+.\" See LICENSE.
+.Dd @BUILDDATE@
+.Dt OPENARC.CONF 5
+.Os OpenARC @VERSION@
 
-.SH NAME
-.B openarc.conf
-\- Configuration file for openarc
+.Sh NAME
+.Nm openarc.conf
+.Nd Configuration file for openarc
 
-.SH LOCATION
-.I @SYSCONFDIR@/openarc.conf
+.Sh LOCATION
+.Pa @SYSCONFDIR@/openarc.conf
 
-.SH DESCRIPTION
-.I openarc(8)
-implements the
-.B ARC
-(Authenticated Received Chain)
+.Sh DESCRIPTION
+.Xr openarc 8
+implements the ARC (Authenticated Received Chain)
 specification for verifying authentication and handling of messages as
-they are routed to their destinations.  This file is its configuration file.
+they are routed to their destinations.
+This is its configuration file.
 
-Blank lines are ignored.  Lines containing a hash ("#") character are
-truncated at the hash character to allow for comments in the file.
+Blank lines are ignored.
+Lines containing a hash ("#") character are truncated at the hash character
+to allow for comments in the file.
 
 Other content should be the name of a parameter, followed by white space,
-followed by the value of that parameter, each on a separate line.
+followed by the value of that parameter.
+Each parameter must be on a separate line.
 
 For parameters that are Boolean in nature, only the first byte of
-the value is processed.  For positive values, the following are accepted:
-"T", "t", "Y", "y", "1".  For negative values, the following are accepted:
-"F", "f", "N", "n", "0".
+the value is processed.
+For positive values, the following are accepted:
+.Cm T ,
+.Cm t ,
+.Cm Y ,
+.Cm y ,
+.Cm 1 .
+
+For negative values, the following are accepted:
+.Cm F ,
+.Cm f ,
+.Cm N ,
+.Cm n ,
+.Cm 0 .
 
 See the
-.I openarc(8)
+.Xr openarc 8
 man page for details about how and when the configuration file contents
 are reloaded.
 
-Unless otherwise stated, Boolean values default to "false", integer values
-default to 0, and string and dataset values default to being undefined.
+Unless otherwise stated, boolean values default to
+.Cm false ,
+integer values default to
+.Cm 0 ,
+and string and dataset values default to being undefined.
 
-.SH PARAMETERS
-.TP
-.I AuthResIP (Boolean)
+.Sh PARAMETERS
+.Bl -tag -width Ds
+
+.It Cm AuthResIP Pq boolean
 Controls whether Authentication-Results headers include the remote IP.
 
-.TP
-.I AutoRestart (Boolean)
-Automatically re-start on failures.  Use with caution; if the filter
-fails instantly after it starts, this can cause a tight
-.I fork(2)
+.It Cm AuthservID Pq string
+.Ar authserv-id
+to use in Authentication-Results headers.
+
+.It Cm AutoRestart Pq boolean
+Automatically re-start on failures.
+Use with caution; if the filter fails instantly after it starts, this can
+cause a tight
+.Xr fork 2
 loop.
 
-.TP
-.I AutoRestartCount (integer)
-Sets the maximum automatic restart count.  After this number of
-automatic restarts, the filter will give up and terminate.
-A value of 0 implies no limit; this is the default.
+.It Cm AutoRestartCount Pq integer
+Sets the maximum automatic restart count.
+After this number of automatic restarts, the filter will give up and terminate.
+A value of
+.Cm 0
+implies no limit; this is the default.
 
-.TP
-.I AutoRestartRate (string)
-Sets the maximum automatic restart rate.  If the filter begins restarting
-faster than the rate defined here, it will give up and terminate.
+.It Cm AutoRestartRate Pq string
+Sets the maximum automatic restart rate.
+If the filter begins restarting faster than the rate defined here, it will
+give up and terminate.
 This is a string of the form
-.I n/t[u]
+.Ar n/t[u]
 where
-.I n
+.Ar n
 is an integer limiting the count of restarts in the given interval and
-.I t[u]
+.Ar t[u]
 defines the time interval through which the rate is calculated;
-.I t
+.Ar t
 is an integer and
-.I u
+.Ar u
 defines the units thus represented ("s" or "S" for seconds, the default;
 "m" or "M" for minutes; "h" or "H" for hours; "d" or "D" for days).  For
 example, a value of "10/1h" limits the restarts to 10 in one hour.  There
 is no default, meaning restart rate is not limited.
 
-.TP
-.I Background (Boolean)
+.It Cm Background Pq boolean
 Causes
-.I openarc
-to fork and exits immediately, leaving the service running in the background.
-The default is "true".
+.Xr openarc 8
+to fork and exit immediately, leaving the service running in the background.
+The default is
+.Cm true .
 
-.TP
-.I Canonicalization (string)
+.It Cm BaseDirectory Pq string
+Directory to switch to before beginning operation.
+
+.It Cm Canonicalization Pq string
 Selects the canonicalization method(s) to be used when signing messages.
 When verifying, the message's ARC-Message-Signature: header field specifies
-the canonicalization method.  The recognized values are
-.I relaxed
+the canonicalization method.
+The recognized values are
+.Cm relaxed
 and
-.I simple
+.Cm simple
 as defined by the DKIM specification.  The default is
-.I relaxed/simple.
+.Cm relaxed/simple.
 The value may include two different canonicalizations separated by a
 slash ("/") character, in which case the first will be applied to the
 header and the second to the body.
 
-.TP
-.I ChangeRootDirectory (string)
+.It Cm ChangeRootDirectory Pq string
 Requests that the operating system change the effective root directory
 of the process to the one specified here prior to beginning execution.
-.BR chroot (2)
+.Xr chroot 2
 requires superuser access. A warning will be generated if
-.I UserID
+.Cm UserID
 is not also set.
 
-.TP
-.I EnableCoredumps (boolean)
-On systems that have such support, make an explicit request to the kernel
-to dump cores when the filter crashes for some reason.  Some modern UNIX
-systems suppress core dumps during crashes for security reasons if the
-user ID has changed during the lifetime of the process.  Currently only
-supported on Linux.
+.It Cm Domain Pq string
+Domain to use when signing messages. Required for signing.
 
-.TP
-.I Include (string)
+.It Cm EnableCoredumps Pq boolean
+On systems that have such support, make an explicit request to the kernel
+to dump cores when the filter crashes for some reason.
+Some modern UNIX systems suppress core dumps during crashes for security
+reasons if the user ID has changed during the lifetime of the process.
+Currently only supported on Linux.
+
+.It Cm FinalReceiver Pq boolean
+Add a non-standard
+.Cm arc.chain
+field to the Authentication-Results header, showing the domains
+present in the ARC chain.
+
+.It Cm FixedTimestamp Pq string
+Used for testing.
+This is not useful in a production environment.
+
+.It Cm Include Pq string
 Names a file to be opened and read as an additional configuration file.
 Nesting is allowed to a maximum of five levels.
 
-.TP
-.I InternalHosts (dataset)
-Identifies a set of hosts that identifies clients whose connections
-should be treated as "internal" by this filter.  Messages received from
-such sources will not be verified and are instead trusted as-is; in
-particular, their Authentication-Results fields are trusted to be
-correct and authentic, meaning they will be assumed to contain the correct
-chain status when generating an outgoing seal.  See the description of
-"PeerList" for a description of the supported format.  If no set is
-provided, "127.0.0.1" is added to the list by default.
+.It Cm InternalHosts Pq dataset
+Identifies a set of hosts whose connections should be treated as
+"internal" by this filter.
+Messages received from such sources will not be verified and are instead
+trusted as-is; in particular, their Authentication-Results fields are
+trusted to be correct and authentic, meaning they will be assumed to
+contain the correct chain status when generating an outgoing seal.
+See the description of "PeerList" for a description of the supported format.
+If no set is provided, "127.0.0.1" is added to the list by default.
 
-.TP
-.I MilterDebug (integer)
-Sets the debug level to be requested from the milter library.  The
-default is 0.
+.It Cm KeepTemporaryFiles Pq boolean
+Preserve temporary files generated during signing or verification for
+debugging purposes.
+This can use up disk space very quickly on busy systems.
 
-.TP
-.I MinimumKeySizeRSA (integer)
+.It Cm KeyFile Pq string
+Path to the private key to use when signing. Required for signing.
+
+.It Cm MaximumHeaders Pq integer
+Disable processing for messages where the header section is larger than this
+value (in bytes.)
+.Cm 0
+disables this check, the default is
+.Cm 65536 .
+
+.It Cm MilterDebug Pq integer
+Sets the debug level to be requested from the milter library.
+The default is
+.Cm 0 .
+
+.It Cm MinimumKeySizeRSA Pq integer
 Disallows signatures whose keys are smaller than the specified size,
 regardless of whether they would otherwise be valid. If this is not
-set the library's default (which is currently 1024) will be used.
+set the library's default (which is currently
+.Cm 1024 )
+will be used.
 
-.TP
-.I Mode (string)
-Selects the operating mode(s) for this filter.  If the string contains
-the character "s", the filter will seal messages passing through
-the filter by adding a new ARC set. If the string contains the character
-"v", the filter will validate existing ARC sets and record the chain
-validation status in an "Authentication-Results" header. The two
-can be combined.  If neither is specified, the operating mode will
-be inferred on a per-connection basis based on the entries in the
-.I InternalHosts
+.It Cm Mode Pq string
+Selects the operating mode(s) for this filter.
+If the string contains the character "s", the filter will seal messages
+passing through the filter by adding a new ARC set.
+If the string contains the character "v", the filter will validate existing
+ARC sets and record the chain validation status in an "Authentication-Results"
+header.
+The two can be combined.
+If neither is specified, the operating mode will be inferred on a
+per-connection basis based on the entries in the
+.Cm InternalHosts
 list; connections from internal hosts will be assigned to signing mode,
 and all others will be assigned to verify mode.
 
-.TP
-.I OversignHeaders (string)
+.It Cm OversignHeaders Pq string
 Specifies a comma-separated list of header field names that should be
 included in all signature header lists (the "h=" tag) once more than the
-number of times they were actually present in the signed message.  The set
-is empty by default.  The purpose of this, and especially of listing an
-absent header field, is to prevent the addition of important fields between
-the signer and the verifier.  Since the verifier would include that header
-field when performing verification if it had been added by an intermediary,
-the signed message and the verified message were different and the
-verification would fail.  Note that listing a field name here and not listing
-it in the
-.I SignHeaders
+number of times they were actually present in the signed message.
+The set is empty by default.
+The purpose of this, and especially of listing an absent header field, is to
+prevent the addition of important fields between the signer and the verifier.
+Since the verifier would include that header field when performing
+verification if it had been added by an intermediary, the signed message and
+the verified message were different and the verification would fail.
+Note that listing a field name here and not listing it in the
+.Cm SignHeaders
 list is likely to generate invalid signatures.
 
-.TP
-.I PeerList (dataset)
+.It Cm PeerList Pq dataset
 Identifies a set of "peers" that identifies clients whose connections
 should be accepted without processing by this filter.  The set
 should contain on each line a hostname, domain name (e.g. ".example.com"),
@@ -181,129 +235,123 @@ of this data set should also use lowercase.  The IP address portion of an
 entry may optionally contain square brackets; both forms (with and without)
 will be checked.
 
-.TP
-.I PermitAuthenticationOverrides (boolean)
-Controls whether a previous Authentication-Result with the same authserv-id
+.It Cm PermitAuthenticationOverrides Pq boolean
+Controls whether a previous Authentication-Result with the same
+.Ar authserv-id
 is allowed to override the computed ARC chain validation status.
 
-.TP
-.I PidFile (string)
+.It Cm PidFile Pq string
 Specifies the path to a file that should be created at process start
 containing the process ID.
 
-.TP
-.I RequireSafeKeys (boolean)
+.It Cm RequireSafeKeys Pq boolean
 Controls whether the filter requires that private keys have safe file
 permissions.
 
-.TP
-.I SealHeaderChecks (string)
+.It Cm SealHeaderChecks Pq string
 Identifies a file containing header checks that should be done to determine
-whether to seal a message.  Each entry in this file must be of the form
-"name:regexp".  When this feature is set, messages will only be processed
-by the filter if any instance of the named header field exists and has a
-value matching the provided regular expression.  If the value of an
-instance appears to be a JSON list, then the regular expression is applied
-to all strings in the list.
+whether to seal a message.
+Each entry in this file must be of the form
+.Ar name:regexp .
+When this feature is set, messages will only be processed by the filter if
+any instance of the named header field exists and has a value matching the
+provided regular expression.
+If the value of an instance appears to be a JSON list, then the regular
+expression is applied to all strings in the list.
 
-.TP
-.I SignatureAlgorithm (string)
+.It Cm Selector Pq string
+Selector to use when signing messages. Required for signing.
+
+.It Cm SignatureAlgorithm Pq string
 Selects the signing algorithm to use when generating signatures.
-Use 'openarc \-V' to see the list of supported algorithms.
+Use
+.Ql openarc \-V
+to see the list of supported algorithms.
 The default is
-.I rsa-sha256.
+.Cm rsa-sha256.
+Other values are not useful if you are intending to interoperate with other
+implementers of the ARC protocol.
 
-.TP
-.I SignHeaders (string)
+.It Cm SignHeaders Pq string
 Specifies the set of header fields that should be included when generating
-signatures.  This is expected to be a comma-separated list of header
-field names, and matching is case-insensitive.  If the list omits any header
-field that is mandated by the ARC specification, those fields are implicitly
-added.  By default, those fields listed in the DKIM specification as
+signatures.
+This is expected to be a comma-separated list of header field names, and
+matching is case-insensitive.
+If the list omits any header field that is mandated by the ARC specification,
+those fields are implicitly added.
+By default, those fields listed in the DKIM specification as
 "SHOULD" be signed (RFC6376, Section 5.4) will be signed by the filter.
 
-.TP
-.I Socket (string)
+.It Cm Socket Pq string
 Specifies the socket that should be established by the filter to receive
-connections from
-.I sendmail(8)
-in order to provide service.
-.I socketspec
+connections from the MTA.
+.Ar socketspec
 is in one of two forms:
-.I local:path,
+.Cm local:path,
 which creates a UNIX domain socket at the specified
-.I path,
+.Ar path ,
 or
-.I inet:port[@host]
+.Ar inet:port[@host]
 or
-.I inet6:port[@host]
+.Ar inet6:port[@host]
 which creates a TCP socket on the specified
-.I port
+.Ar port
 and in the specified protocol family.  If the
-.I host
+.Ar host
 is not given as either a hostname or an IP address, the socket will be
 listening on all interfaces.  A literal IP address must be enclosed in
 square brackets.  This option is mandatory either in the configuration file or
 on the command line.
 
-.TP
-.I Syslog (Boolean)
-Log via calls to
-.I syslog(3)
-any interesting activity.
+.It Cm SoftwareHeader Pq boolean
+Add an ARC-Filter header advertising the filter name and version.
 
-.TP
-.I SyslogFacility (string)
-Log via calls to
-.I syslog(3)
-using the named facility.  The facility names are the same as the ones
-allowed in
-.I syslog.conf(5).
-The default is "mail".
+.It Cm Syslog Pq boolean
+Log interesting activity to
+.Xr syslog 3 .
 
-.TP
-.I UMask (integer)
+.It Cm SyslogFacility Pq string
+Use the named facility when logging via
+.Xr syslog 3 .
+The default is
+.Cm mail .
+
+.It Cm TemporaryDirectory Pq string
+Directory to use when creating temporary files.
+The default is
+.Pa /tmp
+
+.It Cm TestKeys Pq string
+Used for testing.
+Name of a file containing static DKIM records that will be used
+for validation instead of live DNS lookups, one per line.
+This is not useful in a production environment.
+
+.It Cm UMask Pq integer
 Requests a specific permissions mask to be used for file creation.
 This only applies to creation of the socket when
-.I Socket
+.Cm Socket
 specifies a UNIX domain socket, and to the
-.I PidFile
+.Cm PidFile
 (if any).  See
-.I umask(2)
+.Xr umask 2
 for more information.
 
-.TP
-.I UserID (string)
+.It Cm UserID Pq string
 Attempts to become the specified userid before starting operations.
 The value is of the form
-.I userid[:group].
+.Ar userid[:group].
 The process will be assigned all of the groups and primary group ID of
 the named
-.I userid
+.Ar userid
 unless an alternate
-.I group
+.Ar group
 is specified.
 
-.SH FILES
-.TP
-.I @SYSCONFDIR@/openarc.conf
-Default location of this file.
-.SH VERSION
-This man page covers version @VERSION@ of
-.I openarc.
-
-.SH COPYRIGHT
-Copyright (c) 2007, 2008, Sendmail, Inc. and its suppliers.  All rights
-reserved.
-
-Copyright (c) 2009-2017, The Trusted Domain Project.  All rights reserved.
-.SH SEE ALSO
-.I openarc(8), sendmail(8)
-.P
-RFC6376 - DomainKeys Identified Mail
-.P
-RFC8601 - Message Header Field for Indicating Message Authentication Status
-.P
-RFC8616 - Email Authentication for Internationalized Mail
-.P
-RFC8617 - The Authenticated Received Chain (ARC) Protocol
+.Sh SEE ALSO
+.Bl -item
+.It
+.Xr openarc 8
+.It
+.Xr sendmail 8
+.El

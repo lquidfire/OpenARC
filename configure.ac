@@ -375,6 +375,9 @@ test "x$prefix" = xNONE && prefix=$ac_default_prefix
 SYSCONFDIR=`eval echo "$sysconfdir"`
 AC_SUBST([SYSCONFDIR])
 
+BUILDDATE=`date +%F`
+AC_SUBST([BUILDDATE])
+
 #
 # Finish up
 #

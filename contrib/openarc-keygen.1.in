@@ -1,6 +1,6 @@
 .\" Copyright 2024 OpenARC contributors.
 .\" See LICENSE.
-.Dd 2024-10-30
+.Dd @BUILDDATE@
 .Dt OPENARC-KEYGEN 1
 .Os OpenARC @VERSION@
 
@@ -9,13 +9,13 @@
 .Nd DKIM (and ARC) key generation tool
 
 .Sh SYNOPSIS
-.Nm openarc-keygen
+.Nm
 .Fl d Ar domain
 .Fl s Ar selector
 .Op options
 
 .Sh DESCRIPTION
-.Nm openarc-keygen
+.Nm
 outputs a private key suitable for signing messages using
 .Xr openarc 8
 and also outputs one of several representations of the associated
@@ -105,7 +105,7 @@ it does not affect the handling of messages or signatures.
 
 .Sh NOTES
 A suitable
-.Nm openssl
+.Em openssl
 executable must be available in the executing user's
 .Ev PATH .
 

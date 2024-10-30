@@ -2991,12 +2991,9 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
         afc->mctx_hdrbytes + strlen(headerf) + strlen(headerv) + 2 >
             conf->conf_maxhdrsz)
     {
-        /*
-        **  MSK: For now just accept these, but it's a security issue;
-        **  OpenDKIM makes this tunable so I imagine people using this
-        **  will ask for the same thing.
-        */
-
+        /* FIXME: this should be configurable, and it might be better to
+         * default to rejecting the message.
+         */
         if (conf->conf_dolog)
         {
             syslog(LOG_NOTICE, "too much header data; accepting");
