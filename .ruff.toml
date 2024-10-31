@@ -1,4 +1,4 @@
-include = ["contrib/openarc-keygen"]
+include = ["contrib/openarc-keygen", "*.py"]
 line-length = 160
 
 [lint]
