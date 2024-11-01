@@ -1,146 +1,84 @@
-/*
-**  Copyright (c) 2016, The Trusted Domain Project.  All rights reserved.
-*/
+/* Copyright 2024 OpenARC contributors.
+ * See LICENSE.
+ */
 
-/* system includes */
 #include <assert.h>
+#include <string.h>
 #include <sys/types.h>
 
-/* libopendkim includes */
+#include <openssl/bio.h>
+#include <openssl/evp.h>
+
 #include "base64.h"
 
-/* base64 alphabet */
-static unsigned char alphabet[64] =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-/* base64 decode stuff */
-static int decoder[256] = {
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  62, 0,  0,  0,  63, 52, 53, 54, 55, 56, 57, 58, 59, 60,
-    61, 0,  0,  0,  0,  0,  0,  0,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
-    11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 0,  0,  0,  0,
-    0,  0,  26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42,
-    43, 44, 45, 46, 47, 48, 49, 50, 51, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,  0};
-
-#ifndef NULL
-#define NULL 0
-#endif /* ! NULL */
-
-/*
-**  ARC_BASE64_DECODE -- decode a base64 blob
-**
-**  Parameters:
-**  	str -- string to decide
-**  	buf -- where to write it
-**  	buflen -- bytes available at "buf"
-**
-**  Return value:
-**  	>= 0 -- success; length of what was decoded is returned
-**  	-1 -- corrupt
-**  	-2 -- not enough space at "buf"
-*/
+/**
+ *  Decode a base64 blob.
+ *
+ *  Parameters:
+ *      str: string to decode
+ *      buf: output buffer
+ *      buflen: bytes available in the output buffer
+ *
+ *  Returns:
+ *      Length of the decoded data on success, -2 if there is insufficient
+ *      space in the output buffer or an internal error occurred, or -1 if
+ *      decoding failed because the input was bad.
+ */
 
 int
 arc_base64_decode(const unsigned char *str, unsigned char *buf, size_t buflen)
 {
-    int                  n = 0;
-    int                  bits = 0;
-    int                  char_count = 0;
-    const unsigned char *c;
+    int    retval = -2;
+    size_t len;
+    BIO   *bmem;
+    BIO   *b64;
 
     assert(str != NULL);
     assert(buf != NULL);
 
-    for (c = str; *c != '=' && *c != '\0'; c++)
+    /* check to make sure there's room */
+    len = strlen((const char *) str);
+    if (len % 4 > 0)
     {
-        /* end padding */
-        if (*c == '=' || *c == '\0')
-        {
-            break;
-        }
-
-        /* skip stuff not part of the base64 alphabet (RFC2045) */
-        if (!((*c >= 'A' && *c <= 'Z') || (*c >= 'a' && *c <= 'z') ||
-              (*c >= '0' && *c <= '9') || (*c == '+') || (*c == '/')))
-        {
-            continue;
-        }
-
-        /* everything else gets decoded */
-        bits += decoder[(int) *c];
-        char_count++;
-        if (n + 3 > buflen)
-        {
-            return -2;
-        }
-        if (char_count == 4)
-        {
-            buf[n++] = (bits >> 16);
-            buf[n++] = ((bits >> 8) & 0xff);
-            buf[n++] = (bits & 0xff);
-            bits = 0;
-            char_count = 0;
-        }
-        else
-        {
-            bits <<= 6;
-        }
-    }
-
-    /* XXX -- don't bother checking for proper termination (for now) */
-
-    /* process trailing data, if any */
-    switch (char_count)
-    {
-    case 0:
-        break;
-
-    case 1:
-        /* base64 decoding incomplete; at least two bits missing */
         return -1;
-
-    case 2:
-        if (n + 1 > buflen)
-        {
-            return -2;
-        }
-        buf[n++] = (bits >> 10);
-        break;
-
-    case 3:
-        if (n + 2 > buflen)
-        {
-            return -2;
-        }
-        buf[n++] = (bits >> 16);
-        buf[n++] = ((bits >> 8) & 0xff);
-        break;
     }
 
-    return n;
+    if (len / 4 * 3 > buflen)
+    {
+        return -2;
+    }
+
+    bmem = BIO_new_mem_buf(str, -1);
+    if (bmem == NULL)
+    {
+        return retval;
+    }
+    b64 = BIO_push(BIO_new(BIO_f_base64()), bmem);
+    if (b64 == bmem)
+    {
+        goto error;
+    }
+    BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
+
+    retval = BIO_read(b64, buf, buflen);
+
+error:
+    BIO_free_all(b64);
+    return retval;
 }
 
-/*
-**  ARC_BASE64_ENCODE -- encode base64 data
-**
-**  Parameters:
-**  	data -- data to encode
-**  	datalen -- bytes at "data" to encode
-**  	buf -- where to write the encoding
-**  	buflen -- bytes available at "buf"
-**
-**  Return value:
-**  	>= 0 -- success; number of bytes written to "buf" returned
-**   	-1 -- failure (not enough space at "buf")
-*/
+/**
+ *  Encode data as base64.
+ *
+ *  Parameters:
+ *      data: data to encode
+ *      datalen: length of data to encode
+ *      buf: output buffer
+ *      buflen: bytes available in the output buffer
+ *
+ *  Returns:
+ *      Length of the encoded data, or -1 if an error occurred.
+ */
 
 int
 arc_base64_encode(const unsigned char *data,
@@ -148,63 +86,34 @@ arc_base64_encode(const unsigned char *data,
                   unsigned char       *buf,
                   size_t               buflen)
 {
-    int    bits;
-    int    c;
-    int    char_count;
-    size_t n;
+    int  retval = -1;
+    BIO *bmem;
+    BIO *b64;
 
     assert(data != NULL);
     assert(buf != NULL);
 
-    bits = 0;
-    char_count = 0;
-    n = 0;
-
-    for (c = 0; c < datalen; c++)
+    bmem = BIO_new(BIO_s_mem());
+    if (bmem == NULL)
     {
-        bits += data[c];
-        char_count++;
-        if (char_count == 3)
-        {
-            if (n + 4 > buflen)
-            {
-                return -1;
-            }
+        return retval;
+    }
+    b64 = BIO_push(BIO_new(BIO_f_base64()), bmem);
+    if (b64 == bmem)
+    {
+        goto error;
+    }
+    BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
+    BIO_write(b64, data, datalen);
+    BIO_flush(b64);
+    retval = BIO_read(bmem, buf, buflen);
 
-            buf[n++] = alphabet[bits >> 18];
-            buf[n++] = alphabet[(bits >> 12) & 0x3f];
-            buf[n++] = alphabet[(bits >> 6) & 0x3f];
-            buf[n++] = alphabet[bits & 0x3f];
-            bits = 0;
-            char_count = 0;
-        }
-        else
-        {
-            bits <<= 8;
-        }
+    if (retval > 0 && BIO_eof(bmem) != 1)
+    {
+        retval = -1;
     }
 
-    if (char_count != 0)
-    {
-        if (n + 4 > buflen)
-        {
-            return -1;
-        }
-
-        bits <<= 16 - (8 * char_count);
-        buf[n++] = alphabet[bits >> 18];
-        buf[n++] = alphabet[(bits >> 12) & 0x3f];
-        if (char_count == 1)
-        {
-            buf[n++] = '=';
-            buf[n++] = '=';
-        }
-        else
-        {
-            buf[n++] = alphabet[(bits >> 6) & 0x3f];
-            buf[n++] = '=';
-        }
-    }
-
-    return n;
+error:
+    BIO_free_all(b64);
+    return retval;
 }

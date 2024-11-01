@@ -1,20 +1,16 @@
-/*
-**  Copyright (c) 2016, The Trusted Domain Project.  All rights reserved.
-*/
+/* Copyright 2024 OpenARC contributors.
+ * See LICENSE.
+ */
 
-#ifndef ARC_BASE64_H_
-#define ARC_BASE64_H_
+#ifndef ARC_BASE64_H
+#define ARC_BASE64_H
 
-/* system includes */
 #include <sys/types.h>
 
-/* prototypes */
-extern int arc_base64_decode(const unsigned char *str,
-                             unsigned char       *buf,
-                             size_t               buflen);
-extern int arc_base64_encode(const unsigned char *data,
-                             size_t               datalen,
-                             unsigned char       *buf,
-                             size_t               buflen);
+extern int arc_base64_decode(const unsigned char *, unsigned char *, size_t);
+extern int arc_base64_encode(const unsigned char *,
+                             size_t,
+                             unsigned char *,
+                             size_t);
 
-#endif /* ! ARC_BASE64_H_ */
+#endif /* ARC_BASE64_H */
