@@ -52,6 +52,7 @@ All notable changes to this project will be documented in this file.
   and `s=` tags.
 - libopenarc - `arc_eom()` propagates internal errors like memory allocation
   failure instead of marking the chain as failed.
+- libopenarc - Signature fields are wrapped at the configured margin.
 - milter - Use after free.
 - milter - Unlikely division by zero.
 - milter - Small memory leak during config loading.

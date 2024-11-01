@@ -3599,9 +3599,7 @@ arc_getseal(ARC_MESSAGE         *msg,
     }
 
     /* append it to the stub */
-    arc_dstring_cat(dstr, (char *) b64sig);
-
-    /* XXX -- wrapping needs to happen here */
+    arc_dstring_cat_wrap(dstr, (char *) b64sig, msg->arc_margin);
 
     /* add it to the seal */
     h = ARC_MALLOC(sizeof hdr);
@@ -3700,9 +3698,7 @@ arc_getseal(ARC_MESSAGE         *msg,
     }
 
     /* append it to the stub */
-    arc_dstring_cat(dstr, (char *) b64sig);
-
-    /* XXX -- wrapping needs to happen here */
+    arc_dstring_cat_wrap(dstr, (char *) b64sig, msg->arc_margin);
 
     /* add it to the seal */
     h = ARC_MALLOC(sizeof hdr);

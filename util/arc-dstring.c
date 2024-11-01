@@ -378,6 +378,84 @@ arc_dstring_catn(struct arc_dstring *dstr, const char *str, size_t nbytes)
     return true;
 }
 
+/**
+ *  Append a string to a dstring, wrapping at a specific column.
+ *
+ *  Parameters:
+ *      dstr: dstring to modify
+ *      str: string to append
+ *      margin: maximum line length, not including CRLF
+ *
+ *  Returns:
+ *      Whether the operation succeeded.
+ */
+bool
+arc_dstring_cat_wrap(struct arc_dstring *dstr, const char *str, size_t margin)
+{
+    size_t len;
+    size_t slen;
+
+    if (margin < 3)
+    {
+        /* margin is either disabled or nonsensical */
+        return arc_dstring_cat(dstr, str);
+    }
+
+    /* find the current line length */
+    len = 0;
+    for (char *p = dstr->ds_buf; *p; p++)
+    {
+        len++;
+        if (*p == '\n')
+        {
+            len = 0;
+        }
+    }
+
+    if (len >= margin)
+    {
+        len = 0;
+    }
+    else
+    {
+        len = margin - len;
+    }
+
+    slen = strlen(str);
+    if (len > slen)
+    {
+        len = slen;
+    }
+
+    if (len > 0)
+    {
+        if (!arc_dstring_catn(dstr, str, len))
+        {
+            return false;
+        }
+    }
+
+    for (const char *p = str + len; p < str + slen; p += margin - 2)
+    {
+        if (!arc_dstring_cat(dstr, "\r\n\t "))
+        {
+            return false;
+        }
+
+        len = strlen(p);
+        if (len > margin - 2)
+        {
+            len = margin - 2;
+        }
+
+        if (!arc_dstring_catn(dstr, p, len))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 /*
 **  ARC_DSTRING_GET -- retrieve data in a dstring
 **

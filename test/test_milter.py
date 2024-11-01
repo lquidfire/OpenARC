@@ -50,6 +50,9 @@ def run_miltertest(request, milter, milter_config):
             if msg[0] == miltertest.SMFIR_INSHEADER:
                 # Check for invalid characters
                 assert '\r' not in msg[1]['value']
+                # Check for proper wrapping
+                if msg[1]['name'] in ['ARC-Message-Signature', 'ARC-Seal']:
+                    assert not any(len(x) > 80 for x in msg[1]['value'].splitlines())
                 ins_headers.insert(msg[1]['index'], [msg[1]['name'], msg[1]['value']])
             elif msg[0] in miltertest.DISPOSITION_REPLIES:
                 assert msg[0] == miltertest.SMFIR_ACCEPT
