@@ -4671,7 +4671,6 @@ main(int argc, char **argv)
         }
 
         sa.sa_handler = arcf_sighandler;
-        /* XXX -- HAHAHAH => sa.sa_sigaction = NULL; */
         sigemptyset(&sa.sa_mask);
         sigaddset(&sa.sa_mask, SIGHUP);
         sigaddset(&sa.sa_mask, SIGINT);
