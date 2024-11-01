@@ -404,11 +404,6 @@ arc_check_dns_reply(unsigned char *ansbuf, size_t anslen, int xclass, int xtype)
 
     GETSHORT(n, cp);
 
-    /*
-    **  XXX -- maybe deal with a partial reply rather than require
-    **  	   it all
-    */
-
     if (cp + n > eom)
     {
         return 2;

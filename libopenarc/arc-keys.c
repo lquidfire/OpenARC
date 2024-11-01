@@ -338,11 +338,6 @@ arc_get_key_dns(ARC_MESSAGE *msg, char *buf, size_t buflen)
     /* come back to the one we found */
     cp = txtfound;
 
-    /*
-    **  XXX -- maybe deal with a partial reply rather than require
-    **  	   it all
-    */
-
     if (cp + rdlength > eom)
     {
         arc_error(msg, "'%s' reply corrupt", qname);
