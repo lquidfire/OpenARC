@@ -1113,8 +1113,7 @@ arc_canon_runheaders_seal(ARC_MESSAGE *msg)
                 tmphdr.hdr_flags = 0;
                 tmphdr.hdr_next = NULL;
 
-                /* XXX -- void? */
-                (void) arc_canon_header(msg, cur, &tmphdr, false);
+                status = arc_canon_header(msg, cur, &tmphdr, false);
                 arc_canon_buffer(cur, NULL, 0);
             }
 
