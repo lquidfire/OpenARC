@@ -236,32 +236,6 @@ arcf_socket_cleanup(char *sockspec)
 }
 
 /*
-**  ARCF_LOWERCASE -- lowercase-ize a string
-**
-**  Parameters:
-**  	str -- string to convert
-**
-**  Return value:
-**  	None.
-*/
-
-void
-arcf_lowercase(unsigned char *str)
-{
-    unsigned char *p;
-
-    assert(str != NULL);
-
-    for (p = str; *p != '\0'; p++)
-    {
-        if (isascii(*p) && isupper(*p))
-        {
-            *p = tolower(*p);
-        }
-    }
-}
-
-/*
 **  ARCF_INET_NTOA -- thread-safe inet_ntoa()
 **
 **  Parameters:

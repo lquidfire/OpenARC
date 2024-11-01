@@ -617,3 +617,30 @@ arc_clobber_array(char **in)
 
     ARC_FREE(in);
 }
+
+/**
+ *  Convert a string to lowercase
+ *
+ *  Parameters:
+ *      str: string to modify
+ *
+ *  Returns:
+ *      Nothing.
+ */
+
+void
+arc_lowercase(char *str)
+{
+    if (!str)
+    {
+        return;
+    }
+
+    for (unsigned char *p = (unsigned char *) str; *p; p++)
+    {
+        if (isascii(*p) && isupper(*p))
+        {
+            *p = tolower(*p);
+        }
+    }
+}

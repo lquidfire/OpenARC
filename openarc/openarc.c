@@ -2414,7 +2414,7 @@ arcf_checkip(struct conflist *list, struct sockaddr *ip)
         dst_len = sizeof ipbuf - 1;
 
         inet_ntop(AF_INET6, &addr, dst, dst_len);
-        arcf_lowercase((unsigned char *) dst);
+        arc_lowercase(dst);
         iplen = strlen(dst);
 
         LIST_FOREACH(node, list, entries)
@@ -2457,7 +2457,7 @@ arcf_checkip(struct conflist *list, struct sockaddr *ip)
             dst_len = sizeof ipbuf - 1;
 
             inet_ntop(AF_INET6, &addr, dst, dst_len);
-            arcf_lowercase((unsigned char *) dst);
+            arc_lowercase(dst);
             iplen = strlen(dst);
 
             sz = strlcat(ipbuf, "/", sizeof ipbuf);
@@ -2801,7 +2801,7 @@ mlfi_connect(SMFICTX *ctx, char *host, _SOCK_ADDR *ip)
         arcf_setpriv(ctx, cc);
     }
 
-    arcf_lowercase((unsigned char *) host);
+    arc_lowercase(host);
 
     if (host != NULL)
     {
