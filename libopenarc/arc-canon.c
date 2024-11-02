@@ -965,8 +965,10 @@ arc_canon_strip_b(ARC_MESSAGE *msg, char *text)
     tmp = tmpbuf;
     end = tmpbuf + sizeof tmpbuf - 1;
 
-    /* FIXME: this looks overly simplistic. tag-lists are allowed to
-     * contain FWS, and headers are allowed to contain CFWS.
+    /* Strictly speaking this is wrong, RFC 8617 allows CFWS around i=
+     * and cv= so this code could be confused by interestingly-shaped
+     * comments, but that part of the syntax is different from all other
+     * tag-lists so we're going to pretend it says FWS.
      */
     for (p = text; *p != '\0'; p++)
     {
@@ -1004,7 +1006,10 @@ arc_canon_strip_b(ARC_MESSAGE *msg, char *text)
             tmp = tmpbuf;
         }
 
-        last = *p;
+        if (!isspace(*p))
+        {
+            last = *p;
+        }
     }
 
     /* flush anything cached */
