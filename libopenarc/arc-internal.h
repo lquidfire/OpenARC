@@ -32,11 +32,7 @@
 #define BUFRSZ             2048 /* base temp buffer size */
 #define BASE64SIZE(x)      (((x + 2) / 3) * 4)
 /* base64 encoding growth ratio */
-#define MAXADDRESS         256   /* biggest user@host we accept */
 #define MAXBUFRSZ          65536 /* max temp buffer size */
-#define MAXCNAMEDEPTH      3     /* max. CNAME recursion we allow */
-#define MAXHEADERS         32768 /* buffer for caching headers */
-#define MAXLABELS          16    /* max. labels we allow */
 #define MAXTAGNAME         8     /* biggest tag name */
 
 #define NPRINTABLE         95 /* number of printable characters */

@@ -9,8 +9,7 @@
 #ifndef _OPENARC_H_
 #define _OPENARC_H_
 
-#define ARCF_PRODUCT   "OpenARC Filter"
-#define ARCF_PRODUCTNS "OpenARC-Filter"
+#define ARCF_PRODUCT "OpenARC Filter"
 
 #include "build-config.h"
 
@@ -34,23 +33,14 @@
 
 /* defaults, limits, etc. */
 #define BUFRSZ         2048
-#define CONFIGOPTS     "Ac:flnp:P:rt:u:vV"
 #define DEFCONFFILE    CONFIG_BASE "/openarc.conf"
-#define DEFINTERNAL    "csl:127.0.0.1,::1"
 #define DEFMAXHDRSZ    65536
 #define HOSTUNKNOWN    "unknown-host"
 #define JOBIDUNKNOWN   "(unknown-jobid)"
 #define LOCALHOST      "127.0.0.1"
 #define LOCALHOST6     "::1"
-#define MAXADDRESS     256
 #define MAXARGV        65536
 #define MAXBUFRSZ      65536
-#define MAXHDRCNT      64
-#define MAXHDRLEN      78
-#define MAXSIGNATURE   1024
-#define MTAMARGIN      78
-#define NULLDOMAIN     "(invalid)"
-#define UNKNOWN        "unknown"
 
 #define AUTHRESULTSHDR "Authentication-Results"
 #define SWHEADERNAME   "ARC-Filter"

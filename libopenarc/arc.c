@@ -78,27 +78,12 @@ void arc_error(ARC_MESSAGE *, const char *, ...);
 
 #define BUFRSZ             2048
 #define DEFERRLEN          128
-#define DEFTIMEOUT         10
 
 /* generic array size macro */
 #define NITEMS(array)      ((int) (sizeof(array) / sizeof(array[0])))
 
-/* local definitions needed for DNS queries */
-#define MAXPACKET          8192
-#if defined(__RES) && (__RES >= 19940415)
-#define RES_UNC_T char *
-#else /* __RES && __RES >= 19940415 */
-#define RES_UNC_T unsigned char *
-#endif /* __RES && __RES >= 19940415 */
-
-#ifndef T_AAAA
-#define T_AAAA 28
-#endif /* ! T_AAAA */
-
 /* macros */
-#define ARC_ISLWSP(x) ((x) == 011 || (x) == 013 || (x) == 014 || (x) == 040)
-
-#define ARC_PHASH(x)  ((x) -32)
+#define ARC_PHASH(x)       ((x) -32)
 
 /*
 **  ARC_ERROR -- log an error into a DKIM handle
