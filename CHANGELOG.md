@@ -54,6 +54,8 @@ All notable changes to this project will be documented in this file.
   failure instead of marking the chain as failed.
 - libopenarc - Signature fields are wrapped at the configured margin.
 - libopenarc - Header margin wrapping is more accurate and precise.
+- libopenarc - Signatures with FWS after the tag-name are canonicalized
+  correctly.
 - milter - Use after free.
 - milter - Unlikely division by zero.
 - milter - Small memory leak during config loading.
