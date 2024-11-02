@@ -27,7 +27,10 @@ extern void  arc_dstring_blank(struct arc_dstring *);
 extern bool  arc_dstring_cat(struct arc_dstring *, const char *);
 extern bool  arc_dstring_cat1(struct arc_dstring *, int);
 extern bool  arc_dstring_catn(struct arc_dstring *, const char *, size_t);
-extern bool  arc_dstring_cat_wrap(struct arc_dstring *, const char *, size_t);
+extern bool  arc_dstring_cat_wrap(struct arc_dstring *,
+                                  const char *,
+                                  size_t,
+                                  size_t *);
 extern bool  arc_dstring_copy(struct arc_dstring *, const char *);
 extern void  arc_dstring_strip(struct arc_dstring *, const char *);
 extern void  arc_dstring_free(struct arc_dstring *);

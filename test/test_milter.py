@@ -52,7 +52,7 @@ def run_miltertest(request, milter, milter_config):
                 assert '\r' not in msg[1]['value']
                 # Check for proper wrapping
                 if msg[1]['name'] in ['ARC-Message-Signature', 'ARC-Seal']:
-                    assert not any(len(x) > 80 for x in msg[1]['value'].splitlines())
+                    assert not any(len(x) > 78 for x in msg[1]['value'].splitlines())
                 ins_headers.insert(msg[1]['index'], [msg[1]['name'], msg[1]['value']])
             elif msg[0] in miltertest.DISPOSITION_REPLIES:
                 assert msg[0] == miltertest.SMFIR_ACCEPT
@@ -520,7 +520,7 @@ def test_milter_idna(run_miltertest):
         ]
     )
 
-    assert res['headers'][1][1].startswith(' i=1; a=rsa-sha256; d=시험.example.com; s=예;')
+    assert res['headers'][1][1].startswith(' i=1; d=시험.example.com; s=예;')
     assert res['headers'][2][1] == ' i=1; 시험.example.com; spf=pass smtp.mailfrom=привіт@시험.example.com;\n\tarc=none smtp.remote-ip=127.0.0.1'
 
     res = run_miltertest(res['headers'])

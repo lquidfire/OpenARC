@@ -385,30 +385,46 @@ arc_dstring_catn(struct arc_dstring *dstr, const char *str, size_t nbytes)
  *      dstr: dstring to modify
  *      str: string to append
  *      margin: maximum line length, not including CRLF
+ *      newlen: pointer to store the length of the last line in (optional)
  *
  *  Returns:
  *      Whether the operation succeeded.
  */
 bool
-arc_dstring_cat_wrap(struct arc_dstring *dstr, const char *str, size_t margin)
+arc_dstring_cat_wrap(struct arc_dstring *dstr,
+                     const char         *str,
+                     size_t              margin,
+                     size_t             *newlen)
 {
     size_t len;
     size_t slen;
 
-    if (margin < 3)
+    if (margin == 0)
     {
-        /* margin is either disabled or nonsensical */
+        /* margin is disabled */
         return arc_dstring_cat(dstr, str);
+    }
+    if (margin < 10)
+    {
+        margin = 10;
     }
 
     /* find the current line length */
     len = 0;
     for (char *p = dstr->ds_buf; *p; p++)
     {
-        len++;
         if (*p == '\n')
         {
             len = 0;
+        }
+        else if (*p == '\t')
+        {
+            /* we're actually measuring visual indentation */
+            len += 8;
+        }
+        else
+        {
+            len++;
         }
     }
 
@@ -435,7 +451,7 @@ arc_dstring_cat_wrap(struct arc_dstring *dstr, const char *str, size_t margin)
         }
     }
 
-    for (const char *p = str + len; p < str + slen; p += margin - 2)
+    for (const char *p = str + len; p < str + slen; p += margin - 9)
     {
         if (!arc_dstring_cat(dstr, "\r\n\t "))
         {
@@ -443,9 +459,9 @@ arc_dstring_cat_wrap(struct arc_dstring *dstr, const char *str, size_t margin)
         }
 
         len = strlen(p);
-        if (len > margin - 2)
+        if (len > margin - 9)
         {
-            len = margin - 2;
+            len = margin - 9;
         }
 
         if (!arc_dstring_catn(dstr, p, len))
@@ -453,6 +469,12 @@ arc_dstring_cat_wrap(struct arc_dstring *dstr, const char *str, size_t margin)
             return false;
         }
     }
+
+    if (newlen)
+    {
+        *newlen = len + 9;
+    }
+
     return true;
 }
 

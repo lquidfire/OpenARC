@@ -31,7 +31,7 @@ extern "C" {
 #define OPENARC_LIB_VERSION    0x00010000
 
 /* definitions */
-#define ARC_HDRMARGIN          75   /* "standard" header margin */
+#define ARC_HDRMARGIN          78   /* standard email line length */
 #define ARC_MAXHEADER          4096 /* buffer for caching one header */
 #define ARC_MAXHOSTNAMELEN     256  /* max. FQDN we support */
 #define ARC_MAXLINELEN         1000 /* physical line limit (RFC5321) */
