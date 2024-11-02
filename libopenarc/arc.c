@@ -1479,11 +1479,17 @@ arc_process_set(ARC_MESSAGE    *msg,
     set->set_data = hcopy;
     set->set_bad = false;
 
+    if (!arc_check_utf8(hcopy))
+    {
+        arc_error(msg, "invalid UTF-8 in %s data", settype);
+        set->set_bad = true;
+        return ARC_STAT_SYNTAX;
+    }
+
     for (p = hcopy; *p != '\0' && !stop; p++)
     {
         if (isascii(*p) && !isprint(*p) && !isspace(*p))
         {
-            /* FIXME: should this do more validation of UTF-8? */
             arc_error(
                 msg, "invalid character (ASCII 0x%02x at offset %d) in %s data",
                 *p, p - hcopy, settype);
@@ -2480,6 +2486,10 @@ arc_parse_header_field(ARC_MESSAGE          *msg,
     assert(hlen != 0);
 
     /* enforce RFC 5322, Section 2.2 as extended by RFC 6532, Section 3.2 */
+    if (!arc_check_utf8(hdr))
+    {
+        return ARC_STAT_SYNTAX;
+    }
     colon = NULL;
     for (c = 0; c < hlen; c++)
     {

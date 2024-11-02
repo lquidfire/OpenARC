@@ -13,6 +13,7 @@
 #include <limits.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -743,4 +744,94 @@ arc_lowercase(char *str)
             *p = tolower(*p);
         }
     }
+}
+
+/**
+ *  Check whether a string is valid UTF-8
+ *
+ *  Parameters:
+ *      str: string to check
+ *
+ *  Returns:
+ *      Whether the string passed the checks.
+ */
+
+bool
+arc_check_utf8(const char *str)
+{
+    size_t   charlen;
+    uint32_t u;
+    uint8_t  mask;
+
+    for (const unsigned char *p = (const unsigned char *) str; *p != '\0'; p++)
+    {
+        if (*p < 0x80)
+        {
+            continue;
+        }
+
+        if ((*p & 0xe0) == 0xc0)
+        {
+            charlen = 2;
+            mask = 0x1f;
+        }
+        else if ((*p & 0xf0) == 0xe0)
+        {
+            charlen = 3;
+            mask = 0x0f;
+        }
+        else if ((*p & 0xf8) == 0xf0)
+        {
+            charlen = 4;
+            mask = 0x07;
+        }
+        else
+        {
+            /* Anything else that has the high bit set is invalid. */
+            return false;
+        }
+
+        u = *p & mask;
+        for (int i = 1; i < charlen; i++)
+        {
+            p++;
+            if ((*p & 0xc0) != 0x80)
+            {
+                return false;
+            }
+            u <<= 6;
+            u |= (*p & 0x3f);
+        }
+
+        /* Check that the codepoint used the shortest representation. */
+        if ((u < 0x80) || ((u < 0x800) && (charlen > 2)) ||
+            ((u < 0x10000) && (charlen > 3)))
+        {
+            return false;
+        }
+
+        /* Check for invalid codepoints. */
+
+        /* surrogates */
+        if (u >= 0xd800 && u <= 0xdfff)
+        {
+            return false;
+        }
+
+        /* non-characters */
+        if ((u >= 0xfdd0 && u <= 0xfdef) || u == 0xfffe || u == 0xffff ||
+            u == 0x1fffe || u == 0x1ffff || u == 0x2fffe || u == 0x2ffff ||
+            u == 0x3fffe || u == 0x3ffff || u == 0x4fffe || u == 0x4ffff ||
+            u == 0x5fffe || u == 0x5ffff || u == 0x6fffe || u == 0x6ffff ||
+            u == 0x7fffe || u == 0x7ffff || u == 0x8fffe || u == 0x8ffff ||
+            u == 0x9fffe || u == 0x9ffff || u == 0xafffe || u == 0xaffff ||
+            u == 0xbfffe || u == 0xbffff || u == 0xcfffe || u == 0xcffff ||
+            u == 0xdfffe || u == 0xdffff || u == 0xefffe || u == 0xeffff ||
+            u == 0xffffe || u == 0xfffff || u == 0x10fffe || u == 0x10ffff)
+        {
+            return false;
+        }
+    }
+
+    return true;
 }

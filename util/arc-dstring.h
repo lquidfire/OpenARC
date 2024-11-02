@@ -45,5 +45,6 @@ extern void   arc_clobber_array(char **);
 extern void   arc_collapse(char *);
 extern char **arc_copy_array(char **);
 extern void   arc_lowercase(char *);
+extern bool   arc_check_utf8(const char *);
 
 #endif /* ARC_DSTRING_H_ */
