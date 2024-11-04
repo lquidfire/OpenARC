@@ -41,6 +41,7 @@ All notable changes to this project will be documented in this file.
   headers are parsed is built without making you jump through weird hoops.
 - milter - The default behaviour for messages that fail basic validity checks
   (malformed headers, too many headers) is to reject them.
+- milter - `PermitAuthenticationOverrides` defaults to `false`.
 
 ### Removed
 - libopenarc - `arc_mail_parse()`

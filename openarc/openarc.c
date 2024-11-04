@@ -1163,7 +1163,6 @@ arcf_config_new(void)
     }
 
     new->conf_maxhdrsz = DEFMAXHDRSZ;
-    new->conf_overridecv = true;
     new->conf_safekeys = true;
     new->conf_authresip = true;
 

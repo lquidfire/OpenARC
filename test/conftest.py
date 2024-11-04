@@ -81,6 +81,7 @@ def milter_config(request, tmp_path, private_key):
         'KeyFile': 'elpmaxe._domainkey.example.com.key',
         'Mode': 'sv',
         'FixedTimestamp': '1234567890',
+        'PermitAuthenticationOverrides': 'true',
         'RequireSafeKeys': 'false',  # tmp is world writeable
     }
 

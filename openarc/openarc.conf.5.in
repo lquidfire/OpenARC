@@ -239,6 +239,10 @@ will be checked.
 Controls whether a previous Authentication-Result with the same
 .Ar authserv-id
 is allowed to override the computed ARC chain validation status.
+The default is
+.Cm false
+because this can be unsafe unless you have taken steps to ensure that
+the Authentication-Result headers seen by the filter are legitimate.
 
 .It Cm PidFile Pq string
 Specifies the path to a file that should be created at process start
