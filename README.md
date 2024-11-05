@@ -38,7 +38,7 @@ In order to build OpenARC, you will need:
   work.
 * make
 * pkg-config or a compatible replacement.
-* [OpenSSL](https://openssl.org) >= 1.0.0
+* [OpenSSL](https://openssl.org/) >= 1.0.0
 * Native implementations of `strlcat()` and `strlcpy()`,
   [libbsd](https://libbsd.freedesktop.org/), or some other library that
   provides them.
@@ -46,8 +46,7 @@ In order to build OpenARC, you will need:
 
 If you are building the filter, you will also need:
 
-* [sendmail](https://sendmail.org) >= 8.13.0, or
-  [Postfix](https://www.postfix.org/) >= 2.3 and libmilter.
+* [libmilter](https://sendmail.org/)
 * (optional) [Jansson](https://github.com/akheron/jansson) >= 2.2.1 for full
   `SealHeaderChecks` support.
 
