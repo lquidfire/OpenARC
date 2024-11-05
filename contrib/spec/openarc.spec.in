@@ -40,8 +40,8 @@ Requires(preun): chkconfig, initscripts
 
 
 %description
-The Trusted Domain Project is a community effort to develop and maintain a
-C library for producing ARC-aware applications and an open source milter for
+OpenARC is a community effort to develop and maintain a C library
+for producing ARC-aware applications and an open source milter for
 providing ARC service through milter-enabled MTAs.
 
 %package -n libopenarc
