@@ -2,7 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [1.1.0](https://github.com/flowerysong/OpenARC/releases/tag/v1.1.0) - 2024-11-05
+
+In this development cycle all open issues and PRs in
+https://github.com/trusteddomainproject/OpenARC were reviewed and
+either addressed or rejected, changes in the ARC spec between the
+drafts OpenARC initially implemented and the final version of RFC 8617
+were reviewed and addressed, and all embedded comments indicating a
+known issue with the code were addressed.
+
+Other efforts focused on housekeeping tasks such as cleaning up unused
+and broken parts of the build system, reducing code duplication, and
+increasing test coverage.
 
 ### Added
 - `oldest-pass` processing per [RFC 8617 section 5.2](https://datatracker.ietf.org/doc/html/rfc8617#section-5.2).
@@ -66,11 +77,11 @@ All notable changes to this project will be documented in this file.
 - milter - Small memory leak during config loading.
 - milter - The `Authentication-Results` authserv-id can contain UTF-8.
 
-## 1.0.0 - 2024-10-18
+## [1.0.0](https://github.com/flowerysong/OpenARC/releases/tag/v1.0.0) - 2024-10-18
 
 No notable changes.
 
-## 1.0.0rc0 - 2024-10-15
+## [1.0.0rc0](https://github.com/flowerysong/OpenARC/releases/tag/v1.0.0rc0) - 2024-10-15
 
 Changes since the last Trusted Domain Project release.
 
