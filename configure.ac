@@ -375,8 +375,14 @@ test "x$prefix" = xNONE && prefix=$ac_default_prefix
 SYSCONFDIR=`eval echo "$sysconfdir"`
 AC_SUBST([SYSCONFDIR])
 
-BUILDDATE=`date +%F`
-AC_SUBST([BUILDDATE])
+AS_IF([test "x$SOURCE_DATE_EPOCH" = x], [
+    SOURCE_DATE_EPOCH=`git log -1 --pretty=%ct 2>/dev/null`
+])
+AS_IF([test "x$SOURCE_DATE_EPOCH" = x], [
+    SOURCE_DATE_EPOCH=`date +%s 2>/dev/null`
+])
+BUILD_DATE=`date -d @$SOURCE_DATE_EPOCH +%F 2>/dev/null`
+AC_SUBST([BUILD_DATE])
 
 #
 # Finish up

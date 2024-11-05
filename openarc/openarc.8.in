@@ -2,7 +2,7 @@
 .\" reserved. See LICENSE.Sendmail.
 .\" Copyright (c) 2009-2013, 2015, 2016, The Trusted Domain Project. All
 .\" rights reserved. See LICENSE.
-.Dd @BUILDDATE@
+.Dd @BUILD_DATE@
 .Dt OPENARC 8
 .Os OpenARC @VERSION@
 

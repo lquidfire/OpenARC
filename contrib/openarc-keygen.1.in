@@ -1,6 +1,6 @@
 .\" Copyright 2024 OpenARC contributors.
 .\" See LICENSE.
-.Dd @BUILDDATE@
+.Dd @BUILD_DATE@
 .Dt OPENARC-KEYGEN 1
 .Os OpenARC @VERSION@
 
