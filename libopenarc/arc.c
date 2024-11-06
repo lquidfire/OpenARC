@@ -2397,6 +2397,11 @@ arc_free(ARC_MESSAGE *msg)
     struct arc_hdrfield *h;
     struct arc_hdrfield *tmp;
 
+    if (msg == NULL)
+    {
+        return;
+    }
+
     if (msg->arc_error != NULL)
     {
         ARC_FREE(msg->arc_error);

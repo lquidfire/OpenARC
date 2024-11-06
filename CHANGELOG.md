@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 ### Removed
 
 ### Fixed
+- libopenarc - `arc_free()` accepts NULL.
 
 ## [1.1.0](https://github.com/flowerysong/OpenARC/releases/tag/v1.1.0) - 2024-11-05
 
