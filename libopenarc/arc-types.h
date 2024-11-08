@@ -143,7 +143,6 @@ struct arc_msghandle
     arc_canon_t          arc_canonhdr;
     arc_canon_t          arc_canonbody;
     ARC_CHAIN            arc_cstate;
-    ARC_SIGERROR         arc_sigerror;
     unsigned char       *arc_key;
     char                *arc_error;
     char                *arc_hdrlist;
