@@ -404,9 +404,10 @@ arc_genamshdr(ARC_MESSAGE        *msg,
         arc_dstring_printf(dstr, ";%scv=%s", delim,
                            arc_code_to_name(chainstatus, msg->arc_cstate));
     }
-    else
+    else if (msg->arc_canonhdr != ARC_CANON_SIMPLE ||
+             msg->arc_canonbody != ARC_CANON_SIMPLE)
     {
-        /* c= */
+        /* Add c= for the AMS if it's not the RFC default simple/simple */
         arc_dstring_printf(
             dstr, ";%sc=%s/%s", delim,
             arc_code_to_name(canonicalizations, msg->arc_canonhdr),
@@ -1686,8 +1687,7 @@ arc_process_set(ARC_MESSAGE    *msg,
             arc_param_get(set, "d") == NULL ||
             arc_param_get(set, "b") == NULL ||
             arc_param_get(set, "bh") == NULL ||
-            arc_param_get(set, "i") == NULL ||
-            arc_param_get(set, "c") == NULL || arc_param_get(set, "a") == NULL)
+            arc_param_get(set, "i") == NULL || arc_param_get(set, "a") == NULL)
         {
             arc_error(msg, "missing parameter(s) in %s data", settype);
             set->set_bad = true;
