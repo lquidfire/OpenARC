@@ -144,6 +144,7 @@ typedef int arc_opts_t;
 #define ARC_OPTS_OVERSIGNHDRS   4
 #define ARC_OPTS_MINKEYSIZE     5
 #define ARC_OPTS_TESTKEYS       6
+#define ARC_OPTS_SIGNATURE_TTL  7
 
 /* flags */
 #define ARC_LIBFLAGS_NONE       0x00000000

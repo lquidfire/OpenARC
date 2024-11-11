@@ -45,6 +45,7 @@ struct configdef arcf_config[] = {
     {"SealHeaderChecks",              CONFIG_TYPE_STRING,  false},
     {"Selector",                      CONFIG_TYPE_STRING,  false},
     {"SignatureAlgorithm",            CONFIG_TYPE_STRING,  false},
+    {"SignatureTTL",                  CONFIG_TYPE_INTEGER, false},
     {"SignHeaders",                   CONFIG_TYPE_STRING,  false},
     {"Socket",                        CONFIG_TYPE_STRING,  false},
     {"SoftwareHeader",                CONFIG_TYPE_BOOLEAN, false},

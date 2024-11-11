@@ -1,69 +1,7 @@
 #!/usr/bin/env python3
 
-import copy
-import socket
-
 import miltertest
 import pytest
-
-
-@pytest.fixture
-def run_miltertest(request, milter, milter_config):
-    def _run_miltertest(
-        headers=None,
-        standard_headers=True,
-        body='test body\r\n',
-        protocol=miltertest.SMFI_V6_PROT,
-    ):
-        headers = copy.copy(headers) or []
-        if standard_headers:
-            headers.extend(
-                [
-                    ['From', ' user@example.com\n'],
-                    ['Date', ' Fri, 04 Oct 2024 10:11:12 -0400'],
-                    ['Subject', request.function.__name__],
-                ]
-            )
-
-        # Connect
-        sock = socket.socket(family=socket.AF_UNIX)
-        sock.connect(bytes(milter_config['sock']))
-        conn = miltertest.MilterConnection(sock)
-        conn.optneg_mta(protocol=protocol)
-        conn.send(miltertest.SMFIC_CONNECT, hostname='localhost', address='127.0.0.1', family=miltertest.SMFIA_INET, port=666)
-        conn.send(miltertest.SMFIC_HELO, helo='mx.example.com')
-
-        # Envelope data
-        conn.send(miltertest.SMFIC_MAIL, args=['<sender@example.com>'])
-        conn.send(miltertest.SMFIC_RCPT, args=['<recipient@example.com>'])
-
-        # Send headers
-        conn.send(miltertest.SMFIC_DATA)
-        conn.send_headers(headers)
-        conn.send(miltertest.SMFIC_EOH)
-
-        # Send body
-        conn.send_body(body)
-        resp = conn.send_eom()
-        ins_headers = []
-        for msg in resp:
-            if msg[0] == miltertest.SMFIR_INSHEADER:
-                # Check for invalid characters
-                assert '\r' not in msg[1]['value']
-                # Check for proper wrapping
-                if msg[1]['name'] in ['ARC-Message-Signature', 'ARC-Seal']:
-                    assert not any(len(x) > 78 for x in msg[1]['value'].splitlines())
-                ins_headers.insert(msg[1]['index'], [msg[1]['name'], msg[1]['value']])
-            elif msg[0] in miltertest.DISPOSITION_REPLIES:
-                assert msg[0] == miltertest.SMFIR_ACCEPT
-            else:
-                pytest.fail(f'Unexpected EOM response {msg}')
-
-        return {
-            'headers': ins_headers,
-        }
-
-    return _run_miltertest
 
 
 def test_milter_basic(run_miltertest):
@@ -600,6 +538,19 @@ def test_milter_responseunwilling(run_miltertest):
     """Configured to accept messages with too many headers"""
     with pytest.raises(miltertest.MilterError, match="Unexpected reply to L: \\('a'"):
         run_miltertest()
+
+
+def test_milter_signaturettl(run_miltertest):
+    """Setting a TTL tags AMS with x="""
+    ttl_res = run_miltertest()
+
+    assert 'x=1234567895' in ttl_res['headers'][2][1]
+
+    res = run_miltertest(ttl_res['headers'], milter_instance=1)
+    assert 'cv=pass' in res['headers'][1][1]
+
+    res = run_miltertest(ttl_res['headers'], milter_instance=2)
+    assert 'cv=fail' in res['headers'][1][1]
 
 
 def test_milter_softwareheader(run_miltertest):

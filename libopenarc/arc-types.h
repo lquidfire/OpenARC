@@ -131,10 +131,10 @@ struct arc_msghandle
     unsigned int         arc_keybits;
     unsigned int         arc_keytype;
     unsigned int         arc_hashtype;
+    unsigned int         arc_sigttl;
     unsigned long        arc_flags;
     arc_query_t          arc_query;
     time_t               arc_timestamp;
-    time_t               arc_sigttl;
     size_t               arc_siglen;
     size_t               arc_keylen;
     size_t               arc_errorlen;
@@ -181,6 +181,7 @@ struct arc_lib
     bool                arcl_signre;
     bool                arcl_dnsinit_done;
     unsigned int        arcl_flsize;
+    unsigned int        arcl_sigttl;
     uint32_t            arcl_flags;
     time_t              arcl_fixedtime;
     unsigned int        arcl_callback_int;

@@ -308,6 +308,15 @@ The default is
 Other values are not useful if you are intending to interoperate with other
 implementers of the ARC protocol.
 
+.It Cm SignatureTTL Pq integer
+Specifies the amount of time (in seconds) before generated signatures expire.
+The default is
+.Cm 0 ,
+for no expiration.
+You probably should not set this below
+.Cm 604800
+in production deployments.
+
 .It Cm SignHeaders Pq string
 Specifies the set of header fields that should be included when generating
 signatures.

@@ -61,6 +61,8 @@ Selector                        my-selector-name
 
 # SignatureAlgorithm            rsa-sha256
 
+# SignatureTTL                  1209600
+
 # SignHeaders                   Subject,From,Date,Message-ID,Sender
 
 Socket                          /run/openarc/openarc.socket

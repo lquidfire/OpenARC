@@ -135,6 +135,7 @@ struct arcf_config
     size_t          conf_keylen;            /* key length */
     int             conf_maxhdrsz;          /* max. header size */
     int             conf_minkeysz;          /* min. key size */
+    int             conf_sigttl;            /* signature TTL */
     int             conf_ret_disabled;      /* configured not to process */
     int             conf_ret_unable;        /* internal error */
     int             conf_ret_unwilling;     /* badly formed message */
@@ -1557,6 +1558,9 @@ arcf_config_load(struct config      *data,
             conf->conf_fixedtime = strtoul(str, &end, 10);
         }
 
+        config_get(data, "SignatureTTL", &conf->conf_sigttl,
+                   sizeof conf->conf_sigttl);
+
         str = NULL;
         config_get(data, "ResponseDisabled", &str, sizeof str);
         if (str)
@@ -1936,6 +1940,22 @@ arcf_config_setlib(struct arcf_config *conf, char **err)
     {
         arc_options(conf->conf_libopenarc, ARC_OP_SETOPT, ARC_OPTS_FIXEDTIME,
                     &conf->conf_fixedtime, sizeof conf->conf_fixedtime);
+    }
+
+    if (status != ARC_STAT_OK)
+    {
+        if (err != NULL)
+        {
+            *err = "failed to set ARC library options";
+        }
+        return false;
+    }
+
+    if (conf->conf_sigttl != 0)
+    {
+        arc_options(conf->conf_libopenarc, ARC_OP_SETOPT,
+                    ARC_OPTS_SIGNATURE_TTL, &conf->conf_sigttl,
+                    sizeof conf->conf_sigttl);
     }
 
     if (status != ARC_STAT_OK)

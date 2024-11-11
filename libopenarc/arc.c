@@ -907,6 +907,28 @@ arc_options(ARC_LIB *lib, int op, int arg, void *val, size_t valsz)
 
         return ARC_STAT_OK;
 
+    case ARC_OPTS_SIGNATURE_TTL:
+        if (val == NULL)
+        {
+            return ARC_STAT_INVALID;
+        }
+
+        if (valsz != sizeof lib->arcl_sigttl)
+        {
+            return ARC_STAT_INVALID;
+        }
+
+        if (op == ARC_OP_GETOPT)
+        {
+            memcpy(val, &lib->arcl_sigttl, valsz);
+        }
+        else
+        {
+            memcpy(&lib->arcl_sigttl, val, valsz);
+        }
+
+        return ARC_STAT_OK;
+
     case ARC_OPTS_TESTKEYS:
         if (val == NULL)
         {
@@ -1101,20 +1123,20 @@ arc_getsslbuf(ARC_LIB *lib)
     return (const char *) arc_dstring_get(lib->arcl_sslerrbuf);
 }
 
-/*
-**  ARC_CHECK_UINT -- check a parameter for a valid unsigned integer
-**
-**  Parameters:
-**  	value -- value to check
-**  	allow_zero -- if true, allow zero
-**
-**  Return value:
-**  	true iff the input value looks like a properly formed unsigned integer
-** 	that is not zero.
-*/
+/**
+ *  Check if a string represents a valid unsigned integer and return the value.
+ *
+ *  Parameters:
+ *      value: string to convert
+ *      out: pointer to store the value
+ *
+ *  Returns:
+ *      Whether the input value looks like a properly formed non-zero unsigned
+ *      integer.
+ */
 
 static bool
-arc_check_uint(char *value)
+arc_check_uint(char *value, uint64_t *out)
 {
     uint64_t tmp = 0;
     char    *end;
@@ -1138,7 +1160,16 @@ arc_check_uint(char *value)
         tmp = strtoll(value, &end, 10);
     }
 
-    return !(tmp <= 0 || errno != 0 || *end != '\0');
+    if (tmp <= 0 || errno != 0 || *end != '\0')
+    {
+        return false;
+    }
+
+    if (out)
+    {
+        *out = tmp;
+    }
+    return true;
 }
 
 /*
@@ -1426,6 +1457,7 @@ arc_process_set(ARC_MESSAGE    *msg,
     bool        stop = false;
     int         state;
     int         status;
+    uint64_t    uint_val;
     char       *p;
     char       *param;
     char       *value;
@@ -1720,22 +1752,35 @@ arc_process_set(ARC_MESSAGE    *msg,
 
         /* test validity of "t", "x", and "i" */
         p = arc_param_get(set, "t");
-        if (p != NULL && !arc_check_uint(p))
+        if (p != NULL)
         {
-            arc_error(msg, "invalid \"t\" value in %s data", settype);
-            set->set_bad = true;
-            return ARC_STAT_SYNTAX;
+            if (!arc_check_uint(p, &uint_val))
+            {
+                arc_error(msg, "invalid \"t\" value in %s data", settype);
+                set->set_bad = true;
+                return ARC_STAT_SYNTAX;
+            }
         }
 
         p = arc_param_get(set, "x");
-        if (p != NULL && !arc_check_uint(p))
+        if (p != NULL)
         {
-            arc_error(msg, "invalid \"x\" value in %s data", settype);
-            set->set_bad = true;
-            return ARC_STAT_SYNTAX;
+            if (!arc_check_uint(p, &uint_val))
+            {
+                arc_error(msg, "invalid \"x\" value in %s data", settype);
+                set->set_bad = true;
+                return ARC_STAT_SYNTAX;
+            }
+            if (msg->arc_timestamp > uint_val)
+            {
+                arc_error(msg, "signature expired %d seconds ago",
+                          msg->arc_timestamp - uint_val);
+                set->set_bad = true;
+                return ARC_STAT_BADSIG;
+            }
         }
 
-        if (!arc_check_uint(arc_param_get(set, "i")))
+        if (!arc_check_uint(arc_param_get(set, "i"), NULL))
         {
             arc_error(msg, "invalid \"i\" value in %s data", settype);
             set->set_bad = true;
@@ -1778,7 +1823,7 @@ arc_process_set(ARC_MESSAGE    *msg,
 
         /* test validity of "i" */
         p = arc_param_get(set, "i");
-        if (p != NULL && !arc_check_uint(p))
+        if (p != NULL && !arc_check_uint(p, NULL))
         {
             arc_error(msg, "invalid \"i\" value in %s data", settype);
             set->set_bad = true;
@@ -1809,7 +1854,7 @@ arc_process_set(ARC_MESSAGE    *msg,
 
         /* test validity of "i" */
         p = arc_param_get(set, "i");
-        if (p != NULL && !arc_check_uint(p))
+        if (p != NULL && !arc_check_uint(p, NULL))
         {
             arc_error(msg, "invalid \"i\" value in %s data", settype);
             set->set_bad = true;
@@ -2367,6 +2412,8 @@ arc_message(ARC_LIB     *lib,
         time(&msg->arc_timestamp);
     }
 
+    msg->arc_sigttl = lib->arcl_sigttl;
+
     msg->arc_canonhdr = canonhdr;
     msg->arc_canonbody = canonbody;
     msg->arc_signalg = signalg;
@@ -2860,12 +2907,11 @@ arc_eoh(ARC_MESSAGE *msg)
 {
     bool                 keep;
     unsigned int         c;
-    unsigned int         n;
+    uint64_t             n;
     unsigned int         nsets = 0;
     arc_kvsettype_t      type;
     ARC_STAT             status;
     char                *inst;
-    char                *p;
     struct arc_hdrfield *h;
     ARC_KVSET           *set;
 
@@ -2955,11 +3001,10 @@ arc_eoh(ARC_MESSAGE *msg)
 
         /* if i= is missing or bogus, just skip it */
         inst = arc_param_get(set, "i");
-        if (inst == NULL || !arc_check_uint(inst))
+        if (inst == NULL || !arc_check_uint(inst, &n))
         {
             continue;
         }
-        n = strtoul(inst, &p, 10);
 
         switch (type)
         {
