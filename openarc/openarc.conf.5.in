@@ -60,6 +60,8 @@ and string and dataset values default to being undefined.
 
 .It Cm AuthResIP Pq boolean
 Controls whether Authentication-Results headers include the remote IP.
+The default is
+.Cm true .
 
 .It Cm AuthservID Pq string
 .Ar authserv-id
@@ -251,6 +253,8 @@ containing the process ID.
 .It Cm RequireSafeKeys Pq boolean
 Controls whether the filter requires that private keys have safe file
 permissions.
+The default is
+.Cm true .
 
 .It Cm ResponseDisabled Pq string
 .Brq Cm accept | discard | reject | tempfail
