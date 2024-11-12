@@ -1868,6 +1868,12 @@ arc_canon_closebody(ARC_MESSAGE *msg)
 
         arc_canon_buffer(cur, NULL, 0);
 
+        if (cur->canon_remain > 0)
+        {
+            arc_error(msg, "body length in signature longer than actual body");
+            return ARC_STAT_SYNTAX;
+        }
+
         /* finalize */
         arc_canon_finalize(cur);
 

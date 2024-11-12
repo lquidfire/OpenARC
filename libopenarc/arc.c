@@ -1750,7 +1750,15 @@ arc_process_set(ARC_MESSAGE    *msg,
         }
         ARC_FREE(hcopy);
 
-        /* test validity of "t", "x", and "i" */
+        /* test validity of "l", "t", "x", and "i" */
+        p = arc_param_get(set, "l");
+        if (p != NULL && !arc_check_uint(p, NULL))
+        {
+            arc_error(msg, "invalid \"l\" value in %s data", settype);
+            set->set_bad = true;
+            return ARC_STAT_SYNTAX;
+        }
+
         p = arc_param_get(set, "t");
         if (p != NULL)
         {
@@ -2732,6 +2740,7 @@ arc_eoh_verify(ARC_MESSAGE *msg)
 {
     unsigned int         n;
     unsigned int         hashtype;
+    uint64_t             len;
     char                *c;
     ARC_STAT             status;
     struct arc_hdrfield *h = NULL;
@@ -2819,6 +2828,16 @@ arc_eoh_verify(ARC_MESSAGE *msg)
             body_canon = ARC_CANON_SIMPLE;
         }
 
+        c = arc_param_get(h->hdr_data, "l");
+        if (c != NULL)
+        {
+            arc_check_uint(c, &len);
+        }
+        else
+        {
+            len = -1;
+        }
+
         status = arc_add_canon(msg, ARC_CANONTYPE_HEADER, hdr_canon, hashtype,
                                htag, h, (ssize_t) -1, &msg->arc_hdrcanons[n]);
 
@@ -2831,7 +2850,7 @@ arc_eoh_verify(ARC_MESSAGE *msg)
 
         /* body, validation */
         status = arc_add_canon(msg, ARC_CANONTYPE_BODY, body_canon, hashtype,
-                               NULL, NULL, (ssize_t) -1,
+                               NULL, NULL, (ssize_t) len,
                                &msg->arc_bodycanons[n]);
 
         if (status != ARC_STAT_OK)

@@ -17,6 +17,8 @@ All notable changes to this project will be documented in this file.
 - Build issues on FreeBSD.
 - libopenarc - `arc_free()` accepts NULL.
 - libopenarc - `c` is not a required tag in `ARC-Message-Signature`.
+- libopenarc = `ARC-Message-Signature` headers covering a limited body length
+  are processed correctly.
 
 ## [1.1.0](https://github.com/flowerysong/OpenARC/releases/tag/v1.1.0) - 2024-11-05
 
