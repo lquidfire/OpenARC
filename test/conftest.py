@@ -16,9 +16,15 @@ import pytest
 def private_key(tmp_path_factory, tool_path):
     basepath = tmp_path_factory.mktemp('keys')
 
-    for s, d in [
+    selectors = [
         ['elpmaxe', 'example.com'],
         ['xn--2j5b', 'xn--vv4b606a.example.com'],
+        ['dkimpy', 'example.com'],
+        ['perl', 'example.com'],
+    ]
+
+    for s, d in [
+        *selectors,
         ['unsafe', 'example.com'],
     ]:
         binargs = [
@@ -39,21 +45,9 @@ def private_key(tmp_path_factory, tool_path):
 
     basepath.joinpath('unsafe._domainkey.example.com.key').chmod(0o644)
 
-    testkeys = (
-        'sel._domainkey.dkimpy.example.com v=DKIM1; k=rsa; '
-        'p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqf/MoqRqzK3/bcCyLSx5'
-        'CDvyPotNDBjLLFHdMmcWDiSZ8saslFyNR6FkFxuNtw843m7MkwOSJ9TRd9p+OoRLDv'
-        'H0jDR1Dqq22QOJKiG5XQ91aZwin9jpWKkuoRoRZRhWrzUOJWAybHarsEQm9iCPh2zn'
-        'dbSPSzPQL1OsjURIuw5G9+/nr5rhJ72Qi6v86zofWUKdXhLf+oVmho79D0xGMFFm0f'
-        'b98xIeZlgJTnmrj/zuxIKHeVmGKI1j6L3xttdcDiUVRGxoubkFzg9TIBGhdeFkpa0C'
-        'ZuhB/1/U3f1oG3Upx5o/jXTQk/dwVaaeEXnRmTsfGYn4GQ9ziity1ijLsQIDAQAB\n'
-    )
-
-    for fname in [
-        'elpmaxe._domainkey.example.com.txt',
-        'xn--2j5b._domainkey.xn--vv4b606a.example.com.txt',
-    ]:
-        with open(basepath.joinpath(fname), 'r') as f:
+    testkeys = ''
+    for s, d in selectors:
+        with open(basepath.joinpath(f'{s}._domainkey.{d}.txt'), 'r') as f:
             testkeys += f.read()
 
     keyfile = basepath.joinpath('public.key')
@@ -176,7 +170,7 @@ def run_miltertest(request, milter, milter_config):
         if standard_headers:
             headers.extend(
                 [
-                    ['From', ' user@example.com\n'],
+                    ['From', ' user@example.com'],
                     ['Date', ' Fri, 04 Oct 2024 10:11:12 -0400'],
                     ['Subject', request.function.__name__],
                 ]
@@ -218,6 +212,8 @@ def run_miltertest(request, milter, milter_config):
 
         return {
             'headers': ins_headers,
+            'msg_headers': headers,
+            'msg_body': body,
         }
 
     return _run_miltertest

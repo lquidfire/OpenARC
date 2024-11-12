@@ -104,6 +104,12 @@ Tests can be run with `make check`. OpenARC's test suite requires:
 * [pytest](https://pytest.org)
 * The Python [miltertest](https://pypi.org/project/miltertest/) library
 
+There are also optional test dependencies whose associated tests will be
+skipped if the dependency is not found:
+
+* [dkimpy](https://launchpad.net/dkimpy) >= 0.9.0
+* [Mail::DKIM](https://metacpan.org/pod/Mail::DKIM)
+
 ## Additional Documentation
 
 The man pages for the `openarc` filter are present in the `openarc`

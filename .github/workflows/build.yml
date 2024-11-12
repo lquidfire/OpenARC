@@ -44,7 +44,7 @@ jobs:
         run: sudo apt update
 
       - name: Install dependencies
-        run: sudo apt install libbsd-dev libidn2-dev libjansson-dev libmilter-dev libssl-dev
+        run: sudo apt install libbsd-dev libidn2-dev libjansson-dev libmail-dkim-perl libmilter-dev libssl-dev
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -61,7 +61,7 @@ jobs:
             3.8
 
       - name: Install Python dependencies
-        run: sudo pip install pytest miltertest
+        run: sudo pip install pytest miltertest dkimpy[ARC]
 
       - name: Build OpenARC
         run: |
