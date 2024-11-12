@@ -82,7 +82,7 @@ jobs:
       - name: Build OpenARC without Jansson
         run: |
           make distclean
-          CC=clang ./configure --without-jansson
+          CC=clang ./configure --without-libjansson
           make -j4
 
       - name: Build OpenARC without milter
