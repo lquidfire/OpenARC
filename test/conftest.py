@@ -3,6 +3,7 @@
 import json
 import pathlib
 import subprocess
+import sys
 import time
 
 import pytest
@@ -18,6 +19,7 @@ def private_key(tmp_path_factory, tool_path):
         ['unsafe', 'example.com'],
     ]:
         binargs = [
+            sys.executable,
             tool_path('contrib/openarc-keygen'),
             '-D',
             str(basepath),

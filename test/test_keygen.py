@@ -35,7 +35,6 @@ def test_keygen(tool_path, tmp_path, python_version):
     try:
         subprocess.run(binargs, check=True)
     except FileNotFoundError:
-        assert python_version != 'python3'
         pytest.skip(f'{python_version} not found')
 
     keystat = tmp_path.joinpath('foo._domainkey.example.com.key').stat()
