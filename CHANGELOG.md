@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - milter - `SignatureTTL` configuration option.
 
 ### Changed
+- libopenarc - Expired signatures cause chain validation to fail.
 
 ### Removed
 
@@ -16,7 +17,6 @@ All notable changes to this project will be documented in this file.
 - Build issues on FreeBSD.
 - libopenarc - `arc_free()` accepts NULL.
 - libopenarc - `c` is not a required tag in `ARC-Message-Signature`.
-- libopenarc - Expired signatures cause chain validation to fail.
 
 ## [1.1.0](https://github.com/flowerysong/OpenARC/releases/tag/v1.1.0) - 2024-11-05
 
