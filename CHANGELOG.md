@@ -117,6 +117,16 @@ No notable changes.
 
 Changes since the last Trusted Domain Project release.
 
+This release contains patches originally contributed by:
+* [@abeverley](https://github.com/abeverley)
+* [@futatuki](https://github.com/futatuki)
+* [@glts](https://github.com/glts)
+* [@mdomsch](https://github.com/mdomsch)
+* [@minfrin](https://github.com/minfrin)
+* [@nabbi](https://github.com/nabbi)
+* [@rtista](https://github.com/rtista)
+* [@seriv](https://github.com/seriv)
+
 ### Added
 
 - Test suite.
