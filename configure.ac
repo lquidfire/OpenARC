@@ -13,10 +13,10 @@ AC_PREREQ(2.61)
 # Package version
 #
 m4_define([VERSION_RELEASE], 1)
-m4_define([VERSION_MAJOR_REV], 1)
-m4_define([VERSION_MINOR_REV], 1)
+m4_define([VERSION_MAJOR_REV], 2)
+m4_define([VERSION_MINOR_REV], 0)
 # leave this empty for an actual release
-m4_define([VERSION_PRE], [pre0])
+m4_define([VERSION_PRE], [])
 
 #
 # Library version, only update at release time
@@ -25,9 +25,9 @@ m4_define([VERSION_PRE], [pre0])
 #       - bump age with backwards compatible API additions, reset age with
 #         removal or modification
 #
-m4_define([LIBVERSION_CURRENT], 1)
+m4_define([LIBVERSION_CURRENT], 2)
 m4_define([LIBVERSION_REVISION], 0)
-m4_define([LIBVERSION_AGE], 0)
+m4_define([LIBVERSION_AGE], 1)
 
 #
 # Autotools setup

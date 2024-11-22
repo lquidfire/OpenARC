@@ -2,7 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [1.2.0](https://github.com/flowerysong/OpenARC/releases/tag/v1.2.0) - 2024-11-22
+
+Big thanks to [@lquidfire](https://github.com/lquidfire),
+[@futatuki](https://github.com/futatuki), and
+[@simotuki11](https://github.com/simotuki11) for reporting the issues
+addressed in this release and/or providing fixes.
 
 ### Added
 - libopenarc - `ARC_OPTS_SIGNATURE_TTL`
@@ -11,10 +16,9 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - libopenarc - Expired signatures cause chain validation to fail.
 
-### Removed
-
 ### Fixed
 - Build issues on FreeBSD.
+- RPM spec typo that could result in installation failure.
 - libopenarc - `arc_free()` accepts NULL.
 - libopenarc - `c` is not a required tag in `ARC-Message-Signature`.
 - libopenarc = `ARC-Message-Signature` headers covering a limited body length
