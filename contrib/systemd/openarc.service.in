@@ -15,6 +15,7 @@ User=openarc
 Group=openarc
 PermissionsStartOnly=true
 ExecStartPre=-/usr/bin/install -d -m 0755 -o openarc -g openarc @localstatedir@/run/openarc
+SELinuxContext=system_u:system_r:dkim_milter_t:s0
 
 [Install]
 WantedBy=multi-user.target
