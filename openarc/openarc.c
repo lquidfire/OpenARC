@@ -1019,7 +1019,7 @@ arcf_securefile(
     /* group read/write is bad if others are in that group */
     if ((s.st_mode & (S_IRGRP | S_IWGRP)) != 0)
     {
-        int c;
+        int           c;
         struct group *gr;
 
         /* get the file's group entry */

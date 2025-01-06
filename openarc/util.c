@@ -57,7 +57,7 @@
 
 /* missing definitions */
 #ifndef INADDR_NONE
-#define INADDR_NONE ((uint32_t) -1)
+#define INADDR_NONE ((uint32_t) - 1)
 #endif /* ! INADDR_NONE */
 
 /* globals */

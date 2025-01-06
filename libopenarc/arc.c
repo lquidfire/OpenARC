@@ -83,7 +83,7 @@ void arc_error(ARC_MESSAGE *, const char *, ...);
 #define NITEMS(array)      ((int) (sizeof(array) / sizeof(array[0])))
 
 /* macros */
-#define ARC_PHASH(x)       ((x) -32)
+#define ARC_PHASH(x)       ((x) - 32)
 
 /*
 **  ARC_ERROR -- log an error into a DKIM handle

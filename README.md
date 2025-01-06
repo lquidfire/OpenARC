@@ -60,7 +60,7 @@ you will also need:
 The core OpenARC software will function without it, but tools distributed
 alongside OpenARC (such as `openarc-keygen`) may require:
 
-* Python >= 3.7
+* Python >= 3.8
 
 ### DNF-based systems
 
