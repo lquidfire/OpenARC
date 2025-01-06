@@ -2,15 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [1.2.1](https://github.com/flowerysong/OpenARC/releases/tag/v1.2.1) - 2025-01-06
 
 ### Added
-
-### Changed
-
-### Removed
+- `make srpm` target
 
 ### Fixed
+- Missing dependency in RPM spec.
 
 ## [1.2.0](https://github.com/flowerysong/OpenARC/releases/tag/v1.2.0) - 2024-11-22
 
