@@ -96,7 +96,7 @@ EnableCoredumps yes
 
 ## After setting Mode to "sv", create a key and zone file by running
 ##   # openarc-keygen -D %{_sysconfdir}/openarc/keys -s selector -d `hostname --domain`
-## which will be put in the directory /etc/openarc/keys/
+## which will create a key in the directory %{_sysconfdir}/openarc/keys
 ## See man openarc-keygen(1) for extra options and explanations.
 #Mode                    sv
 #Canonicalization        relaxed/simple
