@@ -8,13 +8,13 @@ After=network.target nss-lookup.target syslog.target
 [Service]
 Type=simple
 EnvironmentFile=-@sysconfdir@/sysconfig/openarc
+ExecStartPre=-/usr/bin/install -d -m 0750 -o openarc -g openarc @localstatedir@/run/openarc
 ExecStart=@sbindir@/openarc -f $OPTIONS
-ExecReload=/bin/kill -USR1 $MAINPID
+ExecReload=+/bin/kill -USR1 $MAINPID
 Restart=on-abnormal
 User=openarc
 Group=openarc
 PermissionsStartOnly=true
-ExecStartPre=-/usr/bin/install -d -m 0755 -o openarc -g openarc @localstatedir@/run/openarc
 
 [Install]
 WantedBy=multi-user.target
