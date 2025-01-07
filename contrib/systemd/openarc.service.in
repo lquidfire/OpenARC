@@ -15,7 +15,6 @@ ExecReload=/bin/kill -USR1 $MAINPID
 Restart=on-abnormal
 User=openarc
 Group=openarc
-PermissionsStartOnly=true
 ProtectSystem=strict
 ProtectHome=true
 
