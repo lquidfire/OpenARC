@@ -19,6 +19,5 @@ PermissionsStartOnly=true
 ProtectSystem=strict
 ProtectHome=true
 
-
 [Install]
 WantedBy=multi-user.target
