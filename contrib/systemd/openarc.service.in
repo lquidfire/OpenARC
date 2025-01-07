@@ -15,6 +15,9 @@ Restart=on-abnormal
 User=openarc
 Group=openarc
 PermissionsStartOnly=true
+ProtectSystem=strict
+ProtectHome=true
+
 
 [Install]
 WantedBy=multi-user.target
