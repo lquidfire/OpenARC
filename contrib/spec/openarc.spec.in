@@ -94,14 +94,15 @@ PeerList %{_sysconfdir}/%{name}/PeerList
 MilterDebug 6
 EnableCoredumps yes
 
-## After setting Mode to "sv", running
-## opendkim-genkey -D %{_sysconfdir}/openarc -s key -d `hostname --domain`
-## and putting %{_sysconfdir}/openarc
+## After setting Mode to "sv", create a key and zone file by running
+##   # openarc-keygen -D %{_sysconfdir}/openarc/keys -s selector -d `hostname --domain`
+## which will be put in the directory /etc/openarc/keys/
+## See man openarc-keygen(1) for extra options and explanations.
 #Mode                    sv
 #Canonicalization        relaxed/simple
 #Domain                  example.com # change to domain
-#Selector                key
-#KeyFile                 %{_sysconfdir}/openarc/key.private
+#Selector                selector # e.g. 20250107
+#KeyFile                 %{_sysconfdir}/openarc/keys/selector._domainkey.domain.key
 #SignatureAlgorithm rsa-sha256
 EOF
 
