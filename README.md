@@ -62,6 +62,9 @@ alongside OpenARC (such as `openarc-keygen`) may require:
 
 * Python >= 3.8
 
+Compatibility with older versions of Python 3 has not been
+deliberately broken, but this is the oldest version we test against.
+
 ### DNF-based systems
 
 ```
